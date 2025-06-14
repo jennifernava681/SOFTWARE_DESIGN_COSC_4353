@@ -1,3 +1,6 @@
+# SOFTWARE_DESIGN_COSC_4353
+Group 4 CLASS_COSC 4353
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
