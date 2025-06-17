@@ -1,4 +1,5 @@
 import "./App.css"
+import { useState } from "react";
 
 // Proper Paw Print Icon that matches the design
 const PawIcon = () => (
@@ -67,6 +68,12 @@ const MailIcon = () => (
 const ShieldIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M12 7C13.4 7 14.8 8.6 14.8 10.5V11.5C15.4 11.5 16 12.4 16 13V16C16 17.4 15.4 18 14.8 18H9.2C8.6 18 8 17.4 8 16V13C8 12.4 8.6 11.5 9.2 11.5V10.5C9.2 8.6 10.6 7 12 7M12 8.2C11.2 8.2 10.5 8.7 10.5 10.5V11.5H13.5V10.5C13.5 8.7 12.8 8.2 12 8.2Z" />
+  </svg>
+)
+
+const MenuIcon = () => (
+  <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+    <path d="M4 6h16M4 12h16M4 18h16" stroke="white" strokeWidth="2" strokeLinecap="round" />
   </svg>
 )
 
@@ -157,6 +164,9 @@ const testimonials = [
 ]
 
 function App() {
+
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-main">
       {/* Header */}
@@ -172,6 +182,13 @@ function App() {
                 <p className="logo-subtitle">Animal Rescue & Sanctuary</p>
               </div>
             </div>
+            {/* Mobile Menu Toggle Button */}
+            <button
+              className="mobile-menu-toggle"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              aria-label="Toggle Menu"
+            > <MenuIcon />
+            </button>
             <nav className="nav">
               <a href="#animals" className="nav-link">
                 Our Animals
@@ -186,11 +203,25 @@ function App() {
                 Donate
               </a>
             </nav>
-            <div className="header-buttons">
+            <div className="header-buttons desktop-only">
               <button className="btn btn-outline">Sign In</button>
               <button className="btn btn-primary">Get Started</button>
             </div>
           </div>
+          {showMobileMenu && (
+            <div className="mobile-nav-dropdown">
+                <a href="#animals" className="nav-link" onClick={() => setShowMobileMenu(false)}>Our Animals</a>
+                <a href="#events" className="nav-link" onClick={() => setShowMobileMenu(false)}>Events</a>
+                <a href="#volunteer" className="nav-link" onClick={() => setShowMobileMenu(false)}>Volunteer</a>
+                <a href="#donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>Donate</a>
+              
+
+              <div className="mobile-buttons">
+                <button className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>Sign In</button>
+                <button className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>Get Started</button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
