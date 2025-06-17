@@ -142,7 +142,7 @@ function AllAnimalsPage () {
                                 > <MenuIcon />
                             </button>
                             <nav className="nav">
-                                <Link to="/" className="nav-link">Home Page</Link>
+                                <Link to="/" className="nav-link">Home</Link>
                                 <Link to="/animals" className="nav-link">
                                     Our Animals
                                 </Link>
