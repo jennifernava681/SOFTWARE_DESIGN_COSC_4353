@@ -91,6 +91,8 @@ html {
   padding: 1.25rem 0;
 }
 
+/* Hamburger & Dropdown Menu Styles */
+
 .mobile-menu-toggle {
   position: absolute;
   right: 5rem;
@@ -147,6 +149,8 @@ html {
   width: 100%;
   justify-content: center;
 }
+
+/* END of Hamburger & Dropdown Menu Styles */
 
 .logo-section {
   display: flex;
@@ -969,6 +973,200 @@ html {
   color: #e5e7eb;
   font-size: 1.125rem;
 }
+
+/* ======== AllAnimalsPage Styles ======== */
+
+/* Utility Classes */
+
+.full-width-wrapper {
+  width: 100%;
+  background: lineargradient(135deg, #f9fafb 0%, #f5f5f4 100%)
+}
+
+
+/* Animals Section on AllAnimalsPage */
+
+.all-animals {
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #f5f5f4 100%);
+}
+
+.all-animals-container {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.section-header-all {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.section-title-all {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #14532d;
+  margin-bottom: 1.5rem;
+}
+
+.section-description-all {
+  font-size: 1.25rem;
+  color: #374151;
+  max-width: 48rem;
+  margin: 0 auto;
+  line-height: 1.625;
+}
+
+.section-divider-all {
+  width: 8rem;
+  height: 0.375rem;
+  background: linear-gradient(90deg, #15803d 0%, #166534 100%);
+  margin: 2rem auto 0;
+  border-radius: 9999px;
+}
+
+.animals-grid-all {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+.animal-card-all {
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transition: all 0.5s;
+  transform: translateY(0);
+  border: none;
+  background: white;
+  border-radius: 0.75rem;
+}
+
+.animal-card-all:hover {
+  box-shadow: 0 25px 50px -12px rgba(22, 101, 52, 0.1);
+  transform: translateY(-0.75rem);
+}
+
+.animal-image-container-all {
+  position: relative;
+  overflow: hidden;
+}
+
+.animal-image-all {
+  width: 100%;
+  height: 14rem;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.animal-card-all:hover .animal-image-all {
+  transform: scale(1.1);
+}
+
+.animal-status-all {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #15803d;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.animal-status:hover {
+  background: #166534;
+}
+
+.animal-overlay-all {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.animal-card-all:hover .animal-overlay-all {
+  opacity: 1;
+}
+
+.animal-content-all {
+  padding: 1.5rem;
+}
+
+.animal-name-all {
+  font-size: 1.875rem;
+  color: #14532d;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.animal-details-all {
+  color: #374151;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.animal-description-all {
+  color: #1f2937;
+  margin-bottom: 2rem;
+  font-size: 1.125rem;
+  line-height: 1.625;
+}
+
+.btn-animal-all {
+  width: 100%;
+  background: linear-gradient(90deg, #15803d 0%, #166534 100%);
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  font-size: 1.125rem;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-animal-all:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(90deg, #166534 0%, #14532d 100%);
+}
+
+.view-btn-all {
+  text-align: center;
+  margin-top: 4rem;
+}
+
+.btn-all-view {
+  border: 3px solid #15803d;
+  color: #166534;
+  background: transparent;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  font-size: 1.125rem;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.btn-all-view:hover {
+  background: #15803d;
+  color: white;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+
+
+/* ====== Media Queries ====== */
 
 /* Responsive Design */
 @media (min-width: 640px) {
