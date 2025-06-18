@@ -1,0 +1,76 @@
+.match-page {
+  background: linear-gradient(135deg, #f9fafb 0%, #f5f5f4 50%, #f3f4f6 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.match-header {
+  background: linear-gradient(90deg, #14532d 0%, #166534 50%, #000000 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-section h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.logo-section p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  margin-left: 1rem;
+  font-weight: 500;
+}
+
+.match-container {
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+}
+
+.match-container h2 {
+  color: #14532d;
+  margin-bottom: 2rem;
+}
+
+.match-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.match-card {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 0 10px rgba(22, 163, 74, 0.1);
+}
+
+.match-card h3 {
+  margin-top: 0;
+  color: #14532d;
+}
+
+.match-card p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  color: #064e3b;
+}
