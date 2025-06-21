@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require("mysql");
 const app = express();
 const PORT = 5000;
+/* const apiRouter = require() */
 
 require("dotenv").config();
 
@@ -23,6 +24,7 @@ conn.connect(err => {
 /*module.exports = conn;*/
 
 app.use(express.json());
+/* app.use("/api", apiRouter)*/
 
 app.get('/', (req, res) => {
     res.send('Welcome to the Animal Shelter backend!');
