@@ -1,4 +1,4 @@
-import "./App.css";
+import "./css/home.css";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 

@@ -1,24 +1,25 @@
-import "./App.css";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+"use client"
 
+import "./css/home.css"
+import { useState } from "react"
+import { Link } from "react-router-dom"
 
 // Proper Paw Print Icon that matches the design
 function PawIcon() {
-    return (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-            {/* Main paw pad */}
-            <ellipse cx="12" cy="16" rx="4" ry="3" />
-            {/* Top left toe pad */}
-            <circle cx="8" cy="10" r="1.5" />
-            {/* Top center toe pad */}
-            <circle cx="12" cy="8" r="1.5" />
-            {/* Top right toe pad */}
-            <circle cx="16" cy="10" r="1.5" />
-            {/* Side toe pad */}
-            <circle cx="18" cy="13" r="1.2" />
-        </svg>
-    );
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+      {/* Main paw pad */}
+      <ellipse cx="12" cy="16" rx="4" ry="3" />
+      {/* Top left toe pad */}
+      <circle cx="8" cy="10" r="1.5" />
+      {/* Top center toe pad */}
+      <circle cx="12" cy="8" r="1.5" />
+      {/* Top right toe pad */}
+      <circle cx="16" cy="10" r="1.5" />
+      {/* Side toe pad */}
+      <circle cx="18" cy="13" r="1.2" />
+    </svg>
+  )
 }
 
 const HeartIcon = () => (
@@ -167,15 +168,34 @@ const testimonials = [
   },
 ]
 
-function HomePage () {
+function HomePage() {
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
 
-
-    const [showMobileMenu, setShowMobileMenu] = useState(false);
-    
-    return (
+  return (
     <div className="min-h-screen bg-gradient-main">
+      {/* Top Login Bar for Employers */}
+      <div className="top-login-bar">
+        <div className="top-login-container">
+          <div className="top-login-left">
+            <span className="text-gray-300">🏢 Are you an employer or shelter staff?</span>
+          </div>
+          <div className="top-login-right">
+            <Link to="/loginw" className="top-login-link">
+              👤 Staff Login
+            </Link>
+            <span className="top-login-separator">|</span>
+            <Link to="/registerw" className="top-login-link">
+              📝 Staff Register
+            </Link>
+            <span className="top-login-separator">|</span>
+            <a href="tel:+1-555-HOPE-PAW" className="top-login-link">
+              📞 Emergency: (555) HOPE-PAW
+            </a>
+          </div>
+        </div>
+      </div>
       {/* Header */}
-      <header className="bg-gradient-header header">
+      <header className="bg-gradient-header header" style={{ position: "sticky", top: "40px" }}>
         <div className="header-container">
           <div className="header-content">
             <div className="logo-section">
@@ -192,38 +212,55 @@ function HomePage () {
               className="mobile-menu-toggle"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               aria-label="Toggle Menu"
-            > <MenuIcon />
+            >
+              {" "}
+              <MenuIcon />
             </button>
             <nav className="nav">
               <Link to="/animals" className="nav-link">
                 Our Animals
               </Link>
-              <a href="#events" className="nav-link">
+              <Link to="/my-events" className="nav-link">
                 Events
-              </a>
+              </Link>
               <a href="#volunteer" className="nav-link">
                 Volunteer
               </a>
-              <a href="#donate" className="nav-link">
+              <Link to="/donate" className="nav-link">
                 Donate
-              </a>
+              </Link>
             </nav>
             <div className="header-buttons desktop-only">
-              <button className="btn btn-outline">Sign In</button>
-              <button className="btn btn-primary">Get Started</button>
+              <Link to="/login" className="btn btn-outline">
+                Sign In
+              </Link>
+              <Link to="/registerPage" className="btn btn-primary">
+                Get Started
+              </Link>
             </div>
           </div>
           {showMobileMenu && (
             <div className="mobile-nav-dropdown">
-                <Link to="/animals" className="nav-link" onClick={() => setShowMobileMenu(false)}>Our Animals</Link>
-                <a href="#events" className="nav-link" onClick={() => setShowMobileMenu(false)}>Events</a>
-                <a href="#volunteer" className="nav-link" onClick={() => setShowMobileMenu(false)}>Volunteer</a>
-                <a href="#donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>Donate</a>
-              
+              <Link to="/animals" className="nav-link" onClick={() => setShowMobileMenu(false)}>
+                Our Animals
+              </Link>
+              <Link to="/my-events" className="nav-link" onClick={() => setShowMobileMenu(false)}>
+                Events
+              </Link>
+              <a href="#volunteerHistoryPage" className="nav-link" onClick={() => setShowMobileMenu(false)}>
+                Volunteer
+              </a>
+              <Link to="/donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>
+                Donate
+              </Link>
 
               <div className="mobile-buttons">
-                <button className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>Sign In</button>
-                <button className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>Get Started</button>
+                <Link to="/login" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
+                  Sign In
+                </Link>
+                <Link to="/register" className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>
+                  Get Started
+                </Link>
               </div>
             </div>
           )}
@@ -251,10 +288,10 @@ function HomePage () {
               Join us in creating happy endings, one paw at a time.
             </p>
             <div className="hero-buttons">
-              <button className="btn-hero btn-hero-primary">
+              <Link to="/animals" className="btn-hero btn-hero-primary">
                 <HeartIcon />
                 <span style={{ marginLeft: "0.5rem" }}>Find Your Companion</span>
-              </button>
+              </Link>
               <button className="btn-hero btn-hero-secondary">
                 <UsersIcon />
                 <span style={{ marginLeft: "0.5rem" }}>Volunteer With Us</span>
@@ -263,8 +300,6 @@ function HomePage () {
           </div>
         </div>
       </section>
-
-      {/* Why Adopt & Why Volunteer Section */}
 
       {/* Featured Animals */}
       <section id="animals" className="animals">
@@ -291,16 +326,18 @@ function HomePage () {
                     {animal.breed} • {animal.age}
                   </p>
                   <p className="animal-description">{animal.description}</p>
-                  <button className="btn-animal">
+                  <Link to="/submit-adoption" className="btn-animal">
                     <HeartIcon />
                     <span style={{ marginLeft: "0.5rem" }}>Learn More About {animal.name}</span>
-                  </button>
+                  </Link>
                 </div>
               </div>
             ))}
           </div>
           <div className="view-all-btn">
-            <button className="btn-view-all">View All Available Animals</button>
+            <Link to="/animals" className="btn-view-all">
+              View All Available Animals
+            </Link>
           </div>
         </div>
       </section>
@@ -395,19 +432,19 @@ function HomePage () {
             the hero in their story of hope and healing.
           </p>
           <div className="cta-buttons">
-            <button className="btn-cta btn-cta-primary">
+            <Link to="/donate" className="btn-cta btn-cta-primary">
               <HeartIcon />
               <span style={{ marginLeft: "0.75rem" }}>Make a Donation</span>
-            </button>
-            <button className="btn-cta btn-cta-secondary">
+            </Link>
+            <Link to="/surrender" className="btn-cta btn-cta-secondary">
               <PawIcon />
               <span style={{ marginLeft: "0.75rem" }}>Rehome an Animal</span>
-            </button>
+            </Link>
           </div>
         </div>
       </section>
     </div>
-    );
+  )
 }
 
-export default HomePage;
+export default HomePage
