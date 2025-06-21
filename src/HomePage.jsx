@@ -198,9 +198,9 @@ function HomePage () {
               <Link to="/animals" className="nav-link">
                 Our Animals
               </Link>
-              <a href="#events" className="nav-link">
+              <Link to="/my-events" className="nav-link">
                 Events
-              </a>
+              </Link>
               <a href="#volunteer" className="nav-link">
                 Volunteer
               </a>
@@ -216,7 +216,7 @@ function HomePage () {
           {showMobileMenu && (
             <div className="mobile-nav-dropdown">
                 <Link to="/animals" className="nav-link" onClick={() => setShowMobileMenu(false)}>Our Animals</Link>
-                <a href="#events" className="nav-link" onClick={() => setShowMobileMenu(false)}>Events</a>
+                <Link to="/my-events" className="nav-link" onClick={() => setShowMobileMenu(false)}>Events</Link>
                 <a href="#volunteer" className="nav-link" onClick={() => setShowMobileMenu(false)}>Volunteer</a>
                 <a href="#donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>Donate</a>
               

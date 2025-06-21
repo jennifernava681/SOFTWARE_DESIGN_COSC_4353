@@ -1,7 +1,7 @@
 import React from "react";
-import { dummyMatches } from "./dummyData";
+import { dummyMatches } from "../../../dummyData";
 import { Link } from "react-router-dom";
-import "./css/VolunteerMatchPage.css";
+import "../../../css/VolunteerMatchPage.css";
 
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">

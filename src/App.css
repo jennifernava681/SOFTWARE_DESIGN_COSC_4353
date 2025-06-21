@@ -82,6 +82,7 @@ html {
   max-width: 80rem;
   margin: 0 auto;
   padding: 0 1rem;
+  position: relative;
 }
 
 .header-content {
@@ -108,33 +109,38 @@ html {
   display: flex;
   position: absolute;
   top: 100%;
-  right: 4.8rem;
+  left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(90deg, #14532d 0%, #166534 50%, #000000 100%);
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 1rem;
   padding: 1.5rem 0;
   border-top: 4px solid #22c55e;
   z-index: 40;
   width: 100%;
-  max-width: 300px;
+  max-width: 310px;
 }
 
-.mobile-nav-dropdown .nav-link {
+.mobile-nav-dropdown > .nav-link {
   display: block;
+  position: relative;
+  right: 2.5%;
   color: white;
   font-size: 1.125rem;
   text-decoration: none;
   font-weight: 450;
   width: 100%;
+  max-width: 310px;
   text-align: center;
-  padding: 0.85rem 1.25rem;
+  padding: 0.80rem;
   transition: background-color 0.3s ease;
+  box-sizing: border-box;
 }
 
 .mobile-nav-dropdown .nav-link:hover {
   background: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
 }
 
 .mobile-buttons {
@@ -146,7 +152,9 @@ html {
 
 .mobile-buttons .btn {
   display: flex;
-  width: 100%;
+  position: relative;
+  right: 50%;
+  width: 200%;
   justify-content: center;
 }
 

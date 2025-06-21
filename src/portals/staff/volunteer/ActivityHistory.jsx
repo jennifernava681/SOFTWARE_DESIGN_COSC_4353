@@ -1,7 +1,7 @@
 import React from "react";
-import { dummyVolunteerHistory } from "./dummyData";
+import { dummyVolunteerHistory } from "../../../dummyData";
 import { Link } from "react-router-dom";
-import "./css/VolunteerHistoryPage.css";
+import "../../../css/VolunteerHistoryPage.css";
 
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -13,7 +13,7 @@ const PawIcon = () => (
   </svg>
 );
 
-function VolunteerHistoryPage() {
+function ActivityHistory() {
   return (
     <div className="history-page">
       <header className="history-header">
@@ -66,4 +66,4 @@ function VolunteerHistoryPage() {
   );
 }
 
-export default VolunteerHistoryPage;
+export default ActivityHistory;

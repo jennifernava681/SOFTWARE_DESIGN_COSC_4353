@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./css/EventFormPage.css";
+import "../../../css/EventFormPage.css";
 
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -12,7 +12,7 @@ const PawIcon = () => (
   </svg>
 );
 
-function EventFormPage() {
+function EventManager() {
   return (
     <div className="event-page">
       <header className="event-header">
@@ -55,4 +55,4 @@ function EventFormPage() {
   );
 }
 
-export default EventFormPage;
+export default EventManager;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { dummyUsers } from "./dummyData";
+import { dummyUsers } from "../../../dummyData";
 import { Link } from "react-router-dom";
-import "./css/ProfilePage.css";
+import "../../../css/ProfilePage.css";
 
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -67,7 +67,7 @@ function ProfilePage() {
             className="full-width"
           />
 
-          <button className="full-width" disabled>Submitted</button>
+          <button className="full-width" disabled>Submit</button>
         </form>
       </main>
     </div>
