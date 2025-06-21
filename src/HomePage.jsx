@@ -1,6 +1,6 @@
 "use client"
 
-import "./css/home.css"
+import "./index.css"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 
@@ -34,18 +34,6 @@ const UsersIcon = () => (
   </svg>
 )
 
-const StarIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-  </svg>
-)
-
-const AwardIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M5 16L3 21L8.5 18L12 21L15.5 18L21 21L19 16H5M12 11C14.21 11 16 9.21 16 7S14.21 3 12 3 8 4.79 8 7 9.79 11 12 11M12 9C10.9 9 10 8.1 10 7S10.9 5 12 5 14 5.9 14 7 13.1 9 12 9Z" />
-  </svg>
-)
-
 const CalendarIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M19 19H5V8H19V19M7 10H12V15H7" />
@@ -55,18 +43,6 @@ const CalendarIcon = () => (
 const MapPinIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22S19 14.25 19 9C19 5.13 15.87 2 12 2M12 11.5C10.62 11.5 9.5 10.38 9.5 9S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5Z" />
-  </svg>
-)
-
-const PhoneIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" />
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4M20 8L12 13L4 8V6L12 11L20 6V8Z" />
   </svg>
 )
 
@@ -91,7 +67,7 @@ const featuredAnimals = [
     breed: "Golden Retriever",
     age: "3 years",
     status: "Available",
-    image: "https://via.placeholder.com/400x300/22c55e/ffffff?text=Buddy+Dog",
+    image: "/placeholder.svg?height=300&width=400&text=Buddy+Dog",
     description: "Friendly and energetic, great with kids and other pets",
   },
   {
@@ -101,7 +77,7 @@ const featuredAnimals = [
     breed: "Siamese Mix",
     age: "2 years",
     status: "Available",
-    image: "https://via.placeholder.com/400x300/16a34a/ffffff?text=Luna+Cat",
+    image: "/placeholder.svg?height=300&width=400&text=Luna+Cat",
     description: "Calm and affectionate, loves to cuddle and purr",
   },
   {
@@ -111,7 +87,7 @@ const featuredAnimals = [
     breed: "German Shepherd",
     age: "5 years",
     status: "Available",
-    image: "https://via.placeholder.com/400x300/15803d/ffffff?text=Max+Dog",
+    image: "/placeholder.svg?height=300&width=400&text=Max+Dog",
     description: "Loyal and protective, needs experienced owner",
   },
 ]
@@ -135,67 +111,13 @@ const upcomingEvents = [
   },
 ]
 
-// Clean, simple stats without icons
-const stats = [
-  {
-    title: "Why Adopt",
-    reasons: [
-      "Give a homeless animal a second chance",
-      "Reduce shelter overcrowding and euthanasia",
-      "Gain a loyal companion who changes your life",
-    ],
-  },
-  {
-    title: "Why Volunteer",
-    reasons: [
-      "Support animals through care, love, and time",
-      "Help shelters run and reach more people",
-      "Be part of something meaningful and lasting",
-    ],
-  },
-]
-
-const testimonials = [
-  {
-    name: "Sarah Johnson",
-    text: "Hope Paws helped us find our perfect companion. The staff was incredibly caring and made sure we were the right match.",
-    pet: "Adopted Bella (Golden Lab Mix)",
-  },
-  {
-    name: "Michael Chen",
-    text: "Volunteering at Hope Paws has been the most rewarding experience. Seeing animals find their forever homes is priceless.",
-    pet: "Volunteer since 2022",
-  },
-]
-
 function HomePage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   return (
     <div className="min-h-screen bg-gradient-main">
-      {/* Top Login Bar for Employers */}
-      <div className="top-login-bar">
-        <div className="top-login-container">
-          <div className="top-login-left">
-            <span className="text-gray-300">🏢 Are you an employer or shelter staff?</span>
-          </div>
-          <div className="top-login-right">
-            <Link to="/loginw" className="top-login-link">
-              👤 Staff Login
-            </Link>
-            <span className="top-login-separator">|</span>
-            <Link to="/registerw" className="top-login-link">
-              📝 Staff Register
-            </Link>
-            <span className="top-login-separator">|</span>
-            <a href="tel:+1-555-HOPE-PAW" className="top-login-link">
-              📞 Emergency: (555) HOPE-PAW
-            </a>
-          </div>
-        </div>
-      </div>
       {/* Header */}
-      <header className="bg-gradient-header header" style={{ position: "sticky", top: "40px" }}>
+      <header className="bg-gradient-header header" style={{ position: "sticky", top: "0px" }}>
         <div className="header-container">
           <div className="header-content">
             <div className="logo-section">
@@ -213,7 +135,6 @@ function HomePage() {
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               aria-label="Toggle Menu"
             >
-              {" "}
               <MenuIcon />
             </button>
             <nav className="nav">
@@ -223,9 +144,9 @@ function HomePage() {
               <Link to="/my-events" className="nav-link">
                 Events
               </Link>
-              <a href="#volunteer" className="nav-link">
+              <Link to="/applyVolunteer" className="nav-link">
                 Volunteer
-              </a>
+              </Link>
               <Link to="/donate" className="nav-link">
                 Donate
               </Link>
@@ -233,6 +154,9 @@ function HomePage() {
             <div className="header-buttons desktop-only">
               <Link to="/login" className="btn btn-outline">
                 Sign In
+              </Link>
+              <Link to="/stafflogin" className="btn btn-outline">
+                Staff Login
               </Link>
               <Link to="/register" className="btn btn-primary">
                 Get Started
@@ -247,9 +171,9 @@ function HomePage() {
               <Link to="/my-events" className="nav-link" onClick={() => setShowMobileMenu(false)}>
                 Events
               </Link>
-              <a href="#volunteerHistoryPage" className="nav-link" onClick={() => setShowMobileMenu(false)}>
+              <Link to="/applyVolunteer" className="nav-link" onClick={() => setShowMobileMenu(false)}>
                 Volunteer
-              </a>
+              </Link>
               <Link to="/donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>
                 Donate
               </Link>
@@ -257,6 +181,9 @@ function HomePage() {
               <div className="mobile-buttons">
                 <Link to="/login" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
                   Sign In
+                </Link>
+                <Link to="/stafflogin" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
+                  Staff Login
                 </Link>
                 <Link to="/register" className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>
                   Get Started
@@ -292,10 +219,10 @@ function HomePage() {
                 <HeartIcon />
                 <span style={{ marginLeft: "0.5rem" }}>Find Your Companion</span>
               </Link>
-              <button className="btn-hero btn-hero-secondary">
+              <Link to="/applyVolunteer" className="btn-hero btn-hero-secondary">
                 <UsersIcon />
                 <span style={{ marginLeft: "0.5rem" }}>Volunteer With Us</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -414,7 +341,9 @@ function HomePage() {
                   </p>
                 </div>
                 <div className="event-content">
-                  <button className="btn-event">Register for Event</button>
+                  <Link to="/my-events" className="btn-event">
+                    Register for Event
+                  </Link>
                 </div>
               </div>
             ))}
