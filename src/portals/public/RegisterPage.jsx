@@ -4,7 +4,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useState } from "react"
 import "../../index.css";
-import "../../css/LoginUSER.css";
+import "../../css/register.css";
 
 // Icons
 const PawIcon = () => (
