@@ -144,7 +144,7 @@ function HomePage() {
               <Link to="/my-events" className="nav-link">
                 Events
               </Link>
-              <Link to="/applyVolunteer" className="nav-link">
+              <Link to="/login" className="nav-link">
                 Volunteer
               </Link>
               <Link to="/donate" className="nav-link">
@@ -171,7 +171,7 @@ function HomePage() {
               <Link to="/my-events" className="nav-link" onClick={() => setShowMobileMenu(false)}>
                 Events
               </Link>
-              <Link to="/applyVolunteer" className="nav-link" onClick={() => setShowMobileMenu(false)}>
+              <Link to="/login" className="nav-link" onClick={() => setShowMobileMenu(false)}>
                 Volunteer
               </Link>
               <Link to="/donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>
@@ -219,7 +219,7 @@ function HomePage() {
                 <HeartIcon />
                 <span style={{ marginLeft: "0.5rem" }}>Find Your Companion</span>
               </Link>
-              <Link to="/applyVolunteer" className="btn-hero btn-hero-secondary">
+              <Link to="/login" className="btn-hero btn-hero-secondary">
                 <UsersIcon />
                 <span style={{ marginLeft: "0.5rem" }}>Volunteer With Us</span>
               </Link>
