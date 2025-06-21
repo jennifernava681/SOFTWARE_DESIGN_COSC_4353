@@ -1,27 +1,28 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AllAnimalsPage from './AllAnimalsPage.jsx';
-import HomePage from './HomePage';
-import LoginPage from './LoginPage.jsx';
-import RegisterPage from './RegisterPage.jsx';
-import EventFormPage from './EventFormPage.jsx';
-import ProfilePage from './ProfilePage.jsx';
-import VolunteerHistoryPage from './VolunteerHistoryPage.jsx';
-import VolunteerMatchPage from './VolunteerMatchPage.jsx';
 
-function App() { 
+import AllAnimalsPage from './AllAnimalsPage.jsx';
+
+// USER PAGES
+import BrowseAnimals from './USER/BrowseAnimals.jsx';
+import DonatePage from './USER/DonatePage.jsx';
+import MyEvents from './USER/MyEvents.jsx';
+import SubmitAdoptionRequest from './USER/SubmitAdoptionRequest.jsx';
+import SurrenderAnimal from './USER/SurrenderAnimal.jsx';
+import LoginUSER from './USER/LoginUSER.jsx';
+import RegisterPage from './USER/RegisterPage.jsx';
+
+function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/animals" element={<AllAnimalsPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/create-event" element={<EventFormPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/history" element={<VolunteerHistoryPage />} />
-        <Route path="/match-volunteers" element={<VolunteerMatchPage />} />
-      </Routes>    
+        <Route path="/" element={<AllAnimalsPage />} />
+        <Route path="/animals" element={<BrowseAnimals />} />
+        <Route path="/donate" element={<DonatePage />} />
+        <Route path="/my-events" element={<MyEvents />} />
+        <Route path="/submit-adoption" element={<SubmitAdoptionRequest />} />
+        <Route path="/surrender" element={<SurrenderAnimal />} />
+      </Routes>
     </Router>
   );
 }
