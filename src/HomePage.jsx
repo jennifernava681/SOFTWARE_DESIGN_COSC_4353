@@ -221,7 +221,6 @@ function HomePage() {
                 Our Animals
               </Link>
               <Link to="/my-events" className="nav-link">
-              <Link to="/my-events" className="nav-link">
                 Events
               </Link>
               <a href="#volunteer" className="nav-link">
