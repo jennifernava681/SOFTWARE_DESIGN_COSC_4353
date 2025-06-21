@@ -234,7 +234,7 @@ function HomePage() {
               <Link to="/login" className="btn btn-outline">
                 Sign In
               </Link>
-              <Link to="/registerPage" className="btn btn-primary">
+              <Link to="/register" className="btn btn-primary">
                 Get Started
               </Link>
             </div>
