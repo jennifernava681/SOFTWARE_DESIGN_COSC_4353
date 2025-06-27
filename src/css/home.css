@@ -1243,3 +1243,63 @@ html {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Notification Banner Style */
+.notification-banner {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid #15803d;
+  color: #14532d;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px -8px rgba(21, 128, 61, 0.10), 0 2px 8px -2px rgba(0,0,0,0.06);
+  padding: 1.25rem 2rem;
+  margin: 1.5rem auto;
+  max-width: 600px;
+  font-size: 1.15rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 100;
+  position: relative;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+
+@media (max-width: 640px) {
+  .notification-banner {
+    padding: 1rem 1rem;
+    font-size: 1rem;
+    max-width: 95vw;
+  }
+}
+
+/* Floating Notification Overlay */
+.notification-overlay {
+  position: fixed;
+  top: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+.notification-banner.floating {
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(-30px) scale(0.98);
+  transition: opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 16px 32px -8px rgba(21,128,61,0.18), 0 2px 8px -2px rgba(0,0,0,0.10);
+}
+
+.notification-banner.floating.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.notification-banner.floating.hide {
+  opacity: 0;
+  transform: translateY(-30px) scale(0.98);
+}

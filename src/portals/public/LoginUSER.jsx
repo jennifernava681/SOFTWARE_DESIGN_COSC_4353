@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react"
 import "../../css/LoginUSER.css";
 import "../../index.css"
+import NotificationBanner from '../../NotificationBanner.jsx';
 
 // Icons
 const PawIcon = () => (
@@ -55,6 +56,16 @@ function LoginUSER() {
     rememberMe: false,
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [showBanner, setShowBanner] = useState(false);
+
+  // Auto-dismiss after 3 seconds
+  React.useEffect(() => {
+    let timer;
+    if (showBanner) {
+      timer = setTimeout(() => setShowBanner(false), 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [showBanner]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -67,6 +78,7 @@ function LoginUSER() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setShowBanner(true);
 
     // Simulate API call
     setTimeout(() => {
@@ -98,6 +110,12 @@ function LoginUSER() {
           </div>
         </div>
       </div>
+      <NotificationBanner
+        message="Login attempt submitted!"
+        floating
+        show={showBanner}
+        onClose={() => setShowBanner(false)}
+      />
 
       <div className="login-container">
         {/* Left side - Branding */}
