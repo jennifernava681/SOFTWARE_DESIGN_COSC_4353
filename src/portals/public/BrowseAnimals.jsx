@@ -1,4 +1,3 @@
-
 import "../../css/home.css";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -88,7 +87,7 @@ const featuredAnimals = [
         breed: "Golden Retriever",
         age: "3 years",
         status: "Available",
-        image: "https://via.placeholder.com/400x300/22c55e/ffffff?text=Buddy+Dog",
+        image: "/images/animals/buddy.png",
         description: "Friendly and energetic, great with kids and other pets",
     },
     {
@@ -98,7 +97,7 @@ const featuredAnimals = [
         breed: "Siamese Mix",
         age: "2 years",
         status: "Available",
-        image: "https://via.placeholder.com/400x300/16a34a/ffffff?text=Luna+Cat",
+        image: "/images/animals/luna.png",
         description: "Calm and affectionate, loves to cuddle and purr",
     },
     {
@@ -108,7 +107,7 @@ const featuredAnimals = [
         breed: "German Shepherd",
         age: "5 years",
         status: "Available",
-        image: "https://via.placeholder.com/400x300/15803d/ffffff?text=Max+Dog",
+        image: "/images/animals/max.png",
         description: "Loyal and protective, needs experienced owner",
     },
 ]

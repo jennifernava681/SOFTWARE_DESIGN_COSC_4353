@@ -1,15 +1,13 @@
 .history-page {
-  background: linear-gradient(135deg, #f9fafb 0%, #f5f5f4 50%, #f3f4f6 100%);
+  background: linear-gradient(135deg, #E2F0F9 0%, #B0DDE4 50%, #FFFFFF 100%);
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Montserrat', Arial, sans-serif;
 }
 
 /* Header */
 .history-header {
-  background: linear-gradient(90deg, #14532d 0%, #166534 50%, #000000 100%);
-  color: white;
+  background: linear-gradient(90deg, #B0DDE4 0%, #286FB4 100%);
+  color: #FFFFFF;
   display: flex;
   justify-content: space-between;
   padding: 1.5rem 2rem;
@@ -25,15 +23,17 @@
 .logo-section h1 {
   margin: 0;
   font-size: 1.8rem;
+  color: #286FB4;
 }
 
 .logo-section p {
   margin: 0;
   font-size: 0.9rem;
+  color: #B0DDE4;
 }
 
 .nav-link {
-  color: white;
+  color: #286FB4;
   text-decoration: none;
   margin-left: 1rem;
   font-weight: 500;
@@ -44,14 +44,14 @@
   max-width: 95%;
   margin: 6rem auto 3rem;
   padding: 2rem;
-  background: white;
+  background: #FFFFFF;
   border-radius: 1rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(40, 111, 180, 0.05);
 }
 
 /* Title */
 .history-container h2 {
-  background: linear-gradient(90deg, #16a34a 0%, #15803d 50%, #166534 100%);
+  background: linear-gradient(90deg, #DF4C73 0%, #286FB4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-align: center;
@@ -73,18 +73,17 @@ table {
   border-radius: 0.75rem;
   overflow: hidden;
   font-size: 0.95rem;
-  box-shadow: 0 0 0 1px #e5e7eb;
+  box-shadow: 0 0 0 1px #B0DDE4;
 }
 
 /* Header styling */
 th {
-  background-color: #f0fdf4;
-  color: #166534;
+  background-color: #E2F0F9;
+  color: #286FB4;
   font-weight: bold;
   padding: 0.75rem;
   text-align: left;
 }
-
 
 th:first-child {
   border-top-left-radius: 0.75rem;
@@ -96,11 +95,11 @@ th:last-child {
 /* Row styling */
 td {
   padding: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-  color: #111827;
+  border-top: 1px solid #B0DDE4;
+  color: #286FB4;
 }
 
 /* Alternating row color */
 tr:nth-child(even) {
-  background-color: #f9fafb;
+  background-color: #E2F0F9;
 }
