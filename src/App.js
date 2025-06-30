@@ -1,5 +1,6 @@
 import "./css/home.css";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './Header.jsx';
 
 import HomePage from './HomePage.jsx';
 import ProfilePage from './portals/staff/volunteer/ProfilePage.jsx';
@@ -40,46 +41,57 @@ import MyTasks from './portals/staff/volunteer/MyTasks.jsx';
 import VolunteerDash from './portals/staff/volunteer/VolunteerDash.jsx';
 import VolunteerMatchPage from './portals/staff/volunteer/VolunteerMatchPage.jsx';
 
+// Layout Component
+const Layout = ({ children, userType }) => (
+  <>
+    <Header userType={userType} />
+    {children}
+  </>
+);
+
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Pages without header */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/profilePage" element={<ProfilePage />} />
-
-        {/* Start of User routes */}
-        <Route path="/animals" element={<BrowseAnimals />} /> 
-        <Route path="/donate" element={<DonatePage />} />
-        <Route path="/my-events" element={<MyEvents />} />
-        <Route path="/submit-adoption" element={<SubmitAdoptionRequest />} />
-        <Route path="/surrender" element={<SurrenderAnimal />} />
         <Route path="/login" element={<LoginUSER />} />
-        <Route path="/register" element={<RegisterPage/>} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/stafflogin" element={<StaffLogin />} />
 
-        {/* Start of Manager routes */}
-        <Route path="/assigntasks" element={<AssignTasks />} />
-        <Route path="/donatereports" element={<DonationReports />} />
-        <Route path="/eventmanager" element={<EventManager />} />
-        <Route path="/eventreports" element={<EventReports />} />
-        <Route path="/manageanimals" element={<ManageAnimals />} />
-        <Route path="/managerdash" element={<ManagerDash />} />
-        <Route path="/removevolunteer" element={<RemoveVolunteer />} />
-        <Route path="/reviewSurrenderRequest" element={<ReviewSurrenderRequests />} />
-        <Route path="/reviewVolunteersApps" element={<ReviewVolunteersApps />} />
-        <Route path="/volunteerPerformance" element={<VolunteerPerformance />} />
+        {/* Profile page (shared by all staff) */}
+        <Route path="/profilePage" element={<Layout userType="staff"><ProfilePage /></Layout>} />
 
-        {/* Start of Vet routes */}
-        <Route path="/animalMedicalForm" element={<AnimalMedicalForm />} />
-        <Route path="/readyStatusForm" element={<ReadyStatusForm />} />
-        <Route path="/vetdashboard" element={<VetDashboard />} />
+        {/* Public User routes with header */}
+        <Route path="/animals" element={<Layout userType="public"><BrowseAnimals /></Layout>} />
+        <Route path="/donate" element={<Layout userType="public"><DonatePage /></Layout>} />
+        <Route path="/my-events" element={<Layout userType="public"><MyEvents /></Layout>} />
+        <Route path="/submit-adoption" element={<Layout userType="public"><SubmitAdoptionRequest /></Layout>} />
+        <Route path="/surrender" element={<Layout userType="public"><SurrenderAnimal /></Layout>} />
 
-        {/*Start of Volunteer routes */}
-        <Route path="/activityHistory" element={<ActivityHistory />} />
-        <Route path="/applyVolunteer" element={<ApplyVolunteer />} />
-        <Route path="/mytasks" element={<MyTasks />} />
-        <Route path="/volunteerDash" element={<VolunteerDash />} />
-        <Route path="/volunteerMatchPage" element={<VolunteerMatchPage />} />
+        {/* Manager routes with header */}
+        <Route path="/assigntasks" element={<Layout userType="manager"><AssignTasks /></Layout>} />
+        <Route path="/donatereports" element={<Layout userType="manager"><DonationReports /></Layout>} />
+        <Route path="/eventmanager" element={<Layout userType="manager"><EventManager /></Layout>} />
+        <Route path="/eventreports" element={<Layout userType="manager"><EventReports /></Layout>} />
+        <Route path="/manageanimals" element={<Layout userType="manager"><ManageAnimals /></Layout>} />
+        <Route path="/managerdash" element={<Layout userType="manager"><ManagerDash /></Layout>} />
+        <Route path="/removevolunteer" element={<Layout userType="manager"><RemoveVolunteer /></Layout>} />
+        <Route path="/reviewSurrenderRequest" element={<Layout userType="manager"><ReviewSurrenderRequests /></Layout>} />
+        <Route path="/reviewVolunteersApps" element={<Layout userType="manager"><ReviewVolunteersApps /></Layout>} />
+        <Route path="/volunteerPerformance" element={<Layout userType="manager"><VolunteerPerformance /></Layout>} />
+
+        {/* Vet routes with header */}
+        <Route path="/animalMedicalForm" element={<Layout userType="vet"><AnimalMedicalForm /></Layout>} />
+        <Route path="/readyStatusForm" element={<Layout userType="vet"><ReadyStatusForm /></Layout>} />
+        <Route path="/vetdashboard" element={<Layout userType="vet"><VetDashboard /></Layout>} />
+
+        {/* Volunteer routes with header */}
+        <Route path="/activityHistory" element={<Layout userType="volunteer"><ActivityHistory /></Layout>} />
+        <Route path="/applyVolunteer" element={<Layout userType="volunteer"><ApplyVolunteer /></Layout>} />
+        <Route path="/mytasks" element={<Layout userType="volunteer"><MyTasks /></Layout>} />
+        <Route path="/volunteerDash" element={<Layout userType="volunteer"><VolunteerDash /></Layout>} />
+        <Route path="/volunteerMatchPage" element={<Layout userType="volunteer"><VolunteerMatchPage /></Layout>} />
       </Routes>
     </Router>
   );
