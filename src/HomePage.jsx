@@ -67,7 +67,7 @@ const featuredAnimals = [
     breed: "Golden Retriever",
     age: "3 years",
     status: "Available",
-    image: "/placeholder.svg?height=300&width=400&text=Buddy+Dog",
+    image: "/images/home/buddy.png",
     description: "Friendly and energetic, great with kids and other pets",
   },
   {
@@ -77,7 +77,7 @@ const featuredAnimals = [
     breed: "Siamese Mix",
     age: "2 years",
     status: "Available",
-    image: "/placeholder.svg?height=300&width=400&text=Luna+Cat",
+    image: "/images/home/luna.png",
     description: "Calm and affectionate, loves to cuddle and purr",
   },
   {
@@ -87,7 +87,7 @@ const featuredAnimals = [
     breed: "German Shepherd",
     age: "5 years",
     status: "Available",
-    image: "/placeholder.svg?height=300&width=400&text=Max+Dog",
+    image: "/images/home/max.png",
     description: "Loyal and protective, needs experienced owner",
   },
 ]

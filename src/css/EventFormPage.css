@@ -26,7 +26,7 @@ html {
 }
 
 .bg-gradient-header {
-  background: linear-gradient(90deg, #14532d 0%, #166534 50%, #000000 100%);
+  background: linear-gradient(90deg, #B0DDE4 0%, #286FB4 100%);
 }
 
 .bg-gradient-button {
@@ -57,13 +57,13 @@ html {
 .task-title {
   font-size: 3rem;
   font-weight: 700;
-  color: #14532d;
+  color: #286FB4;
   margin-bottom: 1rem;
 }
 
 .task-subtitle {
   font-size: 1.25rem;
-  color: #374151;
+  color: rgba(40, 111, 180, 0.8);
 }
 
 .task-grid {
@@ -93,8 +93,8 @@ html {
 }
 
 .card-header {
-  background: linear-gradient(90deg, #14532d 0%, #166534 50%, #000000 100%);
-  color: white;
+  background: linear-gradient(90deg, #B0DDE4 0%, #286FB4 100%);
+  color: #FFFFFF;
   padding: 1.5rem;
 }
 
@@ -124,7 +124,7 @@ html {
 .form-label {
   display: block;
   font-weight: 600;
-  color: #374151;
+  color: #286FB4;
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
 }
@@ -132,49 +132,54 @@ html {
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #d1d5db;
+  border: 2px solid #B0DDE4;
   border-radius: 0.5rem;
   font-size: 1rem;
   transition: border-color 0.2s;
+  color: #286FB4;
+  background: #FFFFFF;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #15803d;
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+  border-color: #286FB4;
+  box-shadow: 0 0 0 3px rgba(40, 111, 180, 0.1);
 }
 
 .form-textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #d1d5db;
+  border: 2px solid #B0DDE4;
   border-radius: 0.5rem;
   font-size: 1rem;
   min-height: 100px;
   resize: vertical;
   transition: border-color 0.2s;
+  color: #286FB4;
+  background: #FFFFFF;
 }
 
 .form-textarea:focus {
   outline: none;
-  border-color: #15803d;
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+  border-color: #286FB4;
+  box-shadow: 0 0 0 3px rgba(40, 111, 180, 0.1);
 }
 
 .form-select {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #d1d5db;
+  border: 2px solid #B0DDE4;
   border-radius: 0.5rem;
   font-size: 1rem;
-  background: white;
+  background: #FFFFFF;
   transition: border-color 0.2s;
+  color: #286FB4;
 }
 
 .form-select:focus {
   outline: none;
-  border-color: #15803d;
-  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+  border-color: #286FB4;
+  box-shadow: 0 0 0 3px rgba(40, 111, 180, 0.1);
 }
 
 .form-grid {
@@ -203,16 +208,19 @@ html {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  background: linear-gradient(90deg, #286FB4 0%, #B0DDE4 100%);
+  color: #FFFFFF;
 }
 
 .btn-primary {
-  background: linear-gradient(90deg, #15803d 0%, #166534 100%);
-  color: white;
+  background: linear-gradient(90deg, #286FB4 0%, #B0DDE4 100%);
+  color: #FFFFFF;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(90deg, #166534 0%, #14532d 100%);
+  background: linear-gradient(90deg, #DF4C73 0%, #286FB4 100%);
+  color: #FFFFFF;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
@@ -233,8 +241,8 @@ html {
 }
 
 .badge-secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: #B0DDE4;
+  color: #286FB4;
   border: 1px solid #d1d5db;
 }
 
@@ -244,23 +252,23 @@ html {
 }
 
 .badge-priority-urgent {
-  background: #ef4444;
-  color: white;
+  background: #DF4C73;
+  color: #FFFFFF;
 }
 
 .badge-priority-high {
-  background: #f97316;
-  color: white;
+  background: #286FB4;
+  color: #FFFFFF;
 }
 
 .badge-priority-medium {
-  background: #eab308;
-  color: white;
+  background: #B0DDE4;
+  color: #286FB4;
 }
 
 .badge-priority-low {
-  background: #22c55e;
-  color: white;
+  background: #E2F0F9;
+  color: #286FB4;
 }
 
 .skills-container {
