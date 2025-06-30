@@ -6,8 +6,8 @@ import "../../../css/EventFormPage.css";
 const EventManager = () => {
   const [tasks, setTasks] = useState([]);
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    eventName: "",
+    eventDescription: "",
     category: "",
     priority: "",
     assignedTo: "",
@@ -58,8 +58,8 @@ const EventManager = () => {
 
     // Reset form
     setFormData({
-      title: "",
-      description: "",
+      eventName: "",
+      eventDescription: "",
       category: "",
       priority: "",
       assignedTo: "",
@@ -125,30 +125,30 @@ const EventManager = () => {
             <div className="card-content">
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label htmlFor="title" className="form-label">
-                    Task Title
+                  <label htmlFor="eventName" className="form-label">
+                    Event Name
                   </label>
                   <input
-                    id="title"
+                    id="eventName"
                     type="text"
                     className="form-input"
-                    placeholder="e.g., Feed morning shift dogs"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g., Adoption Fair, Volunteer Orientation"
+                    value={formData.eventName}
+                    onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
                     required
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="description" className="form-label">
-                    Description
+                  <label htmlFor="eventDescription" className="form-label">
+                    Event Description
                   </label>
                   <textarea
-                    id="description"
+                    id="eventDescription"
                     className="form-textarea"
-                    placeholder="Detailed description of the task..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Detailed description of the event..."
+                    value={formData.eventDescription}
+                    onChange={(e) => setFormData({ ...formData, eventDescription: e.target.value })}
                     required
                   />
                 </div>
@@ -325,11 +325,11 @@ const EventManager = () => {
                     .map((task) => (
                       <div key={task.id} className="task-item">
                         <div className="task-item-header">
-                          <h3 className="task-item-title">{task.title}</h3>
+                          <h3 className="task-item-title">{task.eventName}</h3>
                           <span className={`badge ${getPriorityClass(task.priority)}`}>{task.priority}</span>
                         </div>
 
-                        <p className="task-item-description">{task.description}</p>
+                        <p className="task-item-description">{task.eventDescription}</p>
 
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
                           <span className="badge badge-secondary">{task.category}</span>
