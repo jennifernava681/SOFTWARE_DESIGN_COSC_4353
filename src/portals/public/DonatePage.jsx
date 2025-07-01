@@ -209,7 +209,7 @@ function DonatePage() {
               </div>
             </fieldset>
 
-            <div className="form-row">
+            <div className="form-row-donate">
               <div className="form-group">
                 <label htmlFor="recurring_donation_period">
                   Select Donation Frequency
