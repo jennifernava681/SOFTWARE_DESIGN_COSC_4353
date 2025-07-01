@@ -1,4 +1,5 @@
 import "../../css/home.css";
+import "../../css/MobileNav.css";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -118,65 +119,6 @@ function BrowseAnimals() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   return (
     <div className="full-width-wrapper bg-gradient-main">
-      {/* Header */}
-      <header className="bg-gradient-header header">
-        <div className="header-container">
-          <div className="header-content">
-            <div className="logo-section">
-              <div className="logo-icon">
-                <PawIcon />
-              </div>
-              <div>
-                <h1 className="logo-text">Hope Paws</h1>
-                <p className="logo-subtitle">Animal Rescue & Sanctuary</p>
-              </div>
-            </div>
-            {/* Mobile Menu Toggle Button */}
-            <button
-              className="mobile-menu-toggle"
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              aria-label="Toggle Menu"
-              > <MenuIcon />
-            </button>
-            <nav className="nav">
-              <Link to="/" className="nav-link">Home</Link>
-              <Link to="/animals" className="nav-link">
-                Our Animals
-              </Link>
-              <Link to="/my-events" className="nav-link">
-                Events
-              </Link>
-              <a href="#volunteer" className="nav-link">
-                Volunteer
-              </a>
-              <a href="#donate" className="nav-link">
-                Donate
-              </a>
-            </nav>
-            <div className="header-buttons desktop-only">
-              <button className="btn btn-outline">Sign In</button>
-              <button className="btn btn-primary">Get Started</button>
-            </div>
-          </div>
-          {showMobileMenu && (
-            <div className="mobile-nav-dropdown">
-              <Link to="/" className="nav-link" onClick={() => setShowMobileMenu(false)}>Home Page</Link>
-              <Link to="/animals" className="nav-link" onClick={() => setShowMobileMenu(false)}>Our Animals</Link>
-              <Link to="/my-events" className="nav-link" onClick={() => setShowMobileMenu(false)}>Events</Link>
-              <a href="#volunteer" className="nav-link" onClick={() => setShowMobileMenu(false)}>Volunteer</a>
-              <a href="#donate" className="nav-link" onClick={() => setShowMobileMenu(false)}>Donate</a>
-
-
-              <div className="mobile-buttons">
-                <button className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>Sign In</button>
-                <button className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>Get Started</button>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-    
-
       {/* Featured Animals */}
       <section id="animals" className="all-animals">
         <div className="all-animals-container">

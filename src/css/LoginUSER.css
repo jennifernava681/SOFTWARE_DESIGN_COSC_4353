@@ -227,7 +227,7 @@
 }
 
 .login-form-header p {
-  color: #6b7280;
+  color: #000000;
   font-size: 0.875rem;
 }
 
@@ -488,7 +488,7 @@
 }
 
 .home-link:hover {
-  color: #15803d;
+  color: #286FB4
 }
 
 /* Responsive Design */

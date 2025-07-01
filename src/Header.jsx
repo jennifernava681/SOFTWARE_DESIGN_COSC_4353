@@ -49,6 +49,7 @@ const Header = ({ userType = "manager" }) => {
       case "public":
         return (
           <>
+            <Link to="/" className="nav-link">Home</Link>
             <Link to="/animals" className="nav-link">Animals</Link>
             <Link to="/donate" className="nav-link">Donate</Link>
             <Link to="/my-events" className="nav-link">Events</Link>
@@ -98,7 +99,7 @@ const Header = ({ userType = "manager" }) => {
             onClick={toggleMobileMenu}
             aria-label="Toggle mobile menu"
           >
-            <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width: '28px', height: '28px'}} >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>

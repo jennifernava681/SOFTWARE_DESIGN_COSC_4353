@@ -167,8 +167,6 @@ html {
   padding: 1.25rem 0;
 }
 
-/* Hamburger & Dropdown Menu Styles */
-
 .mobile-menu-toggle {
   position: absolute;
   right: 5rem;
@@ -233,7 +231,6 @@ html {
   justify-content: center;
 }
 
-/* END of Hamburger & Dropdown Menu Styles */
 
 .logo-section {
   display: flex;
