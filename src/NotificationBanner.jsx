@@ -1,12 +1,12 @@
 import React from 'react';
 
-function NotificationBanner({ message, floating = false, show = true, onClose }) {
+function NotificationBanner({ message, floating = false, show = true, onClose, style }) {
   if (!message) return null;
 
   // Floating overlay mode
   if (floating) {
     return (
-      <div className="notification-overlay">
+      <div className="notification-overlay" style={style}>
         <div className={`notification-banner floating${show ? ' show' : ' hide'}`}
              role="alert"
              style={{ minWidth: 0, pointerEvents: 'auto', display: 'flex', alignItems: 'center' }}>
@@ -49,7 +49,7 @@ function NotificationBanner({ message, floating = false, show = true, onClose })
 
   // Default inline mode
   return (
-    <div className="notification-banner">
+    <div className="notification-banner" style={style}>
       <span style={{ display: 'flex', alignItems: 'center' }}>
         {/* Info Icon in green */}
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ marginRight: '0.75rem' }}>
