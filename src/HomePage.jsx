@@ -280,7 +280,7 @@ function HomePage() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "3rem" }}>
             <div className="testimonial-card">
-              <div className="stat-value" style={{ marginBottom: "2rem", color: "#286FB4", fontSize: "2.25rem" }}>
+              <div className="stat-value" style={{ marginBottom: "2rem", color: "white", fontSize: "2.25rem" }}>
                 Why Adopt
               </div>
               <div style={{ textAlign: "left" }}>
@@ -294,7 +294,7 @@ function HomePage() {
               </div>
             </div>
             <div className="testimonial-card">
-              <div className="stat-value" style={{ marginBottom: "2rem", color: "#286FB4", fontSize: "2.25rem" }}>
+              <div className="stat-value" style={{ marginBottom: "2rem", color: "white", fontSize: "2.25rem" }}>
                 Why Volunteer
               </div>
               <div style={{ textAlign: "left" }}>

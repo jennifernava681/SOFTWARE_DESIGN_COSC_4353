@@ -79,7 +79,7 @@ const Header = ({ userType = "manager" }) => {
   return (
     <header className="header bg-gradient-header">
       <div className="header-container">
-        <div className={`header-content${userType === 'manager' ? ' manager-portal-header' : ''}`}>
+        <div className="header-content">
           {/* Logo Section */}
           <div className="logo-section">
             <Link to="/" className="logo-icon">

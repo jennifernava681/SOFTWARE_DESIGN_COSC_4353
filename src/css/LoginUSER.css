@@ -14,7 +14,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #E2F0F9 0%, #B0DDE4 50%, #286FB4 100%);
+  background: linear-gradient(135deg, #14532d 0%, #166534 25%, #000000 50%, #166534 75%, #14532d 100%);
   z-index: 1;
 }
 
@@ -24,8 +24,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(176, 221, 228, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(40, 111, 180, 0.12) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 20%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(21, 128, 61, 0.1) 0%, transparent 50%);
 }
 
 .floating-paws {
@@ -103,8 +103,8 @@
 }
 
 .login-branding {
-  background: linear-gradient(135deg, #286FB4 0%, #B0DDE4 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #15803d 0%, #166534 50%, #14532d 100%);
+  color: white;
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -139,7 +139,7 @@
   backdrop-filter: blur(10px);
   padding: 1rem;
   border-radius: 16px;
-  border: 1px solid #B0DDE4;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .login-logo-text h1 {
@@ -147,14 +147,12 @@
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.025em;
-  color: #FFFFFF;
 }
 
 .login-logo-text p {
   font-size: 0.875rem;
   opacity: 0.9;
   margin: 0.25rem 0 0 0;
-  color: #E2F0F9;
 }
 
 .login-welcome {
@@ -167,7 +165,6 @@
   font-weight: 700;
   margin-bottom: 1rem;
   line-height: 1.2;
-  color: #FFFFFF;
 }
 
 .login-welcome p {
@@ -175,7 +172,6 @@
   opacity: 0.9;
   margin-bottom: 2rem;
   line-height: 1.6;
-  color: #E2F0F9;
 }
 
 .login-stats {
@@ -191,7 +187,7 @@
 .login-stat-number {
   font-size: 2rem;
   font-weight: 700;
-  color: #DF4C73;
+  color: #22c55e;
   margin-bottom: 0.5rem;
 }
 
@@ -220,14 +216,12 @@
 .login-form-header h3 {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #286FB4 !important;
+  color: #14532d;
   margin-bottom: 0.5rem;
-  border-bottom: 3px solid #286FB4 !important;
-  background: none !important;
 }
 
 .login-form-header p {
-  color: #000000;
+  color: #6b7280;
   font-size: 0.875rem;
 }
 
@@ -274,13 +268,8 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #286FB4;
-  box-shadow: 0 0 0 3px rgba(40, 111, 180, 0.1);
-}
-
-.form-input:valid:not(:placeholder-shown):not(.error) {
-  border-color: #DF4C73;
-  background: rgba(223, 76, 115, 0.02);
+  border-color: #15803d;
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
 }
 
 .password-toggle {
@@ -296,7 +285,7 @@
 }
 
 .password-toggle:hover {
-  color: #286FB4;
+  color: #15803d;
 }
 
 .form-options {
@@ -328,8 +317,8 @@
 }
 
 .checkbox-input:checked + .checkbox-custom {
-  background: #286FB4;
-  border-color: #286FB4;
+  background: #15803d;
+  border-color: #15803d;
 }
 
 .checkbox-input:checked + .checkbox-custom::after {
@@ -348,7 +337,7 @@
 }
 
 .forgot-password {
-  color: #DF4C73;
+  color: #15803d;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
@@ -356,12 +345,12 @@
 }
 
 .forgot-password:hover {
-  color: #286FB4;
+  color: #166534;
 }
 
 .login-button {
-  background: linear-gradient(90deg, #286FB4 0%, #DF4C73 100%);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 12px;
@@ -373,13 +362,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(40, 111, 180, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .login-button:hover:not(.loading) {
-  background: linear-gradient(90deg, #DF4C73 0%, #286FB4 100%);
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(40, 111, 180, 0.15);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .login-button.loading {
@@ -470,14 +458,14 @@
 }
 
 .register-link {
-  color: #286FB4;
+  color: #15803d;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;
 }
 
 .register-link:hover {
-  color: #DF4C73;
+  color: #166534;
 }
 
 .home-link {
@@ -488,7 +476,7 @@
 }
 
 .home-link:hover {
-  color: #286FB4
+  color: #15803d;
 }
 
 /* Responsive Design */
