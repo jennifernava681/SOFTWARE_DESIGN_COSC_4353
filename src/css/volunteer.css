@@ -2,7 +2,7 @@
 .volunteer-application {
   min-height: 100vh;
   position: relative;
-  background: linear-gradient(135deg, #E2F0F9 0%, #B0DDE4 25%, #FFFFFF 50%, #B0DDE4 75%, #E2F0F9 100%);
+    background: linear-gradient(90deg, #E2F0F9 0%, #B0DDE4 50%, #286FB4 100%);
   padding: 2rem 0;
   overflow: hidden;
   font-family: 'Montserrat', Arial, sans-serif;
@@ -190,22 +190,23 @@
   margin-top: 1.5rem;
 }
 
-.skill-checkbox {
+.skill-checkbox,
+.day-checkbox {
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   padding: 1rem;
   border: 2px solid rgba(229, 231, 235, 0.6);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   user-select: none;
-  justify-content: center;
-  text-align: center;
   min-height: 60px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 
 .skill-checkbox .checkmark {
   margin-right: 0.5rem;
@@ -249,18 +250,31 @@
   min-height: 60px;
 }
 
-.skill-checkbox:hover,
-.day-checkbox:hover {
-  border-color: #286FB4;
-  background: rgba(40, 111, 180, 0.08);
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 12px 28px -8px rgba(40, 111, 180, 0.2);
+
+.skill-checkbox,
+.day-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  border: 2px solid rgba(229, 231, 235, 0.6);
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  user-select: none;
+  min-height: 60px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.skill-checkbox:active,
-.day-checkbox:active {
-  transform: translateY(-1px) scale(1.01);
-  transition: all 0.1s ease;
+
+.skill-checkbox:active{
+  padding: 1rem;
+  justify-content: center;
+  text-align: center;
+  min-height: 60px;
+
 }
 
 .skill-checkbox input[type="checkbox"],
@@ -381,7 +395,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(163, 44, 44, 0.2), transparent);
   transition: left 0.6s ease;
 }
 
