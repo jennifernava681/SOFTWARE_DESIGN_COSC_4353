@@ -3,7 +3,7 @@
   padding: 3rem;
   border-radius: 1rem;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  color: white;
+  color: rgb(72, 109, 204);
   max-width: 650px;
   margin: 2rem auto;
 }
@@ -44,7 +44,7 @@
 
 fieldset > legend {
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.92rem;
   margin-bottom: 0.50rem;
 }
 
@@ -149,21 +149,114 @@ input.form-control:focus {
   border: 1px solid #007bff;
 }
 
-.submit-btn {
-  width: 100%;
-  padding: 1rem;
-  border: none;
-  border-radius: 999px;
-  background-color: #007bff;
-  color: white;
-  font-size: 1.25rem;
-  cursor: pointer;
+.donate-button-wrapper {
+  display: flex;
+  justify-content: center;
   margin-top: 1rem;
 }
 
-.submit-btn:hover {
-  background-color: #0056b3;
+.login-button-donate {
+  width: 400px;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.025em;
+  user-select: none;
+  background: linear-gradient(90deg, #4953c5 0%, #a1c4fd 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  gap: 0.5rem;
+  margin-top: 1rem;
+  transition: background 0.4s ease, transform 0.3s ease;
 }
+
+.login-button-donate:hover {
+  background: linear-gradient(90deg, #d45469 0%, #4553d1 100%);
+  transform: translateY(-2px);
+}
+
+/* Shimmer effect */
+.login-button-donate::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent);
+  transform: skewX(-20deg);
+  z-index: 1;
+}
+
+/* Trigger shimmer movement on hover */
+.login-button-donate:hover::before {
+  animation: shimmer 1s ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -90%;
+  }
+
+  100% {
+    left: 90%;
+  }
+}
+/* .login-button-donate {
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.025em;
+  -webkit-user-select: none;
+  user-select: none;
+  background: linear-gradient(90deg, #286FB4 0%, #125497 50%, #80a1dc 75%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  gap: 0.5rem;
+  margin-top: 1rem;
+  transition: background 0.4s ease, transform 0.3s ease;
+}
+
+.login-button-donate:hover {
+  background: linear-gradient(90deg, #ce3d55 0%, #3360b3 100%);
+  transform: translateY(-2px);
+}
+
+.login-button-donate::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100% -692.5px;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  z-index: 1;
+}
+
+.login-button-donate:hover::before {
+  animation: shimmer 1s ease-in-out;
+} */
 
 /* Explanation/paragraphs of why to donate styling*/
 
