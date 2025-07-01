@@ -1,0 +1,224 @@
+.donate-form-container {
+  background: linear-gradient(90deg, #B0DDE4 0%, #acd0e6 50%, #286FB4 100%);
+  padding: 3rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  color: white;
+  max-width: 650px;
+  margin: 2rem auto;
+}
+
+.donate-form-header {
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.50rem;
+}
+
+
+/* Donate Amount Buttons */
+.preset-buttons {
+  all: unset;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.50rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-direction: row;
+  text-align: left;
+  width: 100%;
+}
+
+.amount-btn {
+  flex: 1 1 calc(33.333% - 1rem);
+  padding: 0.75rem;
+  background-color: white;
+  color: rgb(76, 134, 214);
+  border: 2px solid #ccc;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+fieldset > legend {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.50rem;
+}
+
+.amount-btn.selected,
+.amount-btn:hover {
+  background-color: #598fdb;
+  color: white;
+}
+
+
+/* Custom Amount Area */
+.custom-amount-wrapper {
+  flex: 1 1 calc(33.333% - 1rem);
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border: 2px solid #ccc;
+  border-radius: 0.5rem;
+  background-color: white;
+}
+
+.dollar-prefix {
+  font-weight: bold;
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
+  color: #1079c9;
+}
+
+.custom-amount-input {
+  width: 100%;
+  background: white;
+  border: 1px solid lightgrey;
+  outline: none;
+  font-size: 1rem;
+}
+
+.custom-amount-wrapper.focused {
+  background-color: #598fdb;
+}
+
+.custom-amount-wrapper.focused .dollar-prefix {
+  color:white;
+}
+
+.custom-amount-input:focus+.dollar-prefix {
+  color: white;
+}
+
+For Chrome,Safari,Edge,Opera 
+.custom-amount-input::-webkit-outer-spin-button,
+.custom-amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+.custom-amount-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+
+/* Frequency options & Ending */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  flex: 1 1 100%;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+select.form-control {
+  width: 100%;
+  padding: 1.1rem;
+  border-radius: 0.50rem;
+  border: 2.1px solid #ccc;
+  appearance: none;
+  outline: none;
+  box-shadow: none;
+  background-color: #2c2c2c;
+  /* color: white; */
+}
+
+select.form-control:focus {
+  border: 1px solid #007bff;
+  outline: none;
+  box-shadow: none;
+}
+
+input.form-control:focus {
+  outline: none;
+  box-shadow: none;
+  border: 1px solid #007bff;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 999px;
+  background-color: #007bff;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.submit-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Explanation/paragraphs of why to donate styling*/
+
+.info .container {
+  max-width: 1450px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.info .campaign-description {
+  text-align: left;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #333;
+}
+
+.info .campaign-description p {
+  margin-bottom: 1.5rem;
+}
+
+.info .campaign-description ul {
+  padding-left: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info .campaign-description li {
+  margin-bottom: 0.75rem;
+  list-style-type: disc;
+}
+
+.info h3 {
+  text-align: center;
+  font-size: 1.75rem;
+  margin-bottom: 2rem;
+  color: #111;
+}
+
+/* Responsive Styling */
+
+@media (max-width: 768px) {
+
+  .amount-btn,
+  .custom-amount-wrapper {
+    flex: 0 1 48%;
+  }
+
+  fieldset > legend {
+    margin-left: 7px;
+  }
+
+  .form-group {
+    flex: 1 1 100%;
+  }
+
+  .donate-form-header {
+    font-size: 1.5rem;
+  }
+}

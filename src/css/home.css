@@ -163,74 +163,6 @@ html {
   padding: 1.25rem 0;
 }
 
-/* Hamburger & Dropdown Menu Styles */
-
-.mobile-menu-toggle {
-  position: absolute;
-  right: 5rem;
-  background: transparent;
-  border: none;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.mobile-nav-dropdown {
-  display: flex;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, #286FB4 0%, #DF4C73 100%);
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 0;
-  border-top: 3px solid #DF4C73;
-  z-index: 40;
-  width: 100%;
-  max-width: 310px;
-}
-
-.mobile-nav-dropdown > .nav-link {
-  display: block;
-  position: relative;
-  right: 2.5%;
-  color: white;
-  font-size: 1.125rem;
-  text-decoration: none;
-  font-weight: 450;
-  width: 100%;
-  max-width: 310px;
-  text-align: center;
-  padding: 0.80rem;
-  transition: background-color 0.3s ease;
-  box-sizing: border-box;
-}
-
-.mobile-nav-dropdown .nav-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  text-decoration: none;
-}
-
-.mobile-buttons {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.mobile-buttons .btn {
-  display: flex;
-  position: relative;
-  right: 50%;
-  width: 200%;
-  justify-content: center;
-}
-
-/* END of Hamburger & Dropdown Menu Styles */
-
 .logo-section {
   display: flex;
   align-items: center;
@@ -591,7 +523,7 @@ html {
 .section-title {
   font-size: 3rem;
   font-weight: 700;
-  color: #14532d;
+  color: #374151;
   margin-bottom: 1.5rem;
 }
 

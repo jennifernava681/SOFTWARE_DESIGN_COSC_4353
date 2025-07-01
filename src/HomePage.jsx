@@ -344,7 +344,7 @@ function HomePage() {
                   <Link to="/my-events" className="btn-event">
                     Register for Event
                   </Link>
-                </div>
+                </div> 
               </div>
             ))}
           </div>
