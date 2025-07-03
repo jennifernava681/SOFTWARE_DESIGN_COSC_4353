@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react"
 import "../../index.css";
 import "../../css/register.css";
+import DatePicker from "react-multi-date-picker";
+import DatePanel from "react-multi-date-picker/plugins/date_panel";
 
 // Icons
 const PawIcon = () => (
@@ -89,6 +91,9 @@ function RegisterUSER() {
     securityQuestion: "",
     securityAnswer: "",
     agreeToTerms: false,
+    skills: [],
+    preferences: "",
+    availability: [],
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -195,6 +200,7 @@ function RegisterUSER() {
                         onChange={handleInputChange}
                         placeholder="Enter your full name"
                         required
+                        maxLength={50}
                         className="form-input"
                       />
                     </div>
@@ -268,7 +274,7 @@ function RegisterUSER() {
                 <h4 className="section-title">Address Information</h4>
 
                 <div className="form-group">
-                  <label htmlFor="address">Street Address</label>
+                  <label htmlFor="address">Address 1</label>
                   <div className="input-wrapper">
                     <div className="input-icon">
                       <HomeIcon />
@@ -281,13 +287,14 @@ function RegisterUSER() {
                       onChange={handleInputChange}
                       placeholder="Enter your street address"
                       required
+                      maxLength={100}
                       className="form-input"
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="address2">Address Line 2 (Optional)</label>
+                  <label htmlFor="address2">Address 2 (Optional)</label>
                   <div className="input-wrapper">
                     <div className="input-icon">
                       <HomeIcon />
@@ -299,6 +306,7 @@ function RegisterUSER() {
                       value={formData.address2}
                       onChange={handleInputChange}
                       placeholder="Apartment, suite, unit, etc."
+                      maxLength={100}
                       className="form-input"
                     />
                   </div>
@@ -316,6 +324,7 @@ function RegisterUSER() {
                         onChange={handleInputChange}
                         placeholder="Enter your city"
                         required
+                        maxLength={100}
                         className="form-input"
                       />
                     </div>
@@ -324,16 +333,66 @@ function RegisterUSER() {
                   <div className="form-group">
                     <label htmlFor="state">State</label>
                     <div className="input-wrapper">
-                      <input
-                        type="text"
+                      <select
                         id="state"
                         name="state"
                         value={formData.state}
                         onChange={handleInputChange}
-                        placeholder="Enter your state"
                         required
-                        className="form-input"
-                      />
+                        className="form-input form-select"
+                      >
+                        <option value="">Select State</option>
+                        <option value="AL">Alabama</option>
+                        <option value="AK">Alaska</option>
+                        <option value="AZ">Arizona</option>
+                        <option value="AR">Arkansas</option>
+                        <option value="CA">California</option>
+                        <option value="CO">Colorado</option>
+                        <option value="CT">Connecticut</option>
+                        <option value="DE">Delaware</option>
+                        <option value="FL">Florida</option>
+                        <option value="GA">Georgia</option>
+                        <option value="HI">Hawaii</option>
+                        <option value="ID">Idaho</option>
+                        <option value="IL">Illinois</option>
+                        <option value="IN">Indiana</option>
+                        <option value="IA">Iowa</option>
+                        <option value="KS">Kansas</option>
+                        <option value="KY">Kentucky</option>
+                        <option value="LA">Louisiana</option>
+                        <option value="ME">Maine</option>
+                        <option value="MD">Maryland</option>
+                        <option value="MA">Massachusetts</option>
+                        <option value="MI">Michigan</option>
+                        <option value="MN">Minnesota</option>
+                        <option value="MS">Mississippi</option>
+                        <option value="MO">Missouri</option>
+                        <option value="MT">Montana</option>
+                        <option value="NE">Nebraska</option>
+                        <option value="NV">Nevada</option>
+                        <option value="NH">New Hampshire</option>
+                        <option value="NJ">New Jersey</option>
+                        <option value="NM">New Mexico</option>
+                        <option value="NY">New York</option>
+                        <option value="NC">North Carolina</option>
+                        <option value="ND">North Dakota</option>
+                        <option value="OH">Ohio</option>
+                        <option value="OK">Oklahoma</option>
+                        <option value="OR">Oregon</option>
+                        <option value="PA">Pennsylvania</option>
+                        <option value="RI">Rhode Island</option>
+                        <option value="SC">South Carolina</option>
+                        <option value="SD">South Dakota</option>
+                        <option value="TN">Tennessee</option>
+                        <option value="TX">Texas</option>
+                        <option value="UT">Utah</option>
+                        <option value="VT">Vermont</option>
+                        <option value="VA">Virginia</option>
+                        <option value="WA">Washington</option>
+                        <option value="WV">West Virginia</option>
+                        <option value="WI">Wisconsin</option>
+                        <option value="WY">Wyoming</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -349,11 +408,81 @@ function RegisterUSER() {
                       onChange={handleInputChange}
                       placeholder="Enter your ZIP code"
                       required
+                      minLength={5}
+                      maxLength={9}
                       className="form-input"
                       pattern="[0-9]{5}(-[0-9]{4})?"
                       title="Please enter a valid ZIP code (e.g., 12345 or 12345-6789)"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Skills and Preferences */}
+              <div className="form-section">
+                <h4 className="section-title">Skills and Preferences</h4>
+
+                <div className="form-group">
+                  <label htmlFor="skills">Skills</label>
+                  <div className="input-wrapper">
+                    <select
+                      id="skills"
+                      name="skills"
+                      multiple
+                      required
+                      className="form-input form-select"
+                      value={formData.skills || []}
+                      onChange={e => {
+                        const options = Array.from(e.target.selectedOptions, option => option.value);
+                        setFormData(prev => ({ ...prev, skills: options }));
+                      }}
+                    >
+                      <option value="Animal Care">Animal Care</option>
+                      <option value="Event Planning">Event Planning</option>
+                      <option value="Fundraising">Fundraising</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Transport">Transport</option>
+                      <option value="Medical">Medical</option>
+                      <option value="Training">Training</option>
+                      
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="preferences">Preferences (Optional)</label>
+                  <textarea
+                    id="preferences"
+                    name="preferences"
+                    value={formData.preferences || ''}
+                    onChange={handleInputChange}
+                    placeholder="Share any preferences or special requirements..."
+                    maxLength={500}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '2.5rem', position: 'relative', zIndex: 100 }}>
+                  <label htmlFor="availability">Availability</label>
+                  <DatePicker
+                    multiple
+                    value={formData.availability || []}
+                    onChange={dates => setFormData(prev => ({ ...prev, availability: dates }))}
+                    format="YYYY-MM-DD"
+                    id="availability"
+                    name="availability"
+                    required
+                    plugins={[<DatePanel />]}
+                    input={false}
+                  />
+                  <small>Select one or more dates you are available.</small>
+                  <style>{`
+                    .form-group[style*='zIndex: 100'] .rmdp-wrapper, .form-group[style*='zIndex: 100'] .rmdp-shadow {
+                      z-index: 99999 !important;
+                      position: absolute !important;
+                      background: #fff !important;
+                    }
+                  `}</style>
                 </div>
               </div>
 
@@ -508,6 +637,14 @@ function RegisterUSER() {
           </div>
         </div>
       </div>
+
+      <style>{`
+      .rmdp-wrapper, .rmdp-shadow {
+        z-index: 99999 !important;
+        position: absolute !important;
+        background: #fff !important;
+      }
+      `}</style>
     </div>
   )
 }
