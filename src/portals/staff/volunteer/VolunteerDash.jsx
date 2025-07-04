@@ -5,6 +5,8 @@ function VolunteerDash() {
   const [notifications, setNotifications] = useState([]);
   const [notifCount, setNotifCount] = useState(0); // notif badge count
   const notifId = useRef(0);
+  const [apiBanner, setApiBanner] = useState("");
+  const [showApiBanner, setShowApiBanner] = useState(false);
 
   // Example notification messages
   const notificationTemplates = [
@@ -48,6 +50,36 @@ function VolunteerDash() {
   // Clear badge count (simulate going to notifications page)
   const clearNotifCount = () => setNotifCount(0);
 
+  const pingTestPost = async () => {
+    setApiBanner("");
+    setShowApiBanner(false);
+    try {
+      const response = await fetch("http://localhost:5000/api/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ test: true })
+      });
+      const data = await response.json();
+      setApiBanner(data.message || "POST success");
+    } catch (err) {
+      setApiBanner("POST network error");
+    }
+    setShowApiBanner(true);
+  };
+
+  const pingTestGet = async () => {
+    setApiBanner("");
+    setShowApiBanner(false);
+    try {
+      const response = await fetch("http://localhost:5000/api/test");
+      const data = await response.json();
+      setApiBanner(data.message || "GET success");
+    } catch (err) {
+      setApiBanner("GET network error");
+    }
+    setShowApiBanner(true);
+  };
+
   // Overlay container for stacking notifications
   const overlayStyle = {
     position: 'fixed',
@@ -86,6 +118,18 @@ function VolunteerDash() {
         >
           Clear Notifications
         </button>
+        <button
+          onClick={pingTestPost}
+          style={{ background: '#4CAF50', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Test POST /api/test
+        </button>
+        <button
+          onClick={pingTestGet}
+          style={{ background: '#2196F3', color: 'white', border: 'none', borderRadius: 8, padding: '0.75rem 1.5rem', fontWeight: 600, cursor: 'pointer' }}
+        >
+          Test GET /api/test
+        </button>
       </div>
 
       {/* Notification Overlay Stack */}
@@ -118,6 +162,24 @@ function VolunteerDash() {
             }}
           />
         ))}
+        {/* API Test Banner */}
+        <NotificationBanner
+          message={apiBanner}
+          floating
+          show={showApiBanner}
+          onClose={() => setShowApiBanner(false)}
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            transform: `translateY(${(NOTIF_OVERLAP) * notifications.length}px)`,
+            zIndex: 100 + notifications.length + 1,
+            boxShadow: '0 16px 32px -8px rgba(76,175,80,0.18), 0 2px 8px -2px rgba(0,0,0,0.10)',
+            opacity: showApiBanner ? 1 : 0,
+            transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.18s cubic-bezier(0.4,0,0.2,1)',
+            pointerEvents: 'auto',
+          }}
+        />
         {/* Notification count badge (note the count is  hidden if its 0) */}
         {notifCount > 0 && (
           <div style={{

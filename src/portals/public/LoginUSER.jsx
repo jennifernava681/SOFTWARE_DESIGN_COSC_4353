@@ -57,6 +57,7 @@ function LoginUSER() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showBanner, setShowBanner] = useState(false);
+  const [bannerMessage, setBannerMessage] = useState("");
 
   // Auto-dismiss after 3 seconds
   React.useEffect(() => {
@@ -76,16 +77,16 @@ function LoginUSER() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
     setShowBanner(true);
 
     // Simulate API call
     setTimeout(() => {
-      setIsLoading(false)
-      console.log("Login attempt:", formData)
-    }, 2000)
-  }
+      setIsLoading(false);
+      console.log("Login attempt:", formData);
+    }, 2000);
+  };
 
   return (
     <div className="login-page">
@@ -111,7 +112,7 @@ function LoginUSER() {
         </div>
       </div>
       <NotificationBanner
-        message="Login attempt submitted!"
+        message={bannerMessage || "Login attempt submitted!"}
         floating
         show={showBanner}
         onClose={() => setShowBanner(false)}
