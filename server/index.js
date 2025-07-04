@@ -33,3 +33,10 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 })
+
+app.post('/api/adoption-request', (req, res) => {
+  const data = req.body;
+  console.log('Received adoption request:', data);
+  // Save to database, send email, etc.
+  res.status(200).json({ message: 'Success' });
+});
