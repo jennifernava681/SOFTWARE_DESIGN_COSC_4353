@@ -10,12 +10,14 @@ const eventRoutes = require('./routes/events');
 const donationRoutes = require('./routes/donations');
 const volunteerRoutes = require('./routes/volunteers');
 const notificationRoutes = require('./routes/notifications');
+const vetRoutes = require('./routes/vets');
 
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use('/api/vets', vetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/animals', animalRoutes);
 app.use('/api/adoptions', adoptionRoutes);
