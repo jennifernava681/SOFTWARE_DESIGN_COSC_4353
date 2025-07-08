@@ -1,7 +1,6 @@
 "use client";
 
 import "../../css/DonatePage.css";
-import "../../css/home.css";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -91,10 +90,10 @@ function DonatePage() {
   return (
     <div>
       <NotificationBanner
-        message="Thank you for your donation!"
         floating
-        show={showBanner}
         onClose={() => setShowBanner(false)}
+        show={showBanner}
+        message="Thank you for your donation!"
       />
 
       <div className="card shadow-sm my-lg-4 bg-dark text-white">

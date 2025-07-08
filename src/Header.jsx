@@ -98,7 +98,7 @@ const Header = ({ userType = "manager" }) => {
             className="mobile-menu-toggle"
             onClick={toggleMobileMenu}
             aria-label="Toggle mobile menu"
-          >
+            >
             <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width: '28px', height: '28px'}} >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>

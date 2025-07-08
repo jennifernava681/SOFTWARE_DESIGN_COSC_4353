@@ -1,7 +1,7 @@
 import React from 'react';
 
 function NotificationBanner({ message, floating = false, show = true, onClose, style }) {
-  if (!message) return null;
+  if (!show || !message) return null;
 
   // Floating overlay mode
   if (floating) {
