@@ -3,6 +3,65 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
+// Generic CRUD endpoints for volunteers
+router.get('/', auth, async (req, res) => {
+  try {
+    const [volunteers] = await pool.query('SELECT * FROM users WHERE role = ?', ['volunteer']);
+    res.json(volunteers);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const [volunteers] = await pool.query('SELECT * FROM users WHERE id_user = ? AND role = ?', [req.params.id, 'volunteer']);
+    if (volunteers.length === 0) return res.status(404).json({ message: 'Volunteer not found' });
+    res.json(volunteers[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.post('/', auth, async (req, res) => {
+  const { name, email, password, adrees_idadrees_id, adrees_state_state_id } = req.body;
+  if (!name || !email || !password) return res.status(400).json({ message: 'Missing required fields' });
+  try {
+    // Hash password (in real app, use bcrypt)
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password_hash, role, adrees_idadrees_id, adrees_state_state_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, email, password, 'volunteer', adrees_idadrees_id, adrees_state_state_id]
+    );
+    res.status(201).json({ message: 'Volunteer created', id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.put('/:id', auth, async (req, res) => {
+  const { name, email, adrees_idadrees_id, adrees_state_state_id } = req.body;
+  try {
+    const [result] = await pool.query(
+      'UPDATE users SET name=?, email=?, adrees_idadrees_id=?, adrees_state_state_id=? WHERE id_user=? AND role=?',
+      [name, email, adrees_idadrees_id, adrees_state_state_id, req.params.id, 'volunteer']
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Volunteer not found' });
+    res.json({ message: 'Volunteer updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM users WHERE id_user=? AND role=?', [req.params.id, 'volunteer']);
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Volunteer not found' });
+    res.json({ message: 'Volunteer deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // Apply to volunteer
 router.post('/apply', auth, async (req, res) => {
   const { availability_date, skills, motivation, request_date, availability_time } = req.body;

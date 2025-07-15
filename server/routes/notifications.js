@@ -3,6 +3,64 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
+// Generic CRUD endpoints for notifications
+router.get('/all', auth, async (req, res) => {
+  try {
+    const [notifications] = await pool.query('SELECT * FROM notifications');
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.get('/by-id/:id', auth, async (req, res) => {
+  try {
+    const [notifications] = await pool.query('SELECT * FROM notifications WHERE notifications_id = ?', [req.params.id]);
+    if (notifications.length === 0) return res.status(404).json({ message: 'Notification not found' });
+    res.json(notifications[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.post('/new', auth, async (req, res) => {
+  const { USERS_id, message, type } = req.body;
+  if (!USERS_id || !message) return res.status(400).json({ message: 'Missing required fields' });
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at) VALUES (?, ?, ?, NOW())',
+      [USERS_id, message, type || 'general']
+    );
+    res.status(201).json({ message: 'Notification created', id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.put('/by-id/:id', auth, async (req, res) => {
+  const { message, type, is_read } = req.body;
+  try {
+    const [result] = await pool.query(
+      'UPDATE notifications SET message=?, type=?, is_read=? WHERE notifications_id=?',
+      [message, type, is_read, req.params.id]
+    );
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Notification not found' });
+    res.json({ message: 'Notification updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.delete('/by-id/:id', auth, async (req, res) => {
+  try {
+    const [result] = await pool.query('DELETE FROM notifications WHERE notifications_id=?', [req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ message: 'Notification not found' });
+    res.json({ message: 'Notification deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // Get my notifications
 router.get('/', auth, async (req, res) => {
   try {
