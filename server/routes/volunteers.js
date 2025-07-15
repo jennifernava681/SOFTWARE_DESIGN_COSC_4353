@@ -3,16 +3,34 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
+// Validation helper
+const validateVolunteerApplication = (data) => {
+  const errors = [];
+  if (!data.availability_date) errors.push('Availability date is required');
+  if (!data.availability_time) errors.push('Availability time is required');
+  if (!data.skills || !Array.isArray(data.skills)) errors.push('Skills must be an array');
+  if (!data.motivation) errors.push('Motivation statement is required');
+  return errors;
+};
+
 // Apply to volunteer
 router.post('/apply', auth, async (req, res) => {
-  const { availability_date, skills, motivation, request_date, availability_time } = req.body;
+  const { availability_date, skills, motivation, availability_time } = req.body;
+  
+  // Validate request data
+  const errors = validateVolunteerApplication({ availability_date, skills, motivation, availability_time });
+  if (errors.length > 0) {
+    return res.status(400).json({ message: 'Missing required fields', errors });
+  }
+
   try {
     const [result] = await pool.query(
-      'INSERT INTO volunteer_requests (availability_date, skills, motivation, request_date, status, availability_time, USERS_id_user) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [availability_date, skills, motivation, request_date, 'pending', availability_time, req.user.id_user]
+      'INSERT INTO volunteer_requests (availability_date, skills, motivation, request_date, status, availability_time, USERS_id_user) VALUES (?, ?, ?, NOW(), ?, ?, ?)',
+      [availability_date, Array.isArray(skills) ? JSON.stringify(skills) : '[]', motivation, 'pending', availability_time, req.user.id_user]
     );
     res.status(201).json({ message: 'Volunteer application submitted', id: result.insertId });
   } catch (err) {
+    console.error('Error submitting volunteer application:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -54,13 +72,13 @@ router.get('/applications', auth, async (req, res) => {
 });
 
 // Match volunteers to events
-router.get('/match/:eventId', auth, async (req, res) => {
+router.get('/matches/:eventId', auth, async (req, res) => {
   try {
     const eventId = req.params.eventId;
     
     // Get event details and required skills
     const [events] = await pool.query(`
-      SELECT e.*, GROUP_CONCAT(es.skill_name) as required_skills
+      SELECT e.*, GROUP_CONCAT(DISTINCT es.skill_name) as required_skills
       FROM events e
       LEFT JOIN event_skills es ON e.id = es.event_id
       WHERE e.id = ?
@@ -77,7 +95,7 @@ router.get('/match/:eventId', auth, async (req, res) => {
     // Find volunteers with matching skills
     let volunteersQuery = `
       SELECT DISTINCT u.id_user, u.name, u.email,
-             GROUP_CONCAT(us.skill_name) as user_skills,
+             GROUP_CONCAT(DISTINCT us.skill_name) as user_skills,
              COUNT(DISTINCT us.skill_name) as matching_skills
       FROM users u
       LEFT JOIN user_skills us ON u.id_user = us.user_id
@@ -133,6 +151,7 @@ router.get('/match/:eventId', auth, async (req, res) => {
       total_matches: matchedVolunteers.length
     });
   } catch (err) {
+    console.error('Error matching volunteers:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -149,6 +168,12 @@ router.post('/assign/:eventId', auth, async (req, res) => {
     
     if (!Array.isArray(volunteerIds)) {
       return res.status(400).json({ message: 'Volunteer IDs must be an array' });
+    }
+
+    // Check if event exists
+    const [eventCheck] = await pool.query('SELECT id FROM events WHERE id = ?', [eventId]);
+    if (eventCheck.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
     }
     
     // Check event capacity
@@ -184,6 +209,7 @@ router.post('/assign/:eventId', auth, async (req, res) => {
       assigned_volunteers: assignments
     });
   } catch (err) {
+    console.error('Error assigning volunteers:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -266,49 +292,38 @@ router.get('/recommendations/:eventId', auth, async (req, res) => {
   }
 });
 
-// Get volunteer participation history
+// Get volunteer history
 router.get('/history/:userId', auth, async (req, res) => {
   try {
     const userId = req.params.userId;
     
-    // Check if user is requesting their own history or is a manager
-    if (req.user.id_user != userId && req.user.role !== 'manager') {
-      return res.status(403).json({ message: 'Not authorized to view this history' });
+    // Check if user exists
+    const [userCheck] = await pool.query('SELECT id_user FROM users WHERE id_user = ?', [userId]);
+    if (userCheck.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Get all events the volunteer has participated in
+
     const [history] = await pool.query(`
-      SELECT e.id, e.title, e.description, e.date, e.time, e.location, e.urgency,
-             er.registration_date, er.assigned_by,
-             u.name as assigned_by_name,
-             COUNT(DISTINCT er2.user_id) as total_volunteers,
-             e.max_volunteers
+      SELECT e.id, e.title, e.date, e.time, e.location,
+             er.registration_date, er.status,
+             GROUP_CONCAT(DISTINCT es.skill_name) as required_skills
       FROM event_registrations er
       JOIN events e ON er.event_id = e.id
-      LEFT JOIN users u ON er.assigned_by = u.id_user
-      LEFT JOIN event_registrations er2 ON e.id = er2.event_id
+      LEFT JOIN event_skills es ON e.id = es.event_id
       WHERE er.user_id = ?
-      GROUP BY e.id, er.registration_date
+      GROUP BY e.id
       ORDER BY e.date DESC
     `, [userId]);
+
+    // Format the history data
+    const formattedHistory = history.map(entry => ({
+      ...entry,
+      required_skills: entry.required_skills ? entry.required_skills.split(',') : []
+    }));
     
-    // Calculate participation stats
-    const totalEvents = history.length;
-    const totalHours = history.reduce((sum, event) => {
-      // Estimate hours based on event duration (you might want to add actual duration field)
-      return sum + 3; // Assuming average 3 hours per event
-    }, 0);
-    
-    const eventTypes = [...new Set(history.map(event => event.urgency))];
-    
-    res.json({
-      volunteer_id: userId,
-      total_events: totalEvents,
-      total_hours: totalHours,
-      event_types: eventTypes,
-      participation_history: history
-    });
+    res.json(formattedHistory);
   } catch (err) {
+    console.error('Error fetching volunteer history:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

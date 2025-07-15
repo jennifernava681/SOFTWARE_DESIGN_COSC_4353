@@ -99,7 +99,7 @@ router.post('/event-reminder/:eventId', auth, async (req, res) => {
     `, [eventId]);
     
     // Send reminder to each volunteer
-    const sentCount = 0;
+    let sentCount = 0;
     for (const volunteer of volunteers) {
       const message = `Reminder: Event "${event.title}" is tomorrow at ${event.time}. Please arrive 15 minutes early!`;
       await sendNotification(volunteer.id_user, message, 'event_reminder');
@@ -143,7 +143,7 @@ router.post('/event-update/:eventId', auth, async (req, res) => {
     `, [eventId]);
     
     // Send update to each volunteer
-    const sentCount = 0;
+    let sentCount = 0;
     for (const volunteer of volunteers) {
       const message = `Event Update - "${eventTitle}": ${updateMessage}`;
       await sendNotification(volunteer.id_user, message, 'event_update');

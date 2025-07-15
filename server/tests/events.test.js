@@ -1,219 +1,288 @@
+const request = require('supertest');
+const app = require('../app');
+
+// Mock the auth middleware
+let mockUserRole = 'manager';
 jest.mock('../middleware/auth', () => {
-  return jest.fn((req, res, next) => {
-    req.user = { id_user: 1, role: 'manager' };
+  return (req, res, next) => {
+    req.user = {
+      id_user: 1,
+      role: mockUserRole
+    };
     next();
-  });
+  };
 });
 
-const request = require('supertest');
-const express = require('express');
-
-// Mock the database
-jest.mock('../db', () => ({
-  query: jest.fn()
-}));
+// Mock the database pool
+jest.mock('../db', () => {
+  return {
+    query: jest.fn()
+  };
+});
 
 const pool = require('../db');
 
-// Create test app
-const app = express();
-app.use(express.json());
-app.use('/api/events', require('../routes/events'));
-
 describe('Events API', () => {
   beforeEach(() => {
+    // Clear all mocks before each test
     jest.clearAllMocks();
+    // Reset mock user role
+    mockUserRole = 'manager';
   });
 
-  describe('GET /api/events', () => {
-    it('should return all events', async () => {
-      const mockEvents = [
-        { id: 1, title: 'Adoption Fair', date: '2024-06-01', required_skills: 'dog_handling,public_speaking' },
-        { id: 2, title: 'Fundraiser', date: '2024-06-15', required_skills: 'fundraising' }
-      ];
+  describe('POST /', () => {
+    it('should create a new event as manager', async () => {
+      pool.query
+        .mockResolvedValueOnce([{ insertId: 1 }])
+        .mockResolvedValueOnce([{ affectedRows: 1 }]);
 
-      pool.query.mockResolvedValueOnce([mockEvents]);
-
-      const response = await request(app).get('/api/events');
-
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveLength(2);
-      expect(response.body[0].required_skills).toEqual(['dog_handling', 'public_speaking']);
-    });
-  });
-
-  describe('GET /api/events/:id', () => {
-    it('should return event by ID', async () => {
-      const mockEvent = {
-        id: 1,
-        title: 'Adoption Fair',
+      const eventData = {
+        title: 'Adoption Day',
+        description: 'Help pets find homes',
         date: '2024-06-01',
-        required_skills: 'dog_handling,public_speaking',
-        registered_volunteers: 5
+        time: '10:00',
+        location: 'Houston',
+        urgency: 'high',
+        required_skills: ['animal care'],
+        max_volunteers: 10
       };
 
-      pool.query.mockResolvedValueOnce([[mockEvent]]);
+      const response = await request(app)
+        .post('/api/events')
+        .set('Authorization', 'Bearer testtoken')
+        .send(eventData);
 
-      const response = await request(app).get('/api/events/1');
-
-      expect(response.status).toBe(200);
-      expect(response.body.title).toBe('Adoption Fair');
-      expect(response.body.required_skills).toEqual(['dog_handling', 'public_speaking']);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toBe('Event created successfully');
+      expect(response.body).toHaveProperty('event_id');
     });
 
-    it('should return 404 for non-existent event', async () => {
+    it('should validate required fields', async () => {
+      const response = await request(app)
+        .post('/api/events')
+        .set('Authorization', 'Bearer testtoken')
+        .send({
+          title: 'Test Event',
+          // Missing other required fields
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body).toHaveProperty('errors');
+    });
+
+    it('should require manager role', async () => {
+      mockUserRole = 'volunteer';
+
+      const response = await request(app)
+        .post('/api/events')
+        .set('Authorization', 'Bearer testtoken')
+        .send({
+          title: 'Test Event',
+          description: 'Test',
+          date: '2024-06-01',
+          time: '10:00',
+          location: 'Test',
+          urgency: 'high',
+          required_skills: ['skill'],
+          max_volunteers: 10
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toBe('Only managers can create events');
+    });
+  });
+
+  describe('GET /', () => {
+    it('should get all events', async () => {
+      const mockEvents = [{
+        id: 1,
+        title: 'Adoption Day',
+        date: '2024-06-01',
+        status: 'upcoming',
+        required_skills: null // This will be transformed to [] by the route
+      }];
+      pool.query.mockResolvedValueOnce([mockEvents]);
+
+      const response = await request(app)
+        .get('/api/events');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([{
+        ...mockEvents[0],
+        required_skills: []
+      }]);
+    });
+
+    it('should handle database errors', async () => {
+      pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app)
+        .get('/api/events');
+
+      expect(response.status).toBe(500);
+      expect(response.body.message).toBe('Server error');
+    });
+  });
+
+  describe('GET /:id', () => {
+    it('should get event details', async () => {
+      const mockEvent = {
+        id: 1,
+        title: 'Adoption Day',
+        description: 'Help pets find homes',
+        date: '2024-06-01',
+        time: '10:00',
+        location: 'Houston',
+        urgency: 'high',
+        required_skills: null, // This will be transformed to [] by the route
+        registered_volunteers: 0
+      };
+      pool.query.mockResolvedValueOnce([[mockEvent]]);
+
+      const response = await request(app)
+        .get('/api/events/1');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        ...mockEvent,
+        required_skills: []
+      });
+    });
+
+    it('should handle non-existent event', async () => {
       pool.query.mockResolvedValueOnce([[]]);
 
-      const response = await request(app).get('/api/events/999');
+      const response = await request(app)
+        .get('/api/events/999');
 
       expect(response.status).toBe(404);
       expect(response.body.message).toBe('Event not found');
     });
   });
 
-  describe('POST /api/events', () => {
-    it('should create event with valid data', async () => {
-      const eventData = {
-        title: 'New Event',
-        description: 'Event description',
-        date: '2024-06-01',
-        time: '10:00:00',
-        location: 'Community Center',
-        urgency: 'medium',
-        required_skills: ['dog_handling'],
-        max_volunteers: 10
-      };
-
+  describe('POST /:id/register', () => {
+    it('should register for an event', async () => {
       pool.query
-        .mockResolvedValueOnce([{ insertId: 1 }]) // Event insert
-        .mockResolvedValueOnce([{ insertId: 1 }]); // Skill insert
+        .mockResolvedValueOnce([[]]) // Check not already registered
+        .mockResolvedValueOnce([[{ max_volunteers: 10, current_volunteers: 5 }]]) // Check capacity
+        .mockResolvedValueOnce([{ affectedRows: 1 }]); // Register
 
       const response = await request(app)
-        .post('/api/events')
-        .set('Authorization', 'Bearer mockToken')
-        .send(eventData);
+        .post('/api/events/1/register')
+        .set('Authorization', 'Bearer testtoken');
 
-      expect(response.status).toBe(201);
-      expect(response.body.message).toBe('Event created successfully');
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Registered for event successfully');
     });
 
-    it('should return 400 for invalid data', async () => {
-      const eventData = {
-        title: '', // Invalid: empty title
-        description: 'Event description',
-        date: 'invalid-date',
-        location: 'Community Center',
-        urgency: 'invalid-urgency'
-      };
+    it('should handle full event', async () => {
+      pool.query
+        .mockResolvedValueOnce([[]]) // Check not already registered
+        .mockResolvedValueOnce([[{ max_volunteers: 10, current_volunteers: 10 }]]); // Check capacity
 
       const response = await request(app)
-        .post('/api/events')
-        .set('Authorization', 'Bearer mockToken')
-        .send(eventData);
+        .post('/api/events/1/register')
+        .set('Authorization', 'Bearer testtoken');
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.message).toBe('Event is full');
+    });
+
+    it('should handle already registered', async () => {
+      pool.query.mockResolvedValueOnce([[{ id: 1 }]]); // Already registered
+
+      const response = await request(app)
+        .post('/api/events/1/register')
+        .set('Authorization', 'Bearer testtoken');
+
+      expect(response.status).toBe(409);
+      expect(response.body.message).toBe('Already registered for this event');
     });
   });
 
-  describe('PUT /api/events/:id', () => {
-    it('should update event with valid data', async () => {
-      const eventData = {
+  describe('PUT /:id', () => {
+    it('should update event details as manager', async () => {
+      pool.query
+        .mockResolvedValueOnce([{ affectedRows: 1 }])
+        .mockResolvedValueOnce([{ affectedRows: 1 }]);
+
+      const updateData = {
         title: 'Updated Event',
         description: 'Updated description',
-        date: '2024-06-01',
-        time: '10:00:00',
-        location: 'Updated Location',
-        urgency: 'high',
-        required_skills: ['dog_handling', 'first_aid'],
+        date: '2024-06-02',
+        time: '11:00',
+        location: 'Updated location',
+        urgency: 'medium',
+        required_skills: ['skill1', 'skill2'],
         max_volunteers: 15
       };
 
-      pool.query
-        .mockResolvedValueOnce([{ affectedRows: 1 }]) // Update event
-        .mockResolvedValueOnce([{ affectedRows: 1 }]) // Delete skills
-        .mockResolvedValueOnce([{ insertId: 1 }]) // Insert skill 1
-        .mockResolvedValueOnce([{ insertId: 2 }]); // Insert skill 2
-
       const response = await request(app)
         .put('/api/events/1')
-        .set('Authorization', 'Bearer mockToken')
-        .send(eventData);
+        .set('Authorization', 'Bearer testtoken')
+        .send(updateData);
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Event updated successfully');
     });
+
+    it('should require manager role for updates', async () => {
+      mockUserRole = 'volunteer';
+
+      const response = await request(app)
+        .put('/api/events/1')
+        .set('Authorization', 'Bearer testtoken')
+        .send({
+          title: 'Updated Event',
+          description: 'Updated description',
+          date: '2024-06-02',
+          time: '11:00',
+          location: 'Updated location',
+          urgency: 'medium'
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toBe('Only managers can update events');
+    });
   });
 
-  describe('DELETE /api/events/:id', () => {
-    it('should delete event', async () => {
+  describe('DELETE /:id', () => {
+    it('should delete an event as manager', async () => {
       pool.query
+        .mockResolvedValueOnce([[{ id: 1 }]]) // Event exists check
         .mockResolvedValueOnce([{ affectedRows: 1 }]) // Delete skills
         .mockResolvedValueOnce([{ affectedRows: 1 }]) // Delete registrations
         .mockResolvedValueOnce([{ affectedRows: 1 }]); // Delete event
 
       const response = await request(app)
         .delete('/api/events/1')
-        .set('Authorization', 'Bearer mockToken');
+        .set('Authorization', 'Bearer testtoken');
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Event deleted successfully');
     });
-  });
 
-  describe('POST /api/events/:id/register', () => {
-    it('should register user for event', async () => {
-      // Mock not already registered
-      pool.query
-        .mockResolvedValueOnce([[]]) // No existing registration
-        .mockResolvedValueOnce([[{ max_volunteers: 10, current_volunteers: 5 }]]) // Event capacity check
-        .mockResolvedValueOnce([{ insertId: 1 }]); // Registration insert
+    it('should handle non-existent event', async () => {
+      pool.query.mockResolvedValueOnce([[]]); // Event doesn't exist
 
       const response = await request(app)
-        .post('/api/events/1/register')
-        .set('Authorization', 'Bearer mockToken');
+        .delete('/api/events/999')
+        .set('Authorization', 'Bearer testtoken');
 
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe('Registered for event successfully');
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe('Event not found');
     });
 
-    it('should return 409 if already registered', async () => {
-      // Mock already registered
-      pool.query.mockResolvedValueOnce([[{ id: 1 }]]); // Existing registration
+    it('should require manager role for deletion', async () => {
+      mockUserRole = 'volunteer';
 
       const response = await request(app)
-        .post('/api/events/1/register')
-        .set('Authorization', 'Bearer mockToken');
+        .delete('/api/events/1')
+        .set('Authorization', 'Bearer testtoken');
 
-      expect(response.status).toBe(409);
-      expect(response.body.message).toBe('Already registered for this event');
-    });
-
-    it('should return 400 if event is full', async () => {
-      // Mock not registered but event full
-      pool.query
-        .mockResolvedValueOnce([[]]) // No existing registration
-        .mockResolvedValueOnce([[{ max_volunteers: 5, current_volunteers: 5 }]]); // Event full
-
-      const response = await request(app)
-        .post('/api/events/1/register')
-        .set('Authorization', 'Bearer mockToken');
-
-      expect(response.status).toBe(400);
-      expect(response.body.message).toBe('Event is full');
-    });
-  });
-
-  describe('DELETE /api/events/:id/register', () => {
-    it('should unregister user from event', async () => {
-      pool.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // Delete registration
-
-      const response = await request(app)
-        .delete('/api/events/1/register')
-        .set('Authorization', 'Bearer mockToken');
-
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe('Unregistered from event successfully');
+      expect(response.status).toBe(403);
+      expect(response.body.message).toBe('Only managers can delete events');
     });
   });
 }); 

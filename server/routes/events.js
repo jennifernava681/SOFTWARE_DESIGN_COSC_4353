@@ -39,21 +39,22 @@ router.get('/', async (req, res) => {
   try {
     const [events] = await pool.query(`
       SELECT e.*, 
-             GROUP_CONCAT(es.skill_name) as required_skills
+             GROUP_CONCAT(DISTINCT es.skill_name) as required_skills
       FROM events e
       LEFT JOIN event_skills es ON e.id = es.event_id
       GROUP BY e.id
       ORDER BY e.date ASC
     `);
     
-    // Parse skills string back to array
+    // Parse skills string back to array and handle null case
     const eventsWithSkills = events.map(event => ({
       ...event,
-      required_skills: event.required_skills ? event.required_skills.split(',') : []
+      required_skills: event.required_skills ? event.required_skills.split(',').filter(Boolean) : []
     }));
     
     res.json(eventsWithSkills);
   } catch (err) {
+    console.error('Error fetching events:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -63,8 +64,8 @@ router.get('/:id', async (req, res) => {
   try {
     const [events] = await pool.query(`
       SELECT e.*, 
-             GROUP_CONCAT(es.skill_name) as required_skills,
-             COUNT(er.user_id) as registered_volunteers
+             GROUP_CONCAT(DISTINCT es.skill_name) as required_skills,
+             COUNT(DISTINCT er.user_id) as registered_volunteers
       FROM events e
       LEFT JOIN event_skills es ON e.id = es.event_id
       LEFT JOIN event_registrations er ON e.id = er.event_id
@@ -77,10 +78,11 @@ router.get('/:id', async (req, res) => {
     }
     
     const event = events[0];
-    event.required_skills = event.required_skills ? event.required_skills.split(',') : [];
+    event.required_skills = event.required_skills ? event.required_skills.split(',').filter(Boolean) : [];
     
     res.json(event);
   } catch (err) {
+    console.error('Error fetching event:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -172,12 +174,19 @@ router.delete('/:id', auth, async (req, res) => {
   }
   
   try {
+    // Check if event exists first
+    const [event] = await pool.query('SELECT id FROM events WHERE id = ?', [req.params.id]);
+    if (event.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
     await pool.query('DELETE FROM event_skills WHERE event_id = ?', [req.params.id]);
     await pool.query('DELETE FROM event_registrations WHERE event_id = ?', [req.params.id]);
     await pool.query('DELETE FROM events WHERE id = ?', [req.params.id]);
     
     res.json({ message: 'Event deleted successfully' });
   } catch (err) {
+    console.error('Error deleting event:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
