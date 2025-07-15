@@ -35,7 +35,8 @@ app.post('/api/test', (req, res) => {
   res.json({ success: true, message: 'Test route working (POST)!' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
-
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+}
 module.exports = app; 
