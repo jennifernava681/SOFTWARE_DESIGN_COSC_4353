@@ -35,5 +35,5 @@ app.post('/api/test', (req, res) => {
   res.json({ success: true, message: 'Test route working (POST)!' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`)); 
