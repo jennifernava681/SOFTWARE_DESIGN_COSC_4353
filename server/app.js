@@ -12,6 +12,8 @@ const volunteerRoutes = require('./routes/volunteers');
 const notificationRoutes = require('./routes/notifications');
 const vetRoutes = require('./routes/vets');
 
+console.log(">>> Starting backend app...");
+
 const app = express();
 
 app.use(cors());
