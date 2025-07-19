@@ -1,7 +1,7 @@
 const express = require('express');
 const pool = require('./db');
 const app = express();
-const PORT = 5000;
+const PORT = process.env.port || 5000;
 /* const apiRouter = require() */
 require("dotenv").config();
 
