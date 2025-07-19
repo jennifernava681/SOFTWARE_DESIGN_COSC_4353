@@ -77,7 +77,6 @@ jobs:
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         publish-profile: |
-             <publishData>
                <publishProfile 
                  profileName="hopepaws-api - Web Deploy" 
                  publishMethod="MSDeploy" 
@@ -91,5 +90,4 @@ jobs:
                  webSystem="WebSites">
                  <databases />
                 </publishProfile>
-              </publishData>
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
