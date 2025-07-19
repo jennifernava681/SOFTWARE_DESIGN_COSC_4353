@@ -24,13 +24,4 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Animal Shelter backend!');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-})
-
-app.post('/api/adoption-request', (req, res) => {
-  const data = req.body;
-  console.log('Received adoption request:', data);
-  // Save to database, send email, etc.
-  res.status(200).json({ message: 'Success' });
-});
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`)); 
