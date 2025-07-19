@@ -48,8 +48,8 @@ jobs:
       run: |
         cd server
         rm -rf node_modules package-lock.json
-        chmod +x ./node_modules/.bin/jest
         npm install
+        chmod +x ./node_modules/.bin/jest
         npm run build --if-present
         npm run test -- --passWithNoTests
 
