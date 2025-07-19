@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const pool = require('./db');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
@@ -31,6 +32,16 @@ app.use('/api/notifications', notificationRoutes);
 app.get('/', (req, res) => res.send('API Running'));
 app.get('/api/test', (req, res) => {
   res.json({ success: true, message: 'Test route working!' });
+});
+
+app.get('/api/db-test', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT 1 + 1 AS result');
+    res.json({ success: true, result: rows[0].result });
+  } catch (error) {
+    console.error('DB connection error:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.post('/api/test', (req, res) => {
