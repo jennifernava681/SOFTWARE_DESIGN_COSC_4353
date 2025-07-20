@@ -1,0 +1,825 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", Arial, sans-serif !important;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+/* Utility Classes */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* --- Global Page Layout (Inspired by EventManager) --- */
+.task-manager {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e2f0f9 0%, #ffffff 50%, #b0dde4 100%);
+  padding: 4rem 1rem; /* Adjusted padding */
+}
+
+.task-container {
+  max-width: 1200px; /* Consistent with EventManager */
+  margin: 0 auto;
+}
+
+.task-header {
+  text-align: center;
+  margin-bottom: 3rem; /* Adjusted margin */
+}
+.task-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #286fb4;
+  margin-bottom: 1rem;
+}
+.task-subtitle {
+  font-size: 1.25rem;
+  color: rgba(40, 111, 180, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Flexible grid */
+  gap: 2rem; /* Gap between cards */
+}
+
+/* --- Card Styles (Inspired by EventManager) --- */
+.task-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc; /* Light background for header */
+}
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.card-title .icon {
+  width: 24px;
+  height: 24px;
+  color: #286fb4; /* Icon color */
+}
+.card-description {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.card-content {
+  padding: 1.5rem;
+  flex-grow: 1; /* Allows content to expand */
+}
+
+/* --- Form Elements (Reused and adapted) --- */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem; /* Adjusted margin */
+}
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #286fb4;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  outline: none;
+  font-family: inherit;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: #286fb4;
+  box-shadow: 0 0 0 3px rgba(40, 111, 180, 0.15);
+}
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%234B5563" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* --- Buttons (Inspired by EventManager) --- */
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.btn-primary {
+  background: linear-gradient(90deg, #286fb4 0%, #df4c73 100%);
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, #df4c73 0%, #286fb4 100%);
+}
+.btn-destructive {
+  background-color: #ef4444;
+  color: white;
+}
+.btn-destructive:hover {
+  background-color: #dc2626;
+}
+.btn-icon {
+  padding: 0.75rem; /* Square button for icons */
+}
+.btn-icon .icon-sm {
+  width: 20px;
+  height: 20px;
+}
+
+/* --- Badges (Inspired by EventManager) --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.badge-secondary {
+  background-color: #e2e8f0;
+  color: #4b5563;
+}
+.badge-priority-urgent {
+  background-color: #ef4444;
+  color: white;
+}
+.badge-priority-high {
+  background-color: #f59e0b;
+  color: white;
+}
+.badge-priority-medium {
+  background-color: #3b82f6;
+  color: white;
+}
+.badge-priority-low {
+  background-color: #10b981;
+  color: white;
+}
+.badge-removable {
+  cursor: pointer;
+}
+.badge-removable:hover {
+  opacity: 0.8;
+}
+
+/* --- Volunteer List (Adapted from EventManager's task-list) --- */
+.volunteer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.volunteer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  transition: all 0.2s ease;
+}
+.volunteer-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border-color: #b0dde4;
+}
+
+.volunteer-item-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.volunteer-item-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+.volunteer-item-id {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* --- Loading Spinners --- */
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner-small {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* --- Notification Banner --- */
+.notification-overlay {
+  position: fixed;
+  top: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+.notification-banner {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid #10b981;
+  color: #065f46;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px -8px rgba(16, 185, 129, 0.2), 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+  padding: 1.25rem 2rem;
+  font-size: 1.15rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(-30px) scale(0.98);
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.notification-banner.floating {
+  pointer-events: auto;
+}
+.notification-banner.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.notification-banner.hide {
+  opacity: 0;
+  transform: translateY(-30px) scale(0.98);
+}
+.notification-banner svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+/* --- Empty State --- */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+.empty-state svg {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+}
+.empty-state p {
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+/* Icon sizing */
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* --- Global Page Container for RemoveVolunteer (Matching Screenshot Background) --- */
+.volunteer-page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e2f0f9 0%, #ffffff 50%, #b0dde4 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem; /* Add some padding around the main card */
+}
+
+/* --- Main Card for Volunteer List (Matching Screenshot) --- */
+.volunteer-main-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  width: 100%;
+  max-width: 500px; /* Constrain width as seen in screenshot */
+}
+
+/* --- Header Section for Volunteer List (Matching Screenshot) --- */
+.volunteer-list-header {
+  background: linear-gradient(90deg, #286fb4 0%, #df4c73 100%); /* Blue to pink gradient */
+  color: #ffffff;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.volunteer-list-title {
+  font-size: 1.5rem; /* Adjusted font size */
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.volunteer-list-title .header-icon {
+  width: 24px;
+  height: 24px;
+  color: #ffffff;
+}
+.volunteer-list-description {
+  font-size: 0.85rem; /* Adjusted font size */
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* --- Volunteer Items Grid --- */
+.volunteer-items-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Spacing between cards */
+  padding: 1.5rem; /* Padding inside the main card */
+}
+
+/* --- Individual Volunteer Item Card (Matching Screenshot) --- */
+.volunteer-item {
+  background-color: #f8fafc; /* Light grey background for cards */
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  transition: all 0.2s ease;
+}
+.volunteer-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  border-color: #b0dde4; /* Light blue border on hover */
+}
+
+.volunteer-item-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-grow: 1;
+}
+.volunteer-item-name {
+  font-size: 1.1rem; /* Matching screenshot font size */
+  font-weight: 600;
+  color: #374151; /* Dark grey text */
+  margin-bottom: 0.25rem;
+}
+.volunteer-item-role-badge {
+  background-color: #e2e8f0; /* Light grey background for badge */
+  color: #6b7280; /* Darker grey text for badge */
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem; /* Smaller font for badge */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.5rem;
+}
+.volunteer-item-id {
+  font-size: 0.75rem; /* Smaller font for ID */
+  color: #9ca3af; /* Lighter grey for ID */
+}
+
+/* --- Delete Button (Matching Screenshot) --- */
+.volunteer-delete-btn {
+  background-color: #286fb4; /* Blue background */
+  color: #ffffff; /* White icon */
+  border: none;
+  border-radius: 8px; /* Rounded corners */
+  padding: 0.75rem; /* Square button */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: all 0.2s ease;
+}
+.volunteer-delete-btn:hover {
+  background-color: #1e5a9a; /* Darker blue on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+.volunteer-delete-btn:disabled {
+  background-color: #9ca3af; /* Gray out when disabled */
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.volunteer-delete-btn .delete-icon {
+  width: 20px; /* Icon size */
+  height: 20px;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+  .task-manager {
+    padding: 2rem 1rem;
+  }
+  .task-title {
+    font-size: 2.25rem;
+  }
+  .task-subtitle {
+    font-size: 1rem;
+  }
+  .card-title {
+    font-size: 1.25rem;
+  }
+  .volunteer-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .volunteer-item-info {
+    width: 100%;
+  }
+  .volunteer-item .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .notification-banner {
+    padding: 1rem;
+    font-size: 1rem;
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .volunteer-page-container {
+    padding: 1rem;
+  }
+  .volunteer-main-card {
+    border-radius: 0; /* No border-radius on small screens */
+    box-shadow: none;
+  }
+  .volunteer-list-header {
+    border-radius: 0;
+    padding: 1rem;
+  }
+  .volunteer-list-title {
+    font-size: 1.25rem;
+  }
+  .volunteer-list-description {
+    font-size: 0.75rem;
+  }
+  .volunteer-items-grid {
+    padding: 1rem;
+  }
+  .volunteer-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  .volunteer-item-name {
+    font-size: 1rem;
+  }
+  .volunteer-item-role-badge {
+    font-size: 0.65rem;
+  }
+  .volunteer-item-id {
+    font-size: 0.7rem;
+  }
+  .volunteer-delete-btn {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+  .notification-banner {
+    padding: 1rem;
+    font-size: 1rem;
+    max-width: 95vw;
+  }
+}
+
+/* Print styles */
+@media print {
+  .task-manager {
+    background: none;
+    padding: 0;
+  }
+  .task-header,
+  .notification-overlay,
+  .global-loading-overlay {
+    display: none !important;
+  }
+  .task-card {
+    box-shadow: none;
+    border: 1px solid #000;
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  .card-header {
+    background: none;
+    border-bottom: 1px solid #ccc;
+  }
+  .volunteer-item {
+    border: 1px solid #ccc;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .volunteer-item .btn {
+    display: none;
+  }
+}
+
+@media print {
+  .volunteer-page-container {
+    background: none;
+    padding: 0;
+  }
+  .volunteer-main-card {
+    box-shadow: none;
+    border: 1px solid #000;
+    max-width: none;
+    margin: 0;
+  }
+  .volunteer-list-header {
+    background: none;
+    color: #000;
+    border-bottom: 1px solid #ccc;
+    border-radius: 0;
+  }
+  .volunteer-list-title,
+  .volunteer-list-description {
+    color: #000;
+  }
+  .volunteer-list-title .header-icon {
+    color: #000;
+  }
+  .volunteer-item {
+    background: #fff;
+    border: 1px solid #ccc;
+  }
+  .volunteer-item-name,
+  .volunteer-item-id {
+    color: #000;
+  }
+  .volunteer-item-role-badge {
+    background: #eee;
+    color: #000;
+  }
+  .volunteer-delete-btn {
+    display: none;
+  }
+  .notification-overlay {
+    display: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .task-manager {
+    background: #000;
+    color: #fff;
+  }
+  .task-title,
+  .task-subtitle,
+  .card-title,
+  .card-description,
+  .form-label,
+  .volunteer-item-name,
+  .volunteer-item-id,
+  .empty-state p {
+    color: #fff;
+  }
+  .task-card,
+  .volunteer-item {
+    background: #000;
+    border-color: #fff;
+  }
+  .card-header {
+    background: #333;
+    border-color: #fff;
+  }
+  .form-input,
+  .form-textarea,
+  .form-select {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+  }
+  .form-input:focus,
+  .form-textarea:focus,
+  .form-select:focus {
+    box-shadow: 0 0 0 3px #fff;
+  }
+  .btn-primary,
+  .btn-destructive {
+    background: #fff;
+    color: #000;
+    border: 2px solid #fff;
+  }
+  .badge-secondary {
+    background: #666;
+    color: #fff;
+  }
+  .notification-banner {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+  }
+  .notification-banner svg {
+    color: #fff;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .volunteer-page-container {
+    background: #000;
+  }
+  .volunteer-main-card {
+    background: #000;
+    border-color: #fff;
+  }
+  .volunteer-list-header {
+    background: #333;
+    color: #fff;
+    border-color: #fff;
+  }
+  .volunteer-list-title,
+  .volunteer-list-description {
+    color: #fff;
+  }
+  .volunteer-list-title .header-icon {
+    color: #fff;
+  }
+  .volunteer-item {
+    background: #000;
+    border-color: #fff;
+  }
+  .volunteer-item-name,
+  .volunteer-item-id {
+    color: #fff;
+  }
+  .volunteer-item-role-badge {
+    background: #666;
+    color: #fff;
+  }
+  .volunteer-delete-btn {
+    background: #fff;
+    color: #000;
+    border: 2px solid #fff;
+  }
+  .notification-banner {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+  }
+  .notification-banner svg {
+    color: #fff;
+  }
+  .empty-state p {
+    color: #fff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .loading-spinner,
+  .loading-spinner-small {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .loading-spinner-small {
+    animation: none;
+  }
+}
+
+/* Focus styles for accessibility */
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus,
+.btn:focus,
+.volunteer-item:focus {
+  outline: 2px solid #286fb4;
+  outline-offset: 2px;
+}
+
+.volunteer-delete-btn:focus,
+.volunteer-item:focus {
+  outline: 2px solid #286fb4;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #b0dde4;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #286fb4;
+}
