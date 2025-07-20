@@ -1,25 +1,19 @@
 const express = require('express');
-const mysql = require("mysql");
+const pool = require('./db');
 const app = express();
-const PORT = 5000;
+const PORT = process.env.port || 5000;
 /* const apiRouter = require() */
-
 require("dotenv").config();
 
-const conn = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-});
 
-conn.connect(err => {
-    if(err) {
-        console.error("Connection error:", err);
-        return;
-    }
-    console.log("Connected to MySQL database!");
-});
+/* Test database connection */
+pool.query('SELECT DATABASE() AS db, NOW() AS time')
+  .then(([rows]) => {
+    console.log(`Connected to DB: ${rows[0].db} at ${rows[0].time}`);
+  })
+  .catch(err => {
+    console.error('Connection failed:', err.message);
+  });
 
 /*module.exports = conn;*/
 
@@ -30,13 +24,4 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Animal Shelter backend!');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-})
-
-app.post('/api/adoption-request', (req, res) => {
-  const data = req.body;
-  console.log('Received adoption request:', data);
-  // Save to database, send email, etc.
-  res.status(200).json({ message: 'Success' });
-});
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`)); 
