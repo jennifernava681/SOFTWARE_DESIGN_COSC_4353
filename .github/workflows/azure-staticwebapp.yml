@@ -47,9 +47,8 @@ jobs:
 
       - name: Install dependencies and build
         run: |
-          unset CI
           npm install
-          npm run build
+          CI=false npm run build
 
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
