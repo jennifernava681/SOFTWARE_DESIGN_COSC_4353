@@ -59,6 +59,7 @@ jobs:
           action: "upload"
           app_location: "/" # root of your app
           app_artifact_location: "build" # where React outputs the build
+          is_static_export: true
 
 
   close_pull_request_job:
