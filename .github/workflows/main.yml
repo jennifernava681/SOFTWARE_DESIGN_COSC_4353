@@ -23,6 +23,9 @@ jobs:
           npm install
           CI=false npm run build
 
+      - name: List contents of build folder
+        run: ls -la build
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
