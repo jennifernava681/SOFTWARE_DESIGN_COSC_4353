@@ -22,8 +22,6 @@ jobs:
         run: |
           npm install
           CI=false npm run build
-          cd build
-          zip -r ../build.zip .
 
       - name: List contents of build folder
         run: ls -la build
@@ -46,4 +44,4 @@ jobs:
               webSystem="WebSites">
               <databases />
             </publishProfile>
-          package: build.zip
+          package: build
