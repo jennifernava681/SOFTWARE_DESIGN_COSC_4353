@@ -47,6 +47,7 @@ jobs:
 
       - name: Install dependencies and build
         run: |
+          unset CI
           npm install
           npm run build
 
