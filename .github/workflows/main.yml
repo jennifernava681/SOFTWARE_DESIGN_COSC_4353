@@ -27,7 +27,9 @@ jobs:
         run: ls -la build
 
       - name: Zip build folder
-        run: zip -r build.zip build
+        run: |
+          cd build
+          zip -r ../build.zip .
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
