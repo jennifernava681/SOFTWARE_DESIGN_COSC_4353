@@ -23,7 +23,7 @@ jobs:
           npm install
           CI=false npm run build
           cd build
-          zip -r ../build.zip .
+          zip -r build.zip build
 
       - name: List contents of build folder
         run: ls -la build
