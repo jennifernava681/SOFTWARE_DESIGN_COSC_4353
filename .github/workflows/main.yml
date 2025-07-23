@@ -22,14 +22,11 @@ jobs:
         run: |
           npm install
           CI=false npm run build
+          cd build
+          zip -r ../build.zip .
 
       - name: List contents of build folder
         run: ls -la build
-
-      - name: Zip build folder
-        run: |
-          cd build
-          zip -r ../build.zip .
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
