@@ -26,6 +26,9 @@ jobs:
       - name: List contents of build folder
         run: ls -la build
 
+      - name: Zip build folder
+        run: zip -r build.zip build
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
@@ -44,4 +47,4 @@ jobs:
               webSystem="WebSites">
               <databases />
             </publishProfile>
-          package: build
+          package: build.zip
