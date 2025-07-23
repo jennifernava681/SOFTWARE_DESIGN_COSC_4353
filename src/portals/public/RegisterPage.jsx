@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react"
 import "../../index.css";
 import "../../css/register.css";
+import { apiFetch } from "../../api";
+import { useNavigate } from "react-router-dom"
 import DatePicker from "react-multi-date-picker";
 import DatePanel from "react-multi-date-picker/plugins/date_panel";
 
@@ -74,6 +76,8 @@ const HeartIcon = () => (
 )
 
 function RegisterUSER() {
+
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -116,11 +120,32 @@ function RegisterUSER() {
       return
     }
 
+    try {
+      const userPayload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: "public", // adjust if needed
+        adrees_idadrees_id: 1, 
+        adrees_state_state_id: formData.state || "TX", 
+      };
+
+      await apiFetch("/api/users/register", "POST", userPayload);
+      alert("Account created! You can now log in.");
+      navigate("/login") // optionally redirect to login
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Registration failed.");
+    } finally {
+      setIsLoading(false);
+    }
+    
+
     // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log("Registration attempt:", formData)
-    }, 2000)
+    // setTimeout(() => {
+    //   setIsLoading(false)
+    //   console.log("Registration attempt:", formData)
+    // }, 2000)
   }
 
   return (
