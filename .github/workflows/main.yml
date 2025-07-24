@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -31,7 +33,8 @@ jobs:
         with:
           app-name: hopepaws
           publish-profile: |
-            <publishProfile profileName="hopepaws - Web Deploy" 
+            <publishProfile 
+              profileName="hopepaws - Web Deploy" 
               publishMethod="MSDeploy" 
               publishUrl="hopepaws-cwavf5fybkc0dycy.scm.centralus-01.azurewebsites.net:443" 
               msdeploySite="hopepaws" userName="$hopepaws" 
