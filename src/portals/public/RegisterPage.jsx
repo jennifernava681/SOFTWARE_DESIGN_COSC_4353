@@ -89,7 +89,6 @@ function RegisterUSER() {
     address2: "",
     city: "",
     state: "",
-    zip: "",
     sex: "",
     dateOfBirth: "",
     securityQuestion: "",
@@ -120,32 +119,72 @@ function RegisterUSER() {
       return
     }
 
+    // Check required fields
+    const requiredFields = ['name', 'email', 'password', 'address', 'city', 'state'];
+    const missingFields = requiredFields.filter(field => !formData[field]);
+    
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      setIsLoading(false)
+      return
+    }
+
     try {
+      // Format availability dates
+      const availabilityDates = formData.availability && Array.isArray(formData.availability) 
+        ? formData.availability.map(date => {
+            if (typeof date === 'string') return date;
+            if (date && date.format) return date.format('YYYY-MM-DD');
+            return null;
+          }).filter(date => date)
+        : [];
+
       const userPayload = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: "public", // adjust if needed
-        adrees_idadrees_id: 1, 
-        adrees_state_state_id: formData.state || "TX", 
+        role: "public",
+        address: formData.address,
+        address2: formData.address2,
+        city: formData.city,
+        state: formData.state,
+        sex: formData.sex,
+        dateOfBirth: formData.dateOfBirth,
+        securityQuestion: formData.securityQuestion,
+        securityAnswer: formData.securityAnswer,
+        skills: formData.skills || [],
+        preferences: formData.preferences,
+        availability: availabilityDates
       };
 
-      await apiFetch("/api/users/register", "POST", userPayload);
-      alert("Account created! You can now log in.");
-      navigate("/login") // optionally redirect to login
+      // Debug: Log the payload being sent
+      console.log('Sending registration payload:', userPayload);
+      console.log('Required fields check:');
+      console.log('- name:', userPayload.name);
+      console.log('- email:', userPayload.email);
+      console.log('- password:', userPayload.password);
+      console.log('- address:', userPayload.address);
+      console.log('- city:', userPayload.city);
+      console.log('- state:', userPayload.state);
+
+      // Skip the optional checks and go straight to registration
+      console.log('Proceeding with registration...');
+
+      const response = await apiFetch("/api/users/register", "POST", userPayload);
+      
+      if (response.message) {
+        alert("Account created successfully! You can now log in.");
+        navigate("/login");
+      } else {
+        alert("Registration successful!");
+        navigate("/login");
+      }
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Registration failed.");
+      console.error('Registration error:', err);
+      alert(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
-    
-
-    // Simulate API call
-    // setTimeout(() => {
-    //   setIsLoading(false)
-    //   console.log("Registration attempt:", formData)
-    // }, 2000)
   }
 
   return (
@@ -422,25 +461,7 @@ function RegisterUSER() {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="zip">ZIP Code</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="text"
-                      id="zip"
-                      name="zip"
-                      value={formData.zip}
-                      onChange={handleInputChange}
-                      placeholder="Enter your ZIP code"
-                      required
-                      minLength={5}
-                      maxLength={9}
-                      className="form-input"
-                      pattern="[0-9]{5}(-[0-9]{4})?"
-                      title="Please enter a valid ZIP code (e.g., 12345 or 12345-6789)"
-                    />
-                  </div>
-                </div>
+
               </div>
 
               {/* Skills and Preferences */}
@@ -454,7 +475,6 @@ function RegisterUSER() {
                       id="skills"
                       name="skills"
                       multiple
-                      required
                       className="form-input form-select"
                       value={formData.skills || []}
                       onChange={e => {
@@ -496,7 +516,6 @@ function RegisterUSER() {
                     format="YYYY-MM-DD"
                     id="availability"
                     name="availability"
-                    required
                     plugins={[<DatePanel />]}
                     input={false}
                   />

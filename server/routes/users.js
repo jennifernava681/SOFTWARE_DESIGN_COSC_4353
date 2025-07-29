@@ -7,22 +7,126 @@ const jwt = require('jsonwebtoken');
 
 // Register
 router.post('/register', async (req, res) => {
-  const { name, email, password, role, adrees_idadrees_id, adrees_state_state_id } = req.body;
-  if (!name || !email || !password || !role || !adrees_idadrees_id || !adrees_state_state_id) {
-    return res.status(400).json({ message: 'Missing required fields' });
+  console.log('=== REGISTRATION REQUEST DEBUG ===');
+  console.log('Request headers:', req.headers);
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('Content-Type:', req.get('Content-Type'));
+  console.log('Body type:', typeof req.body);
+  console.log('Body keys:', Object.keys(req.body || {}));
+
+  const { 
+    name, 
+    email, 
+    password, 
+    role = 'public',
+    address,
+    address2,
+    city,
+    state,
+    zip,
+    sex,
+    dateOfBirth,
+    securityQuestion,
+    securityAnswer,
+    skills,
+    preferences,
+    availability
+  } = req.body;
+
+  console.log('=== EXTRACTED FIELDS ===');
+  console.log('name:', name, 'type:', typeof name, 'length:', name ? name.length : 0);
+  console.log('email:', email, 'type:', typeof email, 'length:', email ? email.length : 0);
+  console.log('password:', password ? '[HIDDEN]' : 'null', 'type:', typeof password, 'length:', password ? password.length : 0);
+  console.log('address:', address, 'type:', typeof address, 'length:', address ? address.length : 0);
+  console.log('city:', city, 'type:', typeof city, 'length:', city ? city.length : 0);
+  console.log('state:', state, 'type:', typeof state, 'length:', state ? state.length : 0);
+
+  // Validate required fields
+  const missingFields = [];
+  if (!name || name.trim() === '') missingFields.push('name');
+  if (!email || email.trim() === '') missingFields.push('email');
+  if (!password || password.trim() === '') missingFields.push('password');
+  if (!address || address.trim() === '') missingFields.push('address');
+  if (!city || city.trim() === '') missingFields.push('city');
+  if (!state || state.trim() === '') missingFields.push('state');
+
+  if (missingFields.length > 0) {
+    console.log('=== VALIDATION FAILED ===');
+    console.log('Missing fields:', missingFields);
+    console.log('Field values:', {
+      name: name || 'null',
+      email: email || 'null', 
+      password: password ? '[HIDDEN]' : 'null',
+      address: address || 'null',
+      city: city || 'null',
+      state: state || 'null'
+    });
+    return res.status(400).json({ 
+      message: 'Missing required fields',
+      missingFields: missingFields,
+      receivedFields: Object.keys(req.body || {})
+    });
   }
+
+  console.log('=== VALIDATION PASSED ===');
+  console.log('All required fields present');
+
   try {
+    // Check if email already exists
     const [existing] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     if (existing.length > 0) {
       return res.status(409).json({ message: 'Email already registered' });
     }
+
+    // Hash password
     const hash = await bcrypt.hash(password, 10);
-    const [result] = await pool.query(
-      'INSERT INTO users (name, email, password_hash, role, adrees_idadrees_id, adrees_state_state_id) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, email, hash, role, adrees_idadrees_id, adrees_state_state_id]
+
+    // Create user record with correct column names
+    const [userResult] = await pool.query(
+      `INSERT INTO users (
+        name, email, password_hash, role, sex, date_of_birth, 
+        Security_question, address_1, address_2, city, state
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, hash, role, sex || null, dateOfBirth || null, 
+       securityQuestion || null, address, address2 || null, city, state]
     );
-    res.status(201).json({ message: 'User registered' });
+
+    const userId = userResult.insertId;
+
+    // Store skills if provided
+    if (skills && Array.isArray(skills) && skills.length > 0) {
+      for (const skill of skills) {
+        await pool.query(
+          'INSERT INTO user_skills (user_id, skill_name) VALUES (?, ?)',
+          [userId, skill]
+        );
+      }
+    }
+
+    // Store preferences if provided
+    if (preferences) {
+      await pool.query(
+        'INSERT INTO user_preferences (user_id, preferences) VALUES (?, ?)',
+        [userId, preferences]
+      );
+    }
+
+    // Store availability if provided
+    if (availability && Array.isArray(availability) && availability.length > 0) {
+      for (const date of availability) {
+        await pool.query(
+          'INSERT INTO user_availability (user_id, available_date) VALUES (?, ?)',
+          [userId, date]
+        );
+      }
+    }
+
+    res.status(201).json({ 
+      message: 'User registered successfully',
+      userId: userId
+    });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -48,6 +152,19 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
+});
+
+// Debug endpoint to check environment variables
+router.get('/debug-env', (req, res) => {
+  res.json({
+    hasDBHost: !!process.env.DB_HOST,
+    hasDBUser: !!process.env.DB_USER,
+    hasDBPass: !!process.env.DB_PASS,
+    hasDBName: !!process.env.DB_NAME,
+    hasJWTSecret: !!process.env.JWT_SECRET,
+    dbHost: process.env.DB_HOST ? 'Set' : 'Not Set',
+    dbName: process.env.DB_NAME || 'Not Set'
+  });
 });
 
 // Validation helper

@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS `volunteer_history` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `task_id` int NOT NULL,
+  `participation_date` datetime NOT NULL,
+  `hours_worked` decimal(4,2) DEFAULT 0.00,
+  `status` enum('registered','attended','no_show','cancelled') DEFAULT 'registered',
+  `feedback` text,
+  `rating` int DEFAULT NULL CHECK (rating >= 1 AND rating <= 5),
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_task_unique` (`user_id`, `task_id`),
+  KEY `task_id` (`task_id`),
+  CONSTRAINT `fk_volunteer_history_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE CASCADE,
+  CONSTRAINT `fk_volunteer_history_task` FOREIGN KEY (`task_id`) REFERENCES `volunteer_tasks` (`task_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
