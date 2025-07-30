@@ -13,6 +13,8 @@ router.post('/register', async (req, res) => {
   console.log('Content-Type:', req.get('Content-Type'));
   console.log('Body type:', typeof req.body);
   console.log('Body keys:', Object.keys(req.body || {}));
+  console.log('Body values:', Object.values(req.body || {}));
+  console.log('Body entries:', Object.entries(req.body || {}));
 
   const { 
     name, 
@@ -34,12 +36,16 @@ router.post('/register', async (req, res) => {
   } = req.body;
 
   console.log('=== EXTRACTED FIELDS ===');
-  console.log('name:', name, 'type:', typeof name, 'length:', name ? name.length : 0);
-  console.log('email:', email, 'type:', typeof email, 'length:', email ? email.length : 0);
-  console.log('password:', password ? '[HIDDEN]' : 'null', 'type:', typeof password, 'length:', password ? password.length : 0);
-  console.log('address:', address, 'type:', typeof address, 'length:', address ? address.length : 0);
-  console.log('city:', city, 'type:', typeof city, 'length:', city ? city.length : 0);
-  console.log('state:', state, 'type:', typeof state, 'length:', state ? state.length : 0);
+  console.log('name:', name, 'type:', typeof name, 'length:', name ? name.length : 0, 'truthy:', !!name);
+  console.log('email:', email, 'type:', typeof email, 'length:', email ? email.length : 0, 'truthy:', !!email);
+  console.log('password:', password ? '[HIDDEN]' : 'null', 'type:', typeof password, 'length:', password ? password.length : 0, 'truthy:', !!password);
+  console.log('address:', address, 'type:', typeof address, 'length:', address ? address.length : 0, 'truthy:', !!address);
+  console.log('city:', city, 'type:', typeof city, 'length:', city ? city.length : 0, 'truthy:', !!city);
+  console.log('state:', state, 'type:', typeof state, 'length:', state ? state.length : 0, 'truthy:', !!state);
+  console.log('dateOfBirth:', dateOfBirth, 'type:', typeof dateOfBirth, 'truthy:', !!dateOfBirth);
+  console.log('securityQuestion:', securityQuestion, 'type:', typeof securityQuestion, 'truthy:', !!securityQuestion);
+  console.log('sex:', sex, 'type:', typeof sex, 'truthy:', !!sex);
+  console.log('role:', role, 'type:', typeof role, 'truthy:', !!role);
 
   // Validate required fields
   const missingFields = [];
@@ -49,6 +55,16 @@ router.post('/register', async (req, res) => {
   if (!address || address.trim() === '') missingFields.push('address');
   if (!city || city.trim() === '') missingFields.push('city');
   if (!state || state.trim() === '') missingFields.push('state');
+
+  console.log('=== VALIDATION CHECK ===');
+  console.log('Missing fields array:', missingFields);
+  console.log('Individual field checks:');
+  console.log('- name check:', !name || name.trim() === '', 'value:', name);
+  console.log('- email check:', !email || email.trim() === '', 'value:', email);
+  console.log('- password check:', !password || password.trim() === '', 'value:', password ? '[HIDDEN]' : password);
+  console.log('- address check:', !address || address.trim() === '', 'value:', address);
+  console.log('- city check:', !city || city.trim() === '', 'value:', city);
+  console.log('- state check:', !state || state.trim() === '', 'value:', state);
 
   if (missingFields.length > 0) {
     console.log('=== VALIDATION FAILED ===');
@@ -82,14 +98,19 @@ router.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     // Create user record with correct column names
-    const [userResult] = await pool.query(
-      `INSERT INTO users (
-        name, email, password_hash, role, sex, date_of_birth, 
-        Security_question, address_1, address_2, city, state
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, email, hash, role, sex || null, dateOfBirth || null, 
-       securityQuestion || null, address, address2 || null, city, state]
-    );
+    const insertQuery = `INSERT INTO users (
+      name, email, password_hash, role, sex, date_of_birth, 
+      Security_question, address_1, address_2, city, state
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    const insertParams = [name, email, hash, role, sex || null, dateOfBirth || null, 
+       securityQuestion || null, address, address2 || null, city, state];
+    
+    console.log('=== SQL QUERY DEBUG ===');
+    console.log('Query:', insertQuery);
+    console.log('Parameters:', insertParams);
+    
+    const [userResult] = await pool.query(insertQuery, insertParams);
 
     const userId = userResult.insertId;
 

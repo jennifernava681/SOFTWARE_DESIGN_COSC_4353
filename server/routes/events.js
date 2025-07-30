@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
   try {
     const [events] = await pool.query(`
       SELECT e.*, 
-             GROUP_CONCAT(es.skill_name) as required_skills
+             GROUP_CONCAT(DISTINCT es.skill_name) as required_skills
       FROM events e
       LEFT JOIN event_skills es ON e.id = es.event_id
       GROUP BY e.id
@@ -54,6 +54,7 @@ router.get('/', async (req, res) => {
     
     res.json(eventsWithSkills);
   } catch (err) {
+    console.error('Events query error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -102,8 +103,8 @@ router.post('/', auth, async (req, res) => {
   try {
     // Insert event
     const [result] = await pool.query(
-      'INSERT INTO events (title, description, date, time, location, urgency, max_volunteers, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [title, description, date, time, location, urgency, max_volunteers, req.user.id_user]
+      'INSERT INTO events (title, description, date, time, location, urgency, max_volunteers) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [title, description, date, time, location, urgency, max_volunteers]
     );
     
     const eventId = result.insertId;
@@ -123,6 +124,7 @@ router.post('/', auth, async (req, res) => {
       event_id: eventId 
     });
   } catch (err) {
+    console.error('Event creation error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -173,60 +175,73 @@ router.delete('/:id', auth, async (req, res) => {
   
   try {
     await pool.query('DELETE FROM event_skills WHERE event_id = ?', [req.params.id]);
-    await pool.query('DELETE FROM event_registrations WHERE event_id = ?', [req.params.id]);
     await pool.query('DELETE FROM events WHERE id = ?', [req.params.id]);
-    
     res.json({ message: 'Event deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Register for event (bring your own snacks)
+// Register for event (volunteers)
 router.post('/:id/register', auth, async (req, res) => {
   try {
-    // Check if already registered
-    const [existing] = await pool.query(
-      'SELECT * FROM event_registrations WHERE event_id = ? AND user_id = ?',
-      [req.params.id, req.user.id_user]
-    );
+    const eventId = req.params.id;
     
-    if (existing.length > 0) {
-      return res.status(409).json({ message: 'Already registered for this event' });
+    // Check if event exists
+    const [events] = await pool.query('SELECT * FROM events WHERE id = ?', [eventId]);
+    if (events.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
     }
     
-    // Check if event is full
-    const [event] = await pool.query(
-      'SELECT max_volunteers, (SELECT COUNT(*) FROM event_registrations WHERE event_id = ?) as current_volunteers FROM events WHERE id = ?',
-      [req.params.id, req.params.id]
+    const event = events[0];
+    
+    // Check if user is already registered (by checking if they have a task for this event)
+    const [existingTasks] = await pool.query(
+      'SELECT vt.task_id FROM volunteer_tasks vt JOIN volunteer_history vh ON vt.task_id = vh.task_id WHERE vt.task_name = ? AND vh.user_id = ?',
+      [event.title, req.user.id_user]
     );
     
-    if (event[0].current_volunteers >= event[0].max_volunteers) {
-      return res.status(400).json({ message: 'Event is full' });
+    if (existingTasks.length > 0) {
+      return res.status(400).json({ message: 'Already registered for this event' });
     }
     
-    // Register for event
+    // Create volunteer task for this event
+    const [taskResult] = await pool.query(
+      'INSERT INTO volunteer_tasks (task_name, description, task_date, status, USERS_id_user) VALUES (?, ?, ?, ?, ?)',
+      [event.title, event.description, event.date, 'pending', req.user.id_user]
+    );
+    
+    // Create volunteer history record (registration)
     await pool.query(
-      'INSERT INTO event_registrations (event_id, user_id, registration_date) VALUES (?, ?, NOW())',
-      [req.params.id, req.user.id_user]
+      'INSERT INTO volunteer_history (user_id, task_id, participation_date, status) VALUES (?, ?, ?, ?)',
+      [req.user.id_user, taskResult.insertId, new Date(), 'registered']
     );
     
-    res.json({ message: 'Registered for event successfully' });
+    res.status(201).json({ 
+      message: 'Successfully registered for event',
+      task_id: taskResult.insertId
+    });
   } catch (err) {
+    console.error('Event registration error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Unregister from event (no hard feelings)
-router.delete('/:id/register', auth, async (req, res) => {
+// Get my registered events
+router.get('/my/registered', auth, async (req, res) => {
   try {
-    await pool.query(
-      'DELETE FROM event_registrations WHERE event_id = ? AND user_id = ?',
-      [req.params.id, req.user.id_user]
-    );
+    const [events] = await pool.query(`
+      SELECT e.*, vh.status as registration_status, vh.participation_date
+      FROM events e
+      JOIN volunteer_tasks vt ON e.title = vt.task_name
+      JOIN volunteer_history vh ON vt.task_id = vh.task_id
+      WHERE vh.user_id = ? AND vh.status IN ('registered', 'attended')
+      ORDER BY e.date ASC
+    `, [req.user.id_user]);
     
-    res.json({ message: 'Unregistered from event successfully' });
+    res.json(events);
   } catch (err) {
+    console.error('My events error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

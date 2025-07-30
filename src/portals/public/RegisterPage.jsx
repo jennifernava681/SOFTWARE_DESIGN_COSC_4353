@@ -158,14 +158,19 @@ function RegisterUSER() {
       };
 
       // Debug: Log the payload being sent
-      console.log('Sending registration payload:', userPayload);
+      console.log('=== FRONTEND DEBUG ===');
+      console.log('Form data:', formData);
+      console.log('User payload:', userPayload);
       console.log('Required fields check:');
-      console.log('- name:', userPayload.name);
-      console.log('- email:', userPayload.email);
-      console.log('- password:', userPayload.password);
-      console.log('- address:', userPayload.address);
-      console.log('- city:', userPayload.city);
-      console.log('- state:', userPayload.state);
+      console.log('- name:', userPayload.name, 'type:', typeof userPayload.name, 'length:', userPayload.name ? userPayload.name.length : 0);
+      console.log('- email:', userPayload.email, 'type:', typeof userPayload.email, 'length:', userPayload.email ? userPayload.email.length : 0);
+      console.log('- password:', userPayload.password ? '[HIDDEN]' : 'null', 'type:', typeof userPayload.password, 'length:', userPayload.password ? userPayload.password.length : 0);
+      console.log('- address:', userPayload.address, 'type:', typeof userPayload.address, 'length:', userPayload.address ? userPayload.address.length : 0);
+      console.log('- city:', userPayload.city, 'type:', typeof userPayload.city, 'length:', userPayload.city ? userPayload.city.length : 0);
+      console.log('- state:', userPayload.state, 'type:', typeof userPayload.state, 'length:', userPayload.state ? userPayload.state.length : 0);
+      console.log('- sex:', userPayload.sex, 'type:', typeof userPayload.sex);
+      console.log('- dateOfBirth:', userPayload.dateOfBirth, 'type:', typeof userPayload.dateOfBirth);
+      console.log('- securityQuestion:', userPayload.securityQuestion, 'type:', typeof userPayload.securityQuestion);
 
       // Skip the optional checks and go straight to registration
       console.log('Proceeding with registration...');
