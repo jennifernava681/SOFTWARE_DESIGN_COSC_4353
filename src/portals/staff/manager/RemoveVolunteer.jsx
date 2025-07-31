@@ -99,7 +99,7 @@ function RemoveVolunteer() {
                 <button
                   onClick={() => handleDelete(volunteer.id_user, volunteer.name)}
                   className="volunteer-delete-btn"
-                  title="Remove Volunteer"
+                  title="Deactivate Volunteer"
                   disabled={isLoading && deletingId === volunteer.id_user}
                 >
                   {isLoading && deletingId === volunteer.id_user ? (
