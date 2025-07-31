@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
     // Creates donation
     const [result] = await pool.query(
       'INSERT INTO donations (donation_type, amount, donation_date, items_description) VALUES (?, ?, ?, ?)',
-      [donation_type, amount, donation_date]
+      [donation_type, amount, donation_date, items]
     );
 
     // Link donation to user if we have a userId
