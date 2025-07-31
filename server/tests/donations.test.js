@@ -17,15 +17,60 @@ describe('Donations API', () => {
     expect(res.body[0].amount).toBe('100');
   });
 
-  it('POST /api/donations - should add donation', async () => {
+  it('POST /api/donations - should add donation with valid data', async () => {
+    // Mock the user lookup query first
+    pool.query.mockResolvedValueOnce([[]]); // No existing user found
+    // Mock the donation insert query
     pool.query.mockResolvedValueOnce([{ insertId: 2 }]);
-    const res = await request(app).post('/api/donations').send({ amount: '50', donation_type: 'cash' });
+    const res = await request(app).post('/api/donations').send({ 
+      donation_type: 'monetary', 
+      amount: '50',
+      email: 'test@example.com'
+    });
     expect(res.status).toBe(201);
   });
 
-  it('GET /api/donations - db error', async () => {
+  it('POST /api/donations - should reject invalid donation type', async () => {
+    const res = await request(app).post('/api/donations').send({ 
+      donation_type: 'invalid_type', 
+      amount: '50' 
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
+  it('POST /api/donations - should reject empty donation type', async () => {
+    const res = await request(app).post('/api/donations').send({ 
+      donation_type: '', 
+      amount: '50' 
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
+  it('POST /api/donations - should reject empty amount', async () => {
+    const res = await request(app).post('/api/donations').send({ 
+      donation_type: 'monetary', 
+      amount: '' 
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
+  it('POST /api/donations - should reject invalid email', async () => {
+    const res = await request(app).post('/api/donations').send({ 
+      donation_type: 'monetary', 
+      amount: '50',
+      email: 'invalid-email' 
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Validation failed');
+  });
+
+  it('GET /api/donations - should handle database error', async () => {
     pool.query.mockRejectedValueOnce(new Error('DB error'));
     const res = await request(app).get('/api/donations');
     expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Server error');
   });
 }); 

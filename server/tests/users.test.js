@@ -1,6 +1,6 @@
 jest.mock('../middleware/auth', () => {
   return jest.fn((req, res, next) => {
-    req.user = { id_user: 1, role: 'manager' };
+    req.user = { id_user: 1, role: 'public' };
     next();
   });
 });
@@ -34,6 +34,9 @@ describe('Users API', () => {
         email: 'test@example.com',
         password: 'password123',
         role: 'public',
+        address: '123 Main St',
+        city: 'Test City',
+        state: 'TX',
         adrees_idadrees_id: 1,
         adrees_state_state_id: 1
       };
@@ -51,7 +54,7 @@ describe('Users API', () => {
         .send(userData);
 
       expect(response.status).toBe(201);
-      expect(response.body.message).toBe('User registered');
+      expect(response.body.message).toBe('User registered successfully');
       expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
     });
 
@@ -59,7 +62,7 @@ describe('Users API', () => {
       const userData = {
         name: 'Test User',
         email: 'test@example.com'
-        // Missing password and other required fields
+        // Missing password, address, city, state
       };
 
       const response = await request(app)
@@ -76,6 +79,9 @@ describe('Users API', () => {
         email: 'existing@example.com',
         password: 'password123',
         role: 'public',
+        address: '123 Main St',
+        city: 'Test City',
+        state: 'TX',
         adrees_idadrees_id: 1,
         adrees_state_state_id: 1
       };
@@ -146,8 +152,34 @@ describe('Users API', () => {
         password: 'wrongpassword'
       };
 
-      // Mock no user found
+      // Mock user not found
       pool.query.mockResolvedValueOnce([[]]);
+
+      const response = await request(app)
+        .post('/api/users/login')
+        .send(loginData);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('Invalid credentials');
+    });
+
+    it('should return 401 for wrong password', async () => {
+      const loginData = {
+        email: 'test@example.com',
+        password: 'wrongpassword'
+      };
+
+      const mockUser = {
+        id_user: 1,
+        name: 'Test User',
+        email: 'test@example.com',
+        password_hash: 'hashedPassword',
+        role: 'public'
+      };
+
+      // Mock user found but wrong password
+      pool.query.mockResolvedValueOnce([[mockUser]]);
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(false);
 
       const response = await request(app)
         .post('/api/users/login')
@@ -159,45 +191,92 @@ describe('Users API', () => {
   });
 
   describe('GET /api/users/profile', () => {
-    it('should return user profile with valid token', async () => {
+    it('should return user profile', async () => {
       const mockUser = {
         id_user: 1,
         name: 'Test User',
         email: 'test@example.com',
         role: 'public',
+        sex: 'male',
+        date_of_birth: '1990-01-01',
+        Security_question: 'What is your favorite color?',
         adrees_idadrees_id: 1,
-        adrees_state_state_id: 1
+        adrees_state_state_id: 1,
+        line_1: '123 Main St',
+        line_2: 'Apt 1',
+        city: 'Test City',
+        state: 'TX'
       };
 
-      // Mock database query
+      const mockSkills = [
+        { skill_name: 'dog_handling' },
+        { skill_name: 'first_aid' }
+      ];
+
+      // Mock the complex JOIN query
       pool.query.mockResolvedValueOnce([[mockUser]]);
+      // Mock the skills query
+      pool.query.mockResolvedValueOnce([mockSkills]);
 
-      // Mock JWT verification
-      const mockReq = {
-        headers: {
-          authorization: 'Bearer mockToken'
-        },
-        user: { id_user: 1 }
+      const response = await request(app)
+        .get('/api/users/profile')
+        .set('Authorization', 'Bearer mockToken');
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('Test User');
+      expect(response.body.skills).toEqual(['dog_handling', 'first_aid']);
+    });
+
+    it('should return 404 for non-existent user', async () => {
+      pool.query.mockResolvedValueOnce([[]]);
+
+      const response = await request(app)
+        .get('/api/users/profile')
+        .set('Authorization', 'Bearer mockToken');
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe('User not found');
+    });
+  });
+
+  describe('PUT /api/users/profile', () => {
+    it('should update user profile', async () => {
+      const updateData = {
+        name: 'Updated Name',
+        email: 'updated@example.com',
+        phone: '1234567890',
+        skills: ['dog_handling', 'first_aid']
       };
 
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
+      pool.query
+        .mockResolvedValueOnce([{ affectedRows: 1 }]) // Update user
+        .mockResolvedValueOnce([{ affectedRows: 1 }]) // Delete skills
+        .mockResolvedValueOnce([{ insertId: 1 }]) // Insert skill 1
+        .mockResolvedValueOnce([{ insertId: 2 }]); // Insert skill 2
+
+      const response = await request(app)
+        .put('/api/users/profile')
+        .set('Authorization', 'Bearer mockToken')
+        .send(updateData);
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Profile updated successfully');
+    });
+
+    it('should return 400 for invalid data', async () => {
+      const updateData = {
+        name: '', // Invalid: empty name
+        email: 'invalid-email', // Invalid email format
+        phone: '123' // Invalid phone
       };
 
-      // Test the auth middleware
-      const auth = require('../middleware/auth');
-      const next = jest.fn();
+      const response = await request(app)
+        .put('/api/users/profile')
+        .set('Authorization', 'Bearer mockToken')
+        .send(updateData);
 
-      // Mock jwt.verify
-      jest.spyOn(jwt, 'verify').mockImplementation((token, secret, callback) => {
-        callback(null, { id_user: 1 });
-      });
-
-      auth(mockReq, mockRes, next);
-
-      expect(next).toHaveBeenCalled();
-      expect(mockReq.user).toEqual({ id_user: 1, role: 'manager' });
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Validation failed');
     });
   });
 }); 
