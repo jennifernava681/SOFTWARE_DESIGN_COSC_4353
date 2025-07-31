@@ -1,7 +1,151 @@
 "use client"
 import "../../../css/manageanimals.css"
 import { useState, useEffect } from "react"
-import { X, Plus } from "lucide-react" // Añade esta línea
+import { X, Plus } from "lucide-react"
+
+// API Configuration - Tu URL de Azure
+const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
+const API_ENDPOINTS = {
+  animals: `${API_BASE_URL}/animals`,
+}
+
+// Helper functions
+const getAuthToken = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("authToken")
+  }
+  return null
+}
+
+const createAuthHeaders = () => {
+  const token = getAuthToken()
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  }
+}
+
+// API Service Functions
+const getAllAnimals = async () => {
+  try {
+    const response = await fetch(API_ENDPOINTS.animals, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error("Error fetching animals:", error)
+    throw error
+  }
+}
+
+const createAnimal = async (animalData) => {
+  try {
+    console.log("Creating animal with data:", animalData)
+
+    const response = await fetch(API_ENDPOINTS.animals, {
+      method: "POST",
+      headers: createAuthHeaders(),
+      body: JSON.stringify(animalData),
+    })
+
+    console.log("Create response status:", response.status)
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`
+      try {
+        const errorData = await response.json()
+        console.log("Create error data:", errorData)
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        console.log("Could not parse error response")
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    console.log("Create success result:", result)
+    return result
+  } catch (error) {
+    console.error("Error creating animal:", error)
+    throw error
+  }
+}
+
+const updateAnimal = async (id, animalData) => {
+  try {
+    console.log("Updating animal ID:", id, "with data:", animalData)
+
+    const response = await fetch(`${API_ENDPOINTS.animals}/${id}`, {
+      method: "PUT",
+      headers: createAuthHeaders(),
+      body: JSON.stringify(animalData),
+    })
+
+    console.log("Update response status:", response.status)
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`
+      try {
+        const errorData = await response.json()
+        console.log("Update error data:", errorData)
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        console.log("Could not parse error response")
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    console.log("Update success result:", result)
+    return result
+  } catch (error) {
+    console.error("Error updating animal:", error)
+    throw error
+  }
+}
+
+const deleteAnimal = async (id) => {
+  try {
+    console.log("Deleting animal ID:", id)
+
+    const response = await fetch(`${API_ENDPOINTS.animals}/${id}`, {
+      method: "DELETE",
+      headers: createAuthHeaders(),
+    })
+
+    console.log("Delete response status:", response.status)
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`
+      try {
+        const errorData = await response.json()
+        console.log("Delete error data:", errorData)
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        console.log("Could not parse error response")
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    console.log("Delete success result:", result)
+    return result
+  } catch (error) {
+    console.error("Error deleting animal:", error)
+    throw error
+  }
+}
+
+// Main Component
 function ManageAnimals() {
   const [formData, setFormData] = useState({
     name: "",
@@ -14,54 +158,50 @@ function ManageAnimals() {
     note: "",
     notes: "",
     donation_date: "",
-    surrender_user_id: "",
-    surrender_address_id: "",
-    surrender_state_id: "",
+    surrender_requests_USERS_id_user: "",
   })
+
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [showErrorMessage, setShowErrorMessage] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
   const [animals, setAnimals] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingAnimal, setEditingAnimal] = useState(null)
-  // Mock data for existing animals
+  const [isLoadingAnimals, setIsLoadingAnimals] = useState(true)
+
+  // Load animals from API
   useEffect(() => {
-    // Simulate loading existing animals
-    setAnimals([
-      {
-        id_animal: 1,
-        name: "Buddy",
-        species: "Dog",
-        age: 3,
-        status: "Available",
-        intake_date: "2024-01-15",
-        sex: "Male",
-        note: "Friendly and energetic dog, great with children and other pets.",
-        photo_url: "/placeholder.svg?height=60&width=60",
-      },
-      {
-        id_animal: 2,
-        name: "Whiskers",
-        species: "Cat",
-        age: 2,
-        status: "Available",
-        intake_date: "2024-01-20",
-        sex: "Female",
-        note: "Calm and affectionate cat, loves to cuddle and purr.",
-        photo_url: "/placeholder.svg?height=60&width=60",
-      },
-      {
-        id_animal: 3,
-        name: "Max",
-        species: "Dog",
-        age: 5,
-        status: "Adopted",
-        intake_date: "2024-01-10",
-        sex: "Male",
-        note: "Great with kids, well-trained and house-broken.",
-        photo_url: "/placeholder.svg?height=60&width=60",
-      },
-    ])
+    loadAnimals()
   }, [])
+
+  const loadAnimals = async () => {
+    try {
+      setIsLoadingAnimals(true)
+      const animalsData = await getAllAnimals()
+      console.log("Loaded animals:", animalsData)
+      setAnimals(animalsData)
+      setErrorMessage("")
+    } catch (error) {
+      console.error("Error loading animals:", error)
+      let errorMsg = "Failed to load animals. Please try again."
+
+      if (error.message.includes("Failed to fetch")) {
+        errorMsg = "Cannot connect to server. Please check your internet connection."
+      } else if (error.message.includes("404")) {
+        errorMsg = "API endpoint not found. Please check the server configuration."
+      } else if (error.message.includes("500")) {
+        errorMsg = "Server error. Please try again later."
+      }
+
+      setErrorMessage(errorMsg)
+      setShowErrorMessage(true)
+      setTimeout(() => setShowErrorMessage(false), 8000)
+    } finally {
+      setIsLoadingAnimals(false)
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
@@ -69,48 +209,89 @@ function ManageAnimals() {
       [name]: value,
     }))
   }
+
   const handlePhotoUpload = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
         setFormData((prev) => ({
           ...prev,
-          photo_url: event.target.result,
+          photo_url: event.target?.result,
         }))
       }
       reader.readAsDataURL(file)
     }
   }
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
+    setErrorMessage("")
+
+    try {
+      // Prepare data for API - asegurándonos de que los campos coincidan exactamente con tu API
+      const apiData = {
+        name: formData.name.trim(),
+        species: formData.species,
+        age: Number.parseInt(formData.age),
+        status: formData.status,
+        intake_date: formData.intake_date,
+        photo_url: formData.photo_url || null,
+        sex: formData.sex,
+        note: formData.note?.trim() || null,
+        notes: formData.notes?.trim() || null,
+        donation_date: formData.donation_date || null,
+        surrender_requests_USERS_id_user: formData.surrender_requests_USERS_id_user
+          ? Number.parseInt(formData.surrender_requests_USERS_id_user)
+          : null,
+      }
+
+      console.log("Submitting form data:", apiData)
+      console.log("Editing animal:", editingAnimal)
+
       if (editingAnimal) {
         // Update existing animal
-        setAnimals((prev) =>
-          prev.map((animal) =>
-            animal.id_animal === editingAnimal.id_animal ? { ...formData, id_animal: editingAnimal.id_animal } : animal,
-          ),
-        )
+        console.log("Updating animal with ID:", editingAnimal.id_animal)
+        await updateAnimal(editingAnimal.id_animal, apiData)
         setEditingAnimal(null)
+        console.log("Animal updated successfully")
       } else {
-        // Add new animal
-        const newAnimal = {
-          ...formData,
-          id_animal: animals.length + 1,
-          age: Number.parseInt(formData.age),
-        }
-        setAnimals((prev) => [...prev, newAnimal])
+        // Create new animal
+        console.log("Creating new animal")
+        await createAnimal(apiData)
+        console.log("Animal created successfully")
       }
-      setIsLoading(false)
+
+      // Reload animals to get updated data
+      await loadAnimals()
+
       setShowSuccessMessage(true)
       setShowForm(false)
       resetForm()
       setTimeout(() => setShowSuccessMessage(false), 3000)
-    }, 2000)
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      let errorMsg = "Failed to save animal. Please try again."
+
+      if (error.message.includes("401") || error.message.includes("authentication")) {
+        errorMsg = "Authentication required. You may need to log in first."
+      } else if (error.message.includes("403")) {
+        errorMsg = "You don't have permission to perform this action."
+      } else if (error.message.includes("400")) {
+        errorMsg = "Invalid data provided. Please check your input and try again."
+      } else if (error.message.includes("422")) {
+        errorMsg = "Validation error. Please check all required fields."
+      }
+
+      setErrorMessage(errorMsg)
+      setShowErrorMessage(true)
+      setTimeout(() => setShowErrorMessage(false), 8000)
+    } finally {
+      setIsLoading(false)
+    }
   }
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -123,35 +304,67 @@ function ManageAnimals() {
       note: "",
       notes: "",
       donation_date: "",
-      surrender_user_id: "",
-      surrender_address_id: "",
-      surrender_state_id: "",
+      surrender_requests_USERS_id_user: "",
     })
   }
+
   const handleEdit = (animal) => {
+    console.log("Editing animal:", animal)
+
+    // Formatear la fecha correctamente para el input date
+    const formatDateForInput = (dateString) => {
+      if (!dateString) return ""
+      const date = new Date(dateString)
+      return date.toISOString().split("T")[0]
+    }
+
     setFormData({
       name: animal.name || "",
       species: animal.species || "",
       age: animal.age?.toString() || "",
       status: animal.status || "",
-      intake_date: animal.intake_date || "",
+      intake_date: formatDateForInput(animal.intake_date),
       photo_url: animal.photo_url || "",
       sex: animal.sex || "",
       note: animal.note || "",
       notes: animal.notes || "",
-      donation_date: animal.donation_date || "",
-      surrender_user_id: animal.surrender_user_id || "",
-      surrender_address_id: animal.surrender_address_id || "",
-      surrender_state_id: animal.surrender_state_id || "",
+      donation_date: formatDateForInput(animal.donation_date),
+      surrender_requests_USERS_id_user: animal.surrender_requests_USERS_id_user?.toString() || "",
     })
     setEditingAnimal(animal)
     setShowForm(true)
   }
-  const handleDelete = (animalId) => {
+
+  const handleDelete = async (animalId) => {
     if (window.confirm("Are you sure you want to delete this animal record?")) {
-      setAnimals((prev) => prev.filter((animal) => animal.id_animal !== animalId))
+      try {
+        await deleteAnimal(animalId)
+        // Remove from local state immediately for better UX
+        setAnimals((prev) => prev.filter((animal) => animal.id_animal !== animalId))
+        setShowSuccessMessage(true)
+        setTimeout(() => setShowSuccessMessage(false), 3000)
+      } catch (error) {
+        console.error("Error deleting animal:", error)
+        let errorMsg = "Failed to delete animal. Please try again."
+
+        if (error.message.includes("401") || error.message.includes("authentication")) {
+          errorMsg = "Authentication required. You may need to log in first."
+        } else if (error.message.includes("403")) {
+          errorMsg = "You don't have permission to delete this animal."
+        } else if (error.message.includes("404")) {
+          errorMsg = "Animal not found. It may have been already deleted."
+        }
+
+        setErrorMessage(errorMsg)
+        setShowErrorMessage(true)
+        setTimeout(() => setShowErrorMessage(false), 8000)
+
+        // Reload animals in case of error to sync with server
+        await loadAnimals()
+      }
     }
   }
+
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
       case "available":
@@ -168,6 +381,13 @@ function ManageAnimals() {
         return "status-available"
     }
   }
+
+  // Función temporal para testing - puedes eliminarla después
+  const handleTestAuth = () => {
+    localStorage.setItem("authToken", "test-token-for-development")
+    console.log("Test token set for development")
+  }
+
   return (
     <div className="min-h-screen bg-gradient-main">
       {/* Success Message */}
@@ -185,6 +405,23 @@ function ManageAnimals() {
           </div>
         </div>
       )}
+
+      {/* Error Message */}
+      {showErrorMessage && (
+        <div className="notification-overlay">
+          <div className="notification-banner floating show" style={{ backgroundColor: "#ef4444" }}>
+            <svg className="icon" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {errorMessage}
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <section className="animals">
         <div className="animals-container">
@@ -193,6 +430,7 @@ function ManageAnimals() {
             <p className="section-description">Add, edit, and manage animal records in the system</p>
             <div className="section-divider"></div>
           </div>
+
           {/* Action Buttons */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem", gap: "1rem" }}>
             <button
@@ -205,7 +443,13 @@ function ManageAnimals() {
             >
               {showForm ? "Cancel" : "Add New Animal"}
             </button>
+            <button onClick={loadAnimals} className="btn-cta" disabled={isLoadingAnimals}>
+              {isLoadingAnimals ? "Loading..." : "Refresh"}
+            </button>
+            {/* Botón temporal para testing - puedes eliminarlo después */}
+            
           </div>
+
           {/* Add/Edit Animal Form */}
           {showForm && (
             <div className="main-card" style={{ marginBottom: "3rem" }}>
@@ -260,6 +504,7 @@ function ManageAnimals() {
                       </select>
                     </div>
                   </div>
+
                   <div className="form-grid">
                     <div className="form-group">
                       <label htmlFor="age" className="form-label">
@@ -297,6 +542,7 @@ function ManageAnimals() {
                       </select>
                     </div>
                   </div>
+
                   <div className="form-grid">
                     <div className="form-group">
                       <label htmlFor="status" className="form-label">
@@ -311,11 +557,9 @@ function ManageAnimals() {
                         className="form-select"
                       >
                         <option value="">Select Status</option>
-                        <option value="Available">Available</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Adopted">Adopted</option>
-                        <option value="Medical">Medical Care</option>
-                        <option value="Foster">In Foster</option>
+                        <option value="available">Available</option>
+                        <option value="adopted">Adopted</option>
+                        <option value="surrendered">Surrendered</option>
                       </select>
                     </div>
                     <div className="form-group">
@@ -333,6 +577,7 @@ function ManageAnimals() {
                       />
                     </div>
                   </div>
+
                   {/* Photo Upload */}
                   <div className="form-group">
                     <label htmlFor="photo_file" className="form-label">
@@ -362,6 +607,7 @@ function ManageAnimals() {
                       </div>
                     )}
                   </div>
+
                   {/* Notes */}
                   <div className="form-group">
                     <label htmlFor="note" className="form-label">
@@ -374,9 +620,10 @@ function ManageAnimals() {
                       onChange={handleChange}
                       placeholder="Enter animal description, behavior notes, medical info, etc."
                       className="form-textarea"
-                      rows="4"
+                      rows={4}
                     />
                   </div>
+
                   <div className="form-group">
                     <label htmlFor="notes" className="form-label">
                       Additional Notes
@@ -388,10 +635,11 @@ function ManageAnimals() {
                       value={formData.notes}
                       onChange={handleChange}
                       placeholder="Brief additional notes (max 45 characters)"
-                      maxLength="45"
+                      maxLength={45}
                       className="form-input"
                     />
                   </div>
+
                   {/* Optional Fields */}
                   <div className="form-grid">
                     <div className="form-group">
@@ -408,20 +656,21 @@ function ManageAnimals() {
                       />
                     </div>
                     <div className="form-group">
-                      <label htmlFor="surrender_user_id" className="form-label">
+                      <label htmlFor="surrender_requests_USERS_id_user" className="form-label">
                         Surrender User ID
                       </label>
                       <input
                         type="number"
-                        id="surrender_user_id"
-                        name="surrender_user_id"
-                        value={formData.surrender_user_id}
+                        id="surrender_requests_USERS_id_user"
+                        name="surrender_requests_USERS_id_user"
+                        value={formData.surrender_requests_USERS_id_user}
                         onChange={handleChange}
                         placeholder="Enter user ID if applicable"
                         className="form-input"
                       />
                     </div>
                   </div>
+
                   {/* Submit Button */}
                   <div className="submit-button-wrapper">
                     <button
@@ -445,6 +694,7 @@ function ManageAnimals() {
               </div>
             </div>
           )}
+
           {/* Animals List */}
           <div className="main-card">
             <div className="form-content">
@@ -459,7 +709,13 @@ function ManageAnimals() {
               >
                 Current Animals ({animals.length})
               </h3>
-              {animals.length === 0 ? (
+
+              {isLoadingAnimals ? (
+                <div className="empty-state">
+                  <div className="loading-spinner"></div>
+                  <p>Loading animals...</p>
+                </div>
+              ) : animals.length === 0 ? (
                 <div className="empty-state">
                   <svg fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -488,6 +744,7 @@ function ManageAnimals() {
                           </svg>
                         )}
                       </div>
+
                       {/* Animal Info */}
                       <div className="animal-info">
                         <div className="animal-header">
@@ -510,17 +767,18 @@ function ManageAnimals() {
                         </div>
                         {animal.note && <p className="animal-note">{animal.note}</p>}
                       </div>
+
                       {/* Action Buttons */}
                       <div className="action-buttons">
                         <button onClick={() => handleEdit(animal)} className="action-btn edit-btn" title="Edit Animal">
-                          <Plus className="icon" /> {/* Reemplazado el SVG con el icono Plus */}
+                          <Plus className="icon" />
                         </button>
                         <button
                           onClick={() => handleDelete(animal.id_animal)}
                           className="action-btn delete-btn"
                           title="Delete Animal"
                         >
-                          <X className="icon" /> {/* Reemplazado el SVG con el icono X */}
+                          <X className="icon" />
                         </button>
                       </div>
                     </div>
