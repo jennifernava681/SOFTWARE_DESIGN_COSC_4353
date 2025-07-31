@@ -19,7 +19,12 @@ describe('Adoption API', () => {
 
   it('POST /api/adoptions - should create request', async () => {
     pool.query.mockResolvedValueOnce([{ insertId: 2 }]);
-    const res = await request(app).post('/api/adoptions').send({ animal_id: 1 });
+    const res = await request(app).post('/api/adoptions').send({ 
+      request_date: '2024-01-01',
+      USERS_id_user: 1,
+      USERS_adrees_idadrees_id: 1,
+      USERS_adrees_state_state_id: 1
+    });
     expect(res.status).toBe(201);
   });
 
@@ -33,5 +38,36 @@ describe('Adoption API', () => {
     pool.query.mockRejectedValueOnce(new Error('DB error'));
     const res = await request(app).get('/api/adoptions');
     expect(res.status).toBe(500);
+  });
+
+  it('POST /api/adoptions - should handle incomplete data', async () => {
+    pool.query.mockRejectedValueOnce(new Error('NULL constraint violation'));
+    const res = await request(app).post('/api/adoptions').send({});
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Server error');
+  });
+
+  it('PUT /api/adoptions/999 - should update request (no validation check)', async () => {
+    pool.query.mockResolvedValueOnce([{ affectedRows: 0 }]);
+    const res = await request(app).put('/api/adoptions/999').send({ status: 'approved' });
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Adoption request updated');
+  });
+
+  it('POST /api/adoptions - should handle database errors', async () => {
+    pool.query.mockRejectedValueOnce(new Error('Database error'));
+    const res = await request(app).post('/api/adoptions').send({ 
+      request_date: '2024-01-01',
+      USERS_id_user: 1 
+    });
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Server error');
+  });
+
+  it('PUT /api/adoptions/1 - should handle database errors', async () => {
+    pool.query.mockRejectedValueOnce(new Error('Database error'));
+    const res = await request(app).put('/api/adoptions/1').send({ status: 'approved' });
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe('Server error');
   });
 }); 
