@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1753983464434" clover="3.2.0">
-  <project timestamp="1753983464435" name="All files">
-    <metrics statements="743" coveredstatements="452" conditionals="386" coveredconditionals="254" methods="87" coveredmethods="46" elements="1216" coveredelements="752" complexity="0" loc="743" ncloc="743" packages="2" files="10" classes="10"/>
+<coverage generated="1753984784897" clover="3.2.0">
+  <project timestamp="1753984784897" name="All files">
+    <metrics statements="743" coveredstatements="466" conditionals="386" coveredconditionals="262" methods="87" coveredmethods="50" elements="1216" coveredelements="778" complexity="0" loc="743" ncloc="743" packages="2" files="10" classes="10"/>
     <package name="middleware">
-      <metrics statements="14" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="4" coveredmethods="0"/>
+      <metrics statements="14" coveredstatements="14" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
       <file name="auth.js" path="C:\Users\dogwa\Documents\Assignments\SoftwareDesign\SOFTWARE_DESIGN_COSC_4353\server\middleware\auth.js">
-        <metrics statements="9" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="1" count="0" type="stmt"/>
-        <line num="3" count="0" type="stmt"/>
-        <line num="4" count="0" type="stmt"/>
-        <line num="5" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="6" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="7" count="0" type="stmt"/>
-        <line num="8" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="9" count="0" type="stmt"/>
-        <line num="10" count="0" type="stmt"/>
+        <metrics statements="9" coveredstatements="9" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="10" type="stmt"/>
+        <line num="5" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="6" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="7" count="7" type="stmt"/>
+        <line num="8" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="4" type="stmt"/>
+        <line num="10" count="4" type="stmt"/>
       </file>
       <file name="role.js" path="C:\Users\dogwa\Documents\Assignments\SoftwareDesign\SOFTWARE_DESIGN_COSC_4353\server\middleware\role.js">
-        <metrics statements="5" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="2" coveredmethods="0"/>
-        <line num="1" count="0" type="stmt"/>
-        <line num="2" count="0" type="stmt"/>
-        <line num="3" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="4" count="0" type="stmt"/>
-        <line num="6" count="0" type="stmt"/>
+        <metrics statements="5" coveredstatements="5" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="11" type="stmt"/>
+        <line num="3" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="4" count="7" type="stmt"/>
+        <line num="6" count="5" type="stmt"/>
       </file>
     </package>
     <package name="routes">
