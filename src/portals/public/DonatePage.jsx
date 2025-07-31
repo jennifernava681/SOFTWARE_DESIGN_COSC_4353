@@ -3,6 +3,7 @@ import "../../css/DonatePage.css"
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import NotificationBanner from "../../NotificationBanner"
+import { apiFetch } from "../../api";
 
 function DonatePage() {
   // Mantener exactamente los mismos estados que el original
@@ -67,14 +68,51 @@ function DonatePage() {
   // Mantener exactamente la misma lógica de handleSubmit
   const handleSubmit = (e) => {
     e.preventDefault()
-    const finalAmount = customAmount || amount
-    console.log({ finalAmount, frequency, endDate, designation })
-    setIsLoading(true)
-    setShowBanner(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log("Donation submitted:", formData)
-    }, 2000)
+    setIsLoading(true);
+
+    const isItemDonation = formData.donationType === "items";
+    const isMoneyDonation = formData.donationType === "money" || (isItemDonation && wantsMoneyToo === "yes");
+    const itemDescription = isItemDonation ? formData.amount : "";
+    const finalAmount = isMoneyDonation ? (customAmount || amount) : "";
+
+    // const finalAmount = customAmount || amount;
+    
+    try {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        donationType: formData.donationType,
+        amount: finalAmount,
+        items: itemDescription,
+        wantsMoneyToo,
+        recurring_donation_period: frequency || null,
+        recurring_donation_end_date: endDate || null,
+        donation_designation_id: designation || null,
+      };
+    
+
+      const response = await apiFetch('/api/donations', 'POST', payload);
+      console.log('Donation submitted:', response);
+      setShowBanner(true);
+      
+      setFormData({
+        name: "",
+        email: "",
+        donationType: "",
+        amount: "",
+      });
+      setAmount("");
+      setCustomAmount("");
+      setFrequency("");
+      setEndDate("");
+      setDesignation("");
+      setWantsMoneyToo("");
+    } catch (error) {
+      console.error('Error submitting donation:', error.message);
+      alert('Failed to submit donation. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
