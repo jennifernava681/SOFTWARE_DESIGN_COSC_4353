@@ -1,18 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Trash2 } from "lucide-react" // Import necessary icons
-import NotificationBanner from "../../../NotificationBanner.jsx" // Corrected path
-import "../../../css/volunterout.css" // Correctly importing managetasks.css
+import { Users, Trash2 } from "lucide-react"
+import NotificationBanner from "../../../NotificationBanner.jsx"
+import "../../../css/volunterout.css"
 
 function RemoveVolunteer() {
   const [volunteers, setVolunteers] = useState([])
-  const [isLoading, setIsLoading] = useState(false) // Global loading state
-  const [deletingId, setDeletingId] = useState(null) // To track which specific item is being deleted
+  const [isLoading, setIsLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const [showBanner, setShowBanner] = useState(false)
   const [bannerMessage, setBannerMessage] = useState("")
 
-  // Auto-dismiss after 3 seconds
   useEffect(() => {
     let timer
     if (showBanner) {
@@ -21,30 +20,53 @@ function RemoveVolunteer() {
     return () => clearTimeout(timer)
   }, [showBanner])
 
-  // Mock data for existing volunteers
+  // ✅ Fetch real volunteer data from the backend
   useEffect(() => {
-    // Simulate loading existing volunteers
-    setVolunteers([
-      { id_user: 201, name: "Emily White", role: "Animal Care Volunteer" },
-      { id_user: 202, name: "David Green", role: "Adoption Event Volunteer" },
-      { id_user: 203, name: "Sarah Black", role: "Kennel Cleaning Volunteer" },
-      { id_user: 204, name: "Michael Blue", role: "Dog Walking Volunteer" },
-      { id_user: 205, name: "Jessica Red", role: "Fundraising Volunteer" },
-    ])
+    const fetchVolunteers = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/volunteers`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        const data = await res.json()
+        setVolunteers(data)
+      } catch (error) {
+        console.error("Error fetching volunteers:", error)
+      }
+    }
+
+    fetchVolunteers()
   }, [])
 
-  const handleDelete = (volunteerId, volunteerName) => {
-    if (window.confirm(`Are you sure you want to remove ${volunteerName} from volunteers?`)) {
+  // ✅ Deactivate volunteer (PATCH request)
+  const handleDelete = async (volunteerId, volunteerName) => {
+    if (window.confirm(`Are you sure you want to deactivate ${volunteerName}?`)) {
       setIsLoading(true)
-      setDeletingId(volunteerId) // Set the ID of the item being deleted
-      // Simulate API call
-      setTimeout(() => {
-        setVolunteers((prev) => prev.filter((volunteer) => volunteer.id_user !== volunteerId))
-        setBannerMessage(`Volunteer "${volunteerName}" removed successfully!`) // Directly use volunteerName
-        setIsLoading(false)
-        setDeletingId(null) // Reset deleting ID
+      setDeletingId(volunteerId)
+
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/volunteers/${volunteerId}/deactivate`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+
+        if (!res.ok) throw new Error("Failed to deactivate volunteer")
+
+        setVolunteers((prev) => prev.filter((v) => v.id_user !== volunteerId))
+        setBannerMessage(`Volunteer "${volunteerName}" deactivated successfully!`)
         setShowBanner(true)
-      }, 1500)
+      } catch (err) {
+        console.error(err)
+        setBannerMessage("Failed to deactivate volunteer")
+        setShowBanner(true)
+      } finally {
+        setIsLoading(false)
+        setDeletingId(null)
+      }
     }
   }
 
@@ -53,7 +75,6 @@ function RemoveVolunteer() {
       <NotificationBanner message={bannerMessage} floating show={showBanner} onClose={() => setShowBanner(false)} />
 
       <div className="volunteer-main-card">
-        {/* Header Section */}
         <div className="volunteer-list-header">
           <h2 className="volunteer-list-title">
             <Users className="header-icon" />
@@ -62,7 +83,6 @@ function RemoveVolunteer() {
           <p className="volunteer-list-description">All active volunteers registered in the system</p>
         </div>
 
-        {/* Volunteers List */}
         <div className="volunteer-items-grid">
           {volunteers.length === 0 ? (
             <div className="empty-state">
