@@ -3,9 +3,49 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
+// Validation helper for donations
+const validateDonationData = (data) => {
+  const errors = [];
+  
+  if (!data.donation_type || data.donation_type.length > 50) {
+    errors.push('Donation type is required and must be under 50 characters');
+  }
+  
+  if (!data.amount || data.amount.length > 20) {
+    errors.push('Amount is required and must be under 20 characters');
+  }
+  
+  if (data.donation_date && !Date.parse(data.donation_date)) {
+    errors.push('Donation date must be a valid date');
+  }
+  
+  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.push('Email must be a valid email format');
+  }
+  
+  if (data.items && data.items.length > 500) {
+    errors.push('Items description must be under 500 characters');
+  }
+  
+  // Validate donation type values
+  const validDonationTypes = ['monetary', 'food', 'toys', 'supplies', 'other'];
+  if (data.donation_type && !validDonationTypes.includes(data.donation_type.toLowerCase())) {
+    errors.push('Donation type must be monetary, food, toys, supplies, or other');
+  }
+  
+  return errors;
+};
+
 // Add donation
 router.post('/', async (req, res) => {
   const { donation_type, amount, donation_date = new Date(), email, items } = req.body;
+  
+  // Validate the data
+  const errors = validateDonationData({ donation_type, amount, donation_date, email, items });
+  if (errors.length > 0) {
+    return res.status(400).json({ message: 'Validation failed', errors });
+  }
+  
   let userId = null;
 
   try {
@@ -42,7 +82,6 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-
 
 // My donation history 
 router.get('/my', auth, async (req, res) => {
