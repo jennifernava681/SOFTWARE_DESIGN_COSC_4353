@@ -66,7 +66,7 @@ function DonatePage() {
   }
 
   // Mantener exactamente la misma lógica de handleSubmit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true);
 
