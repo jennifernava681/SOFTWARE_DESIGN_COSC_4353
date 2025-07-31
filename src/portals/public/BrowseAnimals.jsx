@@ -1,122 +1,165 @@
-import "../../css/home.css";
-import "../../css/MobileNav.css";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+"use client"
+import { useState, useEffect } from "react"
+import "../../css/home.css"
+import "../../css/MobileNav.css"
+
+// API Configuration
+const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
+const API_ENDPOINTS = {
+  animals: `${API_BASE_URL}/animals`,
+}
+
+// Helper functions
+const getAuthToken = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("authToken")
+  }
+  return null
+}
+
+const createAuthHeaders = () => {
+  const token = getAuthToken()
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  }
+}
+
+// API Service Functions
+const getAllAnimals = async () => {
+  try {
+    const response = await fetch(API_ENDPOINTS.animals, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error("Error fetching animals:", error)
+    throw error
+  }
+}
 
 // Proper Paw Print Icon that matches the design
 const PawIcon = () => (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-        {/* Main paw pad */}
-        <ellipse cx="12" cy="16" rx="4" ry="3" />
-        {/* Top left toe pad */}
-        <circle cx="8" cy="10" r="1.5" />
-        {/* Top center toe pad */}
-        <circle cx="12" cy="8" r="1.5" />
-        {/* Top right toe pad */}
-        <circle cx="16" cy="10" r="1.5" />
-        {/* Side toe pad */}
-        <circle cx="18" cy="13" r="1.2" />
-    </svg>
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+    {/* Main paw pad */}
+    <ellipse cx="12" cy="16" rx="4" ry="3" />
+    {/* Top left toe pad */}
+    <circle cx="8" cy="10" r="1.5" />
+    {/* Top center toe pad */}
+    <circle cx="12" cy="8" r="1.5" />
+    {/* Top right toe pad */}
+    <circle cx="16" cy="10" r="1.5" />
+    {/* Side toe pad */}
+    <circle cx="18" cy="13" r="1.2" />
+  </svg>
 )
 
 const HeartIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z" />
-    </svg>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5C2 5.41 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.41 22 8.5C22 12.27 18.6 15.36 13.45 20.03L12 21.35Z" />
+  </svg>
 )
 
-const UsersIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M16 4C18.2 4 20 5.8 20 8S18.2 12 16 12 12 10.2 12 8 13.8 4 16 4M16 14C20.4 14 24 15.8 24 18V20H8V18C8 15.8 11.6 14 16 14M8 4C10.2 4 12 5.8 12 8S10.2 12 8 12 4 10.2 4 8 5.8 4 8 4M8 14C12.4 14 16 15.8 16 18V20H0V18C0 15.8 3.6 14 8 14Z" />
-    </svg>
+const RefreshIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4 7.58 4 12S7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12S8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z" />
+  </svg>
 )
 
-const StarIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-    </svg>
-)
+// Helper function to format animal data for display
+const formatAnimalForDisplay = (animal) => {
+  return {
+    id: animal.id_animal,
+    name: animal.name || "Unknown",
+    type: animal.species || "Unknown",
+    breed: animal.species || "Mixed Breed",
+    age: animal.age ? `${animal.age} years` : "Unknown age",
+    status: animal.status || "Available",
+    image: animal.photo_url,
+    description: animal.note || animal.notes || "A wonderful companion looking for a loving home",
+    intake_date: animal.intake_date,
+    sex: animal.sex,
+  }
+}
 
-const AwardIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M5 16L3 21L8.5 18L12 21L15.5 18L21 21L19 16H5M12 11C14.21 11 16 9.21 16 7S14.21 3 12 3 8 4.79 8 7 9.79 11 12 11M12 9C10.9 9 10 8.1 10 7S10.9 5 12 5 14 5.9 14 7 13.1 9 12 9Z" />
-    </svg>
-)
-
-const CalendarIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M19 19H5V8H19V19M7 10H12V15H7" />
-    </svg>
-)
-
-const MapPinIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22S19 14.25 19 9C19 5.13 15.87 2 12 2M12 11.5C10.62 11.5 9.5 10.38 9.5 9S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5Z" />
-    </svg>
-)
-
-const PhoneIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" />
-    </svg>
-)
-
-const MailIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4M20 8L12 13L4 8V6L12 11L20 6V8Z" />
-    </svg>
-)
-
-const ShieldIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M12 7C13.4 7 14.8 8.6 14.8 10.5V11.5C15.4 11.5 16 12.4 16 13V16C16 17.4 15.4 18 14.8 18H9.2C8.6 18 8 17.4 8 16V13C8 12.4 8.6 11.5 9.2 11.5V10.5C9.2 8.6 10.6 7 12 7M12 8.2C11.2 8.2 10.5 8.7 10.5 10.5V11.5H13.5V10.5C13.5 8.7 12.8 8.2 12 8.2Z" />
-    </svg>
-)
-
-const MenuIcon = () => (
-    <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-        <path d="M4 6h16M4 12h16M4 18h16" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-)
-
-// Mock data for available animals
-const featuredAnimals = [
-    {
-        id: 1,
-        name: "Buddy",
-        type: "Dog",
-        breed: "Golden Retriever",
-        age: "3 years",
-        status: "Available",
-        image: "/images/animals/buddy.png",
-        description: "Friendly and energetic, great with kids and other pets",
-    },
-    {
-        id: 2,
-        name: "Luna",
-        type: "Cat",
-        breed: "Siamese Mix",
-        age: "2 years",
-        status: "Available",
-        image: "/images/animals/luna.png",
-        description: "Calm and affectionate, loves to cuddle and purr",
-    },
-    {
-        id: 3,
-        name: "Max",
-        type: "Dog",
-        breed: "German Shepherd",
-        age: "5 years",
-        status: "Available",
-        image: "/images/animals/max.png",
-        description: "Loyal and protective, needs experienced owner",
-    },
-]
-
+// Helper function to get status class for styling
+const getStatusClass = (status) => {
+  switch (status?.toLowerCase()) {
+    case "available":
+      return "status-available"
+    case "adopted":
+      return "status-adopted"
+    case "pending":
+      return "status-pending"
+    case "medical":
+      return "status-medical"
+    case "foster":
+      return "status-foster"
+    default:
+      return "status-available"
+  }
+}
 
 function BrowseAnimals() {
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [animals, setAnimals] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [retryCount, setRetryCount] = useState(0)
 
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  // Load animals from API
+  useEffect(() => {
+    loadAnimals()
+  }, [])
+
+  const loadAnimals = async () => {
+    try {
+      setIsLoading(true)
+      setError("")
+      console.log("Loading animals from API...")
+
+      const animalsData = await getAllAnimals()
+      console.log("Loaded animals:", animalsData)
+
+      // Format animals for display and filter only available ones for public view
+      const formattedAnimals = animalsData
+        .map(formatAnimalForDisplay)
+        .filter((animal) => animal.status.toLowerCase() === "available")
+
+      setAnimals(formattedAnimals)
+      setRetryCount(0) // Reset retry count on success
+    } catch (error) {
+      console.error("Error loading animals:", error)
+      let errorMsg = "Unable to load animals at the moment."
+
+      if (error.message.includes("Failed to fetch")) {
+        errorMsg = "Cannot connect to server. Please check your internet connection."
+      } else if (error.message.includes("404")) {
+        errorMsg = "Animal data not found. Please try again later."
+      } else if (error.message.includes("500")) {
+        errorMsg = "Server error. Please try again later."
+      }
+
+      setError(errorMsg)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1)
+    loadAnimals()
+  }
+
   return (
     <div className="full-width-wrapper bg-gradient-main">
       {/* Featured Animals */}
@@ -130,35 +173,149 @@ function BrowseAnimals() {
             </p>
             <div className="section-divider-all"></div>
           </div>
-          <div className="all-animals-grid">
-            {featuredAnimals.map((animal) => (
-              <div key={animal.id} className="animal-card-all">
-                <div className="animal-image-container-all">
-                  <img src={animal.image || "/placeholder.svg"} alt={animal.name} className="animal-image" />
-                  <div className="animal-status-all">{animal.status}</div>
-                  <div className="animal-overlay-all"></div>
-                </div>
-                <div className="animal-content-all">
-                  <h4 className="animal-name-all">{animal.name}</h4>
-                  <p className="animal-details-all">
-                    {animal.breed} • {animal.age}
-                  </p>
-                  <p className="animal-description-all">{animal.description}</p>
-                  <button className="btn-animal-all">
-                    <HeartIcon />
-                    <span style={{ marginLeft: "0.5rem" }}>Learn More About {animal.name}</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+
+          {/* Refresh Button */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "2rem" }}>
+            <button
+              onClick={handleRetry}
+              disabled={isLoading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.75rem 1.5rem",
+                backgroundColor: "#10b981",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                fontSize: "0.9rem",
+                fontWeight: "600",
+                opacity: isLoading ? 0.7 : 1,
+              }}
+            >
+              <RefreshIcon />
+              {isLoading ? "Loading..." : "Refresh Animals"}
+            </button>
           </div>
-          {/*<div className="view-btn-all">
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="empty-state" style={{ padding: "4rem 2rem", textAlign: "center" }}>
+              <div className="loading-spinner" style={{ margin: "0 auto 1rem" }}></div>
+              <p style={{ color: "#6b7280", fontSize: "1.1rem" }}>Loading our wonderful animals...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <div
+              style={{
+                backgroundColor: "#fef2f2",
+                border: "1px solid #fecaca",
+                borderRadius: "12px",
+                padding: "2rem",
+                textAlign: "center",
+                margin: "2rem 0",
+              }}
+            >
+              <div style={{ color: "#dc2626", fontSize: "1.1rem", marginBottom: "1rem" }}>
+                <strong>Oops! Something went wrong</strong>
+              </div>
+              <p style={{ color: "#7f1d1d", marginBottom: "1.5rem" }}>{error}</p>
+              <button
+                onClick={handleRetry}
+                style={{
+                  backgroundColor: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  padding: "0.75rem 1.5rem",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  fontWeight: "600",
+                }}
+              >
+                Try Again {retryCount > 0 && `(${retryCount})`}
+              </button>
+            </div>
+          )}
+
+          {/* No Animals State */}
+          {!isLoading && !error && animals.length === 0 && (
+            <div className="empty-state" style={{ padding: "4rem 2rem", textAlign: "center" }}>
+              <PawIcon />
+              <h4 style={{ color: "#374151", margin: "1rem 0", fontSize: "1.3rem" }}>No Animals Available</h4>
+              <p style={{ color: "#6b7280", fontSize: "1rem" }}>
+                All our animals have found their forever homes! Check back soon for new arrivals.
+              </p>
+            </div>
+          )}
+
+          {/* Animals Grid */}
+          {!isLoading && !error && animals.length > 0 && (
+            <>
+              <div className="all-animals-grid">
+                {animals.map((animal) => (
+                  <div key={animal.id} className="animal-card-all">
+                    <div className="animal-image-container-all">
+                      <img
+                        src={
+                          animal.image ||
+                          `/placeholder.svg?height=300&width=400&query=${encodeURIComponent(
+                            `cute ${animal.type.toLowerCase() || "/placeholder.svg"} ${animal.breed}`,
+                          )}`
+                        }
+                        alt={animal.name}
+                        className="animal-image"
+                        onError={(e) => {
+                          e.target.src = `/placeholder.svg?height=300&width=400&query=${encodeURIComponent(
+                            `cute ${animal.type.toLowerCase()}`,
+                          )}`
+                        }}
+                      />
+                      <div className={`animal-status-all ${getStatusClass(animal.status)}`}>{animal.status}</div>
+                      <div className="animal-overlay-all"></div>
+                    </div>
+                    <div className="animal-content-all">
+                      <h4 className="animal-name-all">{animal.name}</h4>
+                      <p className="animal-details-all">
+                        {animal.breed} • {animal.age} • {animal.sex}
+                      </p>
+                      <p className="animal-description-all">{animal.description}</p>
+                      {animal.intake_date && (
+                        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                          In our care since: {new Date(animal.intake_date).toLocaleDateString()}
+                        </p>
+                      )}
+                      <button className="btn-animal-all">
+                        <HeartIcon />
+                        <span style={{ marginLeft: "0.5rem" }}>Learn More About {animal.name}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Animals Count */}
+              <div style={{ textAlign: "center", marginTop: "2rem", color: "#6b7280" }}>
+                <p>
+                  Showing {animals.length} available {animals.length === 1 ? "animal" : "animals"} looking for homes
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Uncomment if you want to add a "View All" button */}
+          {/*
+          <div className="view-btn-all">
             <button className="btn-all-view">View All Available Animals</button>
-          </div>*/}
+          </div>
+          */}
         </div>
       </section>
     </div>
-  );
+  )
 }
 
-export default BrowseAnimals;
+export default BrowseAnimals
