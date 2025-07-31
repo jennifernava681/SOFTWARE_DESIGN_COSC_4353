@@ -81,7 +81,12 @@ function DonatePage() {
       const payload = {
         name: formData.name,
         email: formData.email,
-        donationType: formData.donationType,
+        donation_type:
+          formData.donationType === "money"
+            ? "money"
+            : formData.donationType === "items" && wantsMoneyToo === "yes"
+            ? "money and items"
+            : "items",
         amount: finalAmount,
         items: itemDescription,
         wantsMoneyToo,
