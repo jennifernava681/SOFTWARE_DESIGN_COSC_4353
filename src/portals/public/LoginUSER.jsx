@@ -94,7 +94,7 @@ function LoginUSER() {
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
 
-      navigate("/profile"); // Redirect to profile page
+      navigate("/profilePage"); // Redirect to profile page
     } catch (err) {
       console.error("Login failed:", err);
       setBannerMessage("Login failed. Please check your email and password.");
