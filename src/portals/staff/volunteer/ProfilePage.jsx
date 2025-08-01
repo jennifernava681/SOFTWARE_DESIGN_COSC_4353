@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { dummyUsers } from "../../../dummyData"
 import { Link } from "react-router-dom"
 import "../../../css/ProfilePage.css"
+import { apiFetch } from "../../api";
+import { useState, useEffect } from "react";
 
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -16,16 +17,47 @@ const PawIcon = () => (
 )
 
 function ProfilePage() {
-  const user = dummyUsers[0]
+
   const [profile, setProfile] = useState({
-    ...user,
-    address: "1234 Main St",
-    apartment: "Apt 101",
-    city: "Houston",
-    state: "TX",
-    phone: "(555) 123-4567",
-    preferences: "No preferences",
-  })
+    name: "",
+    email: "",
+    address: "",
+    apartment: "",
+    city: "",
+    state: "",
+    zip: "",
+    phone: "",
+    preferences: "",
+    availability: [],
+    skills: [],
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await apiFetch("/users/profile");
+        const updated = {
+          ...data,
+          address: data.line_1 || "N/A",
+          apartment: data.line_2 || "N/A",
+          city: data.city || "N/A",
+          state: data.state || "N/A",
+          zip: data.zip || "",
+          phone: data.phone || "(555) 123-4567",
+          preferences: data.preferences || "No preferences",
+          availability: data.availability || [],
+          skills: data.skills || [],
+        };
+        setProfile(updated);
+        setEditForm(updated);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState(profile)
 
