@@ -1,11 +1,10 @@
 "use client"
 
-import React from "react";
-import { Link } from "react-router-dom";
-import { useState } from "react"
-import "../../css/LoginUSER.css";
+import { useState, useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import "../../css/LoginUSER.css"
 import "../../index.css"
-import NotificationBanner from '../../NotificationBanner.jsx';
+import NotificationBanner from "../../NotificationBanner.jsx"
 
 // Icons
 const PawIcon = () => (
@@ -49,6 +48,7 @@ const HeartIcon = () => (
 )
 
 function LoginUSER() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
@@ -56,16 +56,18 @@ function LoginUSER() {
     rememberMe: false,
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [showBanner, setShowBanner] = useState(false);
+  const [showBanner, setShowBanner] = useState(false)
+  const [bannerMessage, setBannerMessage] = useState("")
+  const [bannerType, setBannerType] = useState("success") // success or error
 
-  // Auto-dismiss after 3 seconds
-  React.useEffect(() => {
-    let timer;
+  // Auto-dismiss banner after 3 seconds
+  useEffect(() => {
+    let timer
     if (showBanner) {
-      timer = setTimeout(() => setShowBanner(false), 3000);
+      timer = setTimeout(() => setShowBanner(false), 3000)
     }
-    return () => clearTimeout(timer);
-  }, [showBanner]);
+    return () => clearTimeout(timer)
+  }, [showBanner])
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -78,13 +80,44 @@ function LoginUSER() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-    setShowBanner(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed")
+      }
+
+      // Store token in localStorage
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("user", JSON.stringify(data.user))
+
+      setBannerMessage("Login successful! Redirecting...")
+      setBannerType("success")
+      setShowBanner(true)
+
+      // Redirect public users to animals page
+      setTimeout(() => {
+        navigate("/animals")
+      }, 1500)
+    } catch (err) {
+      setBannerMessage(err.message || "An error occurred during login")
+      setBannerType("error")
+      setShowBanner(true)
+    } finally {
       setIsLoading(false)
-      console.log("Login attempt:", formData)
-    }, 2000)
+    }
   }
 
   return (
@@ -110,11 +143,13 @@ function LoginUSER() {
           </div>
         </div>
       </div>
+
       <NotificationBanner
-        message="Login attempt submitted!"
+        message={bannerMessage}
         floating
         show={showBanner}
         onClose={() => setShowBanner(false)}
+        type={bannerType}
       />
 
       <div className="login-container">
@@ -129,17 +164,17 @@ function LoginUSER() {
               <p>Animal Rescue & Sanctuary</p>
             </div>
           </div>
-
           <div className="login-welcome">
-            <h2>Welcome Back Staff!</h2>
+            <h2>Welcome Back!</h2>
             <p>Sign in to continue helping animals find their forever homes</p>
-
             <div className="login-stats">
               <div className="login-stat">
-                
+                <div className="stat-number">500+</div>
+                <div className="stat-label">Animals Rescued</div>
               </div>
               <div className="login-stat">
-                
+                <div className="stat-number">200+</div>
+                <div className="stat-label">Forever Homes</div>
               </div>
             </div>
           </div>
@@ -227,8 +262,14 @@ function LoginUSER() {
             <div className="login-footer">
               <p>
                 Don't have an account?{" "}
-                <Link to="/ApplyVolunteer" className="register-link">
-                  Applay Here 
+                <Link to="/register" className="register-link">
+                  Register Here
+                </Link>
+              </p>
+              <p>
+                Staff member?{" "}
+                <Link to="/stafflogin" className="register-link">
+                  Staff Login
                 </Link>
               </p>
               <p className="back-home">
