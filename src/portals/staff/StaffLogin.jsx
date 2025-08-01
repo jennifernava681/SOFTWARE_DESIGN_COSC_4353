@@ -6,6 +6,9 @@ import "../../css/LoginUSER.css"
 import "../../index.css"
 import NotificationBanner from "../../NotificationBanner.jsx"
 
+// API Configuration
+const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
+
 // Icons
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -58,13 +61,12 @@ function LoginUSER() {
   const [isLoading, setIsLoading] = useState(false)
   const [showBanner, setShowBanner] = useState(false)
   const [bannerMessage, setBannerMessage] = useState("")
-  const [bannerType, setBannerType] = useState("success") // success or error
+  const [bannerType, setBannerType] = useState("success")
 
-  // Auto-dismiss banner after 3 seconds
   useEffect(() => {
     let timer
     if (showBanner) {
-      timer = setTimeout(() => setShowBanner(false), 3000)
+      timer = setTimeout(() => setShowBanner(false), 5000)
     }
     return () => clearTimeout(timer)
   }, [showBanner])
@@ -82,7 +84,7 @@ function LoginUSER() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,7 +101,6 @@ function LoginUSER() {
         throw new Error(data.message || "Login failed")
       }
 
-      // Store token in localStorage
       localStorage.setItem("token", data.token)
       localStorage.setItem("user", JSON.stringify(data.user))
 
@@ -107,7 +108,6 @@ function LoginUSER() {
       setBannerType("success")
       setShowBanner(true)
 
-      // Redirect public users to animals page
       setTimeout(() => {
         navigate("/animals")
       }, 1500)
@@ -122,7 +122,6 @@ function LoginUSER() {
 
   return (
     <div className="login-page">
-      {/* Background with animal silhouettes */}
       <div className="login-background">
         <div className="login-background-overlay"></div>
         <div className="floating-paws">
@@ -153,7 +152,6 @@ function LoginUSER() {
       />
 
       <div className="login-container">
-        {/* Left side - Branding */}
         <div className="login-branding">
           <div className="login-logo">
             <div className="login-logo-icon">
@@ -180,7 +178,6 @@ function LoginUSER() {
           </div>
         </div>
 
-        {/* Right side - Login Form */}
         <div className="login-form-container">
           <div className="login-form-wrapper">
             <div className="login-form-header">
