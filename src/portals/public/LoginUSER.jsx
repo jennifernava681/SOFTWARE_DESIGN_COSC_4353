@@ -50,9 +50,9 @@ const HeartIcon = () => (
   </svg>
 )
 
-const navigate = useNavigate();
-
 function LoginUSER() {
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
