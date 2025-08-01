@@ -3,7 +3,7 @@
 import { dummyUsers } from "../../../dummyData"
 import { Link } from "react-router-dom"
 import "../../../css/ProfilePage.css"
-import { apiFetch } from "../../api";
+import { apiFetch } from "../../../api";
 import { useState, useEffect } from "react";
 
 const PawIcon = () => (
