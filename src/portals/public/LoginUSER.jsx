@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react"
 import "../../css/LoginUSER.css";
 import "../../index.css"
+import { useNavigate } from "react-router-dom";
 import NotificationBanner from '../../NotificationBanner.jsx';
 
 // Icons
@@ -79,14 +80,38 @@ function LoginUSER() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setShowBanner(true);
+    setShowBanner(false);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const res = await apiFetch("/users/login", "POST", {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+
+      navigate("/profile"); // Redirect to profile page
+    } catch (err) {
+      console.error("Login failed:", err);
+      setBannerMessage("Login failed. Please check your email and password.");
+      setShowBanner(true);
+    } finally {
       setIsLoading(false);
-      console.log("Login attempt:", formData);
-    }, 2000);
+    }
   };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setShowBanner(true);
+
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     setIsLoading(false);
+  //     console.log("Login attempt:", formData);
+  //   }, 2000);
+  // };
 
   return (
     <div className="login-page">
