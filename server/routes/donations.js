@@ -96,8 +96,8 @@ router.get('/my', auth, async (req, res) => {
   }
 });
 
-// All donations (probably should require auth later)
-router.get('/', auth, async (req, res) => {
+// All donations (probably should require auth later) // Got rid of the auth for now
+router.get('/', async (req, res) => {
   if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
   try {
     const [donations] = await pool.query('SELECT * FROM donations');
