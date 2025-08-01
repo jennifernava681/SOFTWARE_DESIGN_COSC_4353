@@ -86,7 +86,7 @@ function LoginUSER() {
     setShowBanner(false);
 
     try {
-      const res = await apiFetch("/users/login", "POST", {
+      const res = await apiFetch("/api/users/login", "POST", {
         email: formData.email,
         password: formData.password,
       });
