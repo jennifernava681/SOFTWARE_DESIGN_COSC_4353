@@ -1,14 +1,12 @@
 "use client"
-
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
 import { useState } from "react"
-import "../../index.css";
-import "../../css/register.css";
-import { apiFetch } from "../../api";
+import "../../index.css"
+import "../../css/register.css"
+import { apiFetch } from "../../api"
 import { useNavigate } from "react-router-dom"
-import DatePicker from "react-multi-date-picker";
-import DatePanel from "react-multi-date-picker/plugins/date_panel";
+import DatePicker from "react-multi-date-picker"
+import DatePanel from "react-multi-date-picker/plugins/date_panel"
 
 // Icons
 const PawIcon = () => (
@@ -76,8 +74,7 @@ const HeartIcon = () => (
 )
 
 function RegisterUSER() {
-
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -85,10 +82,12 @@ function RegisterUSER() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "", // Add role selection
     address: "",
     address2: "",
     city: "",
     state: "",
+    zip: "",
     sex: "",
     dateOfBirth: "",
     securityQuestion: "",
@@ -97,6 +96,13 @@ function RegisterUSER() {
     skills: [],
     preferences: "",
     availability: [],
+    // Veterinarian specific fields
+    licenseNumber: "",
+    specialization: "",
+    yearsOfExperience: "",
+    // Volunteer specific fields
+    emergencyContact: "",
+    emergencyPhone: "",
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -119,76 +125,141 @@ function RegisterUSER() {
       return
     }
 
-    // Check required fields
-    const requiredFields = ['name', 'email', 'password', 'address', 'city', 'state'];
-    const missingFields = requiredFields.filter(field => !formData[field]);
-    
+    // Check required fields based on role
+    let requiredFields = ["name", "email", "password", "role"]
+
+    if (formData.role === "volunteer" || formData.role === "veterinarian") {
+      requiredFields = [...requiredFields, "address", "city", "state", "dateOfBirth"]
+    }
+
+    if (formData.role === "veterinarian") {
+      requiredFields = [...requiredFields, "licenseNumber", "specialization"]
+    }
+
+    if (formData.role === "volunteer") {
+      requiredFields = [...requiredFields, "emergencyContact", "emergencyPhone"]
+    }
+
+    const missingFields = requiredFields.filter((field) => !formData[field])
+
     if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      alert(`Please fill in all required fields: ${missingFields.join(", ")}`)
       setIsLoading(false)
       return
     }
 
     try {
       // Format availability dates
-      const availabilityDates = formData.availability && Array.isArray(formData.availability) 
-        ? formData.availability.map(date => {
-            if (typeof date === 'string') return date;
-            if (date && date.format) return date.format('YYYY-MM-DD');
-            return null;
-          }).filter(date => date)
-        : [];
+      const availabilityDates =
+        formData.availability && Array.isArray(formData.availability)
+          ? formData.availability
+              .map((date) => {
+                if (typeof date === "string") return date
+                if (date && date.format) return date.format("YYYY-MM-DD")
+                return null
+              })
+              .filter((date) => date)
+          : []
 
       const userPayload = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: "public",
+        role: formData.role, // Use selected role
         address: formData.address,
         address2: formData.address2,
         city: formData.city,
         state: formData.state,
+        zip: formData.zip,
         sex: formData.sex,
         dateOfBirth: formData.dateOfBirth,
         securityQuestion: formData.securityQuestion,
         securityAnswer: formData.securityAnswer,
         skills: formData.skills || [],
         preferences: formData.preferences,
-        availability: availabilityDates
-      };
+        availability: availabilityDates,
+        // Add veterinarian specific fields
+        licenseNumber: formData.licenseNumber,
+        specialization: formData.specialization,
+        yearsOfExperience: formData.yearsOfExperience,
+        // Add volunteer specific fields
+        emergencyContact: formData.emergencyContact,
+        emergencyPhone: formData.emergencyPhone,
+      }
 
       // Debug: Log the payload being sent
-      console.log('=== FRONTEND DEBUG ===');
-      console.log('Form data:', formData);
-      console.log('User payload:', userPayload);
-      console.log('Required fields check:');
-      console.log('- name:', userPayload.name, 'type:', typeof userPayload.name, 'length:', userPayload.name ? userPayload.name.length : 0);
-      console.log('- email:', userPayload.email, 'type:', typeof userPayload.email, 'length:', userPayload.email ? userPayload.email.length : 0);
-      console.log('- password:', userPayload.password ? '[HIDDEN]' : 'null', 'type:', typeof userPayload.password, 'length:', userPayload.password ? userPayload.password.length : 0);
-      console.log('- address:', userPayload.address, 'type:', typeof userPayload.address, 'length:', userPayload.address ? userPayload.address.length : 0);
-      console.log('- city:', userPayload.city, 'type:', typeof userPayload.city, 'length:', userPayload.city ? userPayload.city.length : 0);
-      console.log('- state:', userPayload.state, 'type:', typeof userPayload.state, 'length:', userPayload.state ? userPayload.state.length : 0);
-      console.log('- sex:', userPayload.sex, 'type:', typeof userPayload.sex);
-      console.log('- dateOfBirth:', userPayload.dateOfBirth, 'type:', typeof userPayload.dateOfBirth);
-      console.log('- securityQuestion:', userPayload.securityQuestion, 'type:', typeof userPayload.securityQuestion);
+      console.log("=== FRONTEND DEBUG ===")
+      console.log("Form data:", formData)
+      console.log("User payload:", userPayload)
+      console.log("Required fields check:")
+      console.log(
+        "- name:",
+        userPayload.name,
+        "type:",
+        typeof userPayload.name,
+        "length:",
+        userPayload.name ? userPayload.name.length : 0,
+      )
+      console.log(
+        "- email:",
+        userPayload.email,
+        "type:",
+        typeof userPayload.email,
+        "length:",
+        userPayload.email ? userPayload.email.length : 0,
+      )
+      console.log(
+        "- password:",
+        userPayload.password ? "[HIDDEN]" : "null",
+        "type:",
+        typeof userPayload.password,
+        "length:",
+        userPayload.password ? userPayload.password.length : 0,
+      )
+      console.log(
+        "- address:",
+        userPayload.address,
+        "type:",
+        typeof userPayload.address,
+        "length:",
+        userPayload.address ? userPayload.address.length : 0,
+      )
+      console.log(
+        "- city:",
+        userPayload.city,
+        "type:",
+        typeof userPayload.city,
+        "length:",
+        userPayload.city ? userPayload.city.length : 0,
+      )
+      console.log(
+        "- state:",
+        userPayload.state,
+        "type:",
+        typeof userPayload.state,
+        "length:",
+        userPayload.state ? userPayload.state.length : 0,
+      )
+      console.log("- sex:", userPayload.sex, "type:", typeof userPayload.sex)
+      console.log("- dateOfBirth:", userPayload.dateOfBirth, "type:", typeof userPayload.dateOfBirth)
+      console.log("- securityQuestion:", userPayload.securityQuestion, "type:", typeof userPayload.securityQuestion)
 
       // Skip the optional checks and go straight to registration
-      console.log('Proceeding with registration...');
+      console.log("Proceeding with registration...")
+      const response = await apiFetch("/api/users/register", "POST", userPayload)
 
-      const response = await apiFetch("/api/users/register", "POST", userPayload);
-      
       if (response.message) {
-        alert("Account created successfully! You can now log in.");
-        navigate("/login");
+        alert("Account created successfully! You can now log in.")
+        navigate("/login")
       } else {
-        alert("Registration successful!");
-        navigate("/login");
+        alert("Registration successful!")
+        navigate("/login")
       }
     } catch (err) {
-      console.error('Registration error:', err);
-      alert(err.message || "Registration failed. Please try again.");
+      console.error("Registration error:", err)
+      alert(err.message || "Registration failed. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -228,14 +299,17 @@ function RegisterUSER() {
               <p>Animal Rescue & Sanctuary</p>
             </div>
           </div>
-
           <div className="login-welcome">
             <h2>Join Our Mission!</h2>
             <p>Create your account and help us save more animals in need</p>
-
             <div className="login-stats">
               <div className="login-stat">
-               
+                <span className="stat-number">500+</span>
+                <span className="stat-label">Animals Rescued</span>
+              </div>
+              <div className="login-stat">
+                <span className="stat-number">200+</span>
+                <span className="stat-label">Active Volunteers</span>
               </div>
             </div>
           </div>
@@ -250,10 +324,34 @@ function RegisterUSER() {
             </div>
 
             <form onSubmit={handleSubmit} className="login-form">
+              <div className="form-section">
+                <h4 className="section-title">Account Type</h4>
+                <div className="form-group">
+                  <label htmlFor="role">I want to register as:</label>
+                  <div className="input-wrapper">
+                    <div className="input-icon">
+                      <UserIcon />
+                    </div>
+                    <select
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      required
+                      className="form-input form-select"
+                    >
+                      <option value="">Select your role</option>
+                      <option value="public">Public User</option>
+                      <option value="volunteer">Volunteer</option>
+                      <option value="veterinarian">Veterinarian</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               {/* Personal Information */}
               <div className="form-section">
                 <h4 className="section-title">Personal Information</h4>
-
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="name">Full Name</label>
@@ -274,7 +372,6 @@ function RegisterUSER() {
                       />
                     </div>
                   </div>
-
                   <div className="form-group">
                     <label htmlFor="email">Email Address</label>
                     <div className="input-wrapper">
@@ -313,7 +410,6 @@ function RegisterUSER() {
                       />
                     </div>
                   </div>
-
                   <div className="form-group">
                     <label htmlFor="sex">Gender</label>
                     <div className="input-wrapper">
@@ -334,64 +430,90 @@ function RegisterUSER() {
                     </div>
                   </div>
                 </div>
-
-                
               </div>
 
-              {/* Address Information */}
-              <div className="form-section">
-                <h4 className="section-title">Address Information</h4>
-
-                <div className="form-group">
-                  <label htmlFor="address">Address 1</label>
-                  <div className="input-wrapper">
-                    <div className="input-icon">
-                      <HomeIcon />
+              {/* Veterinarian Specific Fields */}
+              {formData.role === "veterinarian" && (
+                <div className="form-section">
+                  <h4 className="section-title">Professional Information</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="licenseNumber">License Number</label>
+                      <div className="input-wrapper">
+                        <div className="input-icon">
+                          <UserIcon />
+                        </div>
+                        <input
+                          type="text"
+                          id="licenseNumber"
+                          name="licenseNumber"
+                          value={formData.licenseNumber}
+                          onChange={handleInputChange}
+                          placeholder="Enter your veterinary license number"
+                          required
+                          className="form-input"
+                        />
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="Enter your street address"
-                      required
-                      maxLength={100}
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="address2">Address 2 (Optional)</label>
-                  <div className="input-wrapper">
-                    <div className="input-icon">
-                      <HomeIcon />
+                    <div className="form-group">
+                      <label htmlFor="specialization">Specialization</label>
+                      <div className="input-wrapper">
+                        <select
+                          id="specialization"
+                          name="specialization"
+                          value={formData.specialization}
+                          onChange={handleInputChange}
+                          required
+                          className="form-input form-select"
+                        >
+                          <option value="">Select specialization</option>
+                          <option value="General Practice">General Practice</option>
+                          <option value="Surgery">Surgery</option>
+                          <option value="Internal Medicine">Internal Medicine</option>
+                          <option value="Emergency Medicine">Emergency Medicine</option>
+                          <option value="Exotic Animals">Exotic Animals</option>
+                          <option value="Wildlife Medicine">Wildlife Medicine</option>
+                          <option value="Rehabilitation">Rehabilitation</option>
+                        </select>
+                      </div>
                     </div>
-                    <input
-                      type="text"
-                      id="address2"
-                      name="address2"
-                      value={formData.address2}
-                      onChange={handleInputChange}
-                      placeholder="Apartment, suite, unit, etc."
-                      maxLength={100}
-                      className="form-input"
-                    />
                   </div>
-                </div>
-
-                <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="city">City</label>
+                    <label htmlFor="yearsOfExperience">Years of Experience</label>
                     <div className="input-wrapper">
                       <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
+                        type="number"
+                        id="yearsOfExperience"
+                        name="yearsOfExperience"
+                        value={formData.yearsOfExperience}
                         onChange={handleInputChange}
-                        placeholder="Enter your city"
+                        placeholder="Enter years of experience"
+                        min="0"
+                        max="50"
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Address Information - Only for volunteers and veterinarians */}
+              {(formData.role === "volunteer" || formData.role === "veterinarian") && (
+                <div className="form-section">
+                  <h4 className="section-title">Address Information</h4>
+                  <div className="form-group">
+                    <label htmlFor="address">Address 1</label>
+                    <div className="input-wrapper">
+                      <div className="input-icon">
+                        <HomeIcon />
+                      </div>
+                      <input
+                        type="text"
+                        id="address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder="Enter your street address"
                         required
                         maxLength={100}
                         className="form-input"
@@ -400,145 +522,246 @@ function RegisterUSER() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="state">State</label>
+                    <label htmlFor="address2">Address 2 (Optional)</label>
                     <div className="input-wrapper">
-                      <select
-                        id="state"
-                        name="state"
-                        value={formData.state}
+                      <div className="input-icon">
+                        <HomeIcon />
+                      </div>
+                      <input
+                        type="text"
+                        id="address2"
+                        name="address2"
+                        value={formData.address2}
                         onChange={handleInputChange}
-                        required
-                        className="form-input form-select"
-                      >
-                        <option value="">Select State</option>
-                        <option value="AL">Alabama</option>
-                        <option value="AK">Alaska</option>
-                        <option value="AZ">Arizona</option>
-                        <option value="AR">Arkansas</option>
-                        <option value="CA">California</option>
-                        <option value="CO">Colorado</option>
-                        <option value="CT">Connecticut</option>
-                        <option value="DE">Delaware</option>
-                        <option value="FL">Florida</option>
-                        <option value="GA">Georgia</option>
-                        <option value="HI">Hawaii</option>
-                        <option value="ID">Idaho</option>
-                        <option value="IL">Illinois</option>
-                        <option value="IN">Indiana</option>
-                        <option value="IA">Iowa</option>
-                        <option value="KS">Kansas</option>
-                        <option value="KY">Kentucky</option>
-                        <option value="LA">Louisiana</option>
-                        <option value="ME">Maine</option>
-                        <option value="MD">Maryland</option>
-                        <option value="MA">Massachusetts</option>
-                        <option value="MI">Michigan</option>
-                        <option value="MN">Minnesota</option>
-                        <option value="MS">Mississippi</option>
-                        <option value="MO">Missouri</option>
-                        <option value="MT">Montana</option>
-                        <option value="NE">Nebraska</option>
-                        <option value="NV">Nevada</option>
-                        <option value="NH">New Hampshire</option>
-                        <option value="NJ">New Jersey</option>
-                        <option value="NM">New Mexico</option>
-                        <option value="NY">New York</option>
-                        <option value="NC">North Carolina</option>
-                        <option value="ND">North Dakota</option>
-                        <option value="OH">Ohio</option>
-                        <option value="OK">Oklahoma</option>
-                        <option value="OR">Oregon</option>
-                        <option value="PA">Pennsylvania</option>
-                        <option value="RI">Rhode Island</option>
-                        <option value="SC">South Carolina</option>
-                        <option value="SD">South Dakota</option>
-                        <option value="TN">Tennessee</option>
-                        <option value="TX">Texas</option>
-                        <option value="UT">Utah</option>
-                        <option value="VT">Vermont</option>
-                        <option value="VA">Virginia</option>
-                        <option value="WA">Washington</option>
-                        <option value="WV">West Virginia</option>
-                        <option value="WI">Wisconsin</option>
-                        <option value="WY">Wyoming</option>
-                      </select>
+                        placeholder="Apartment, suite, unit, etc."
+                        maxLength={100}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="city">City</label>
+                      <div className="input-wrapper">
+                        <input
+                          type="text"
+                          id="city"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          placeholder="Enter your city"
+                          required
+                          maxLength={100}
+                          className="form-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="state">State</label>
+                      <div className="input-wrapper">
+                        <select
+                          id="state"
+                          name="state"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          required
+                          className="form-input form-select"
+                        >
+                          <option value="">Select State</option>
+                          <option value="AL">Alabama</option>
+                          <option value="AK">Alaska</option>
+                          <option value="AZ">Arizona</option>
+                          <option value="AR">Arkansas</option>
+                          <option value="CA">California</option>
+                          <option value="CO">Colorado</option>
+                          <option value="CT">Connecticut</option>
+                          <option value="DE">Delaware</option>
+                          <option value="FL">Florida</option>
+                          <option value="GA">Georgia</option>
+                          <option value="HI">Hawaii</option>
+                          <option value="ID">Idaho</option>
+                          <option value="IL">Illinois</option>
+                          <option value="IN">Indiana</option>
+                          <option value="IA">Iowa</option>
+                          <option value="KS">Kansas</option>
+                          <option value="KY">Kentucky</option>
+                          <option value="LA">Louisiana</option>
+                          <option value="ME">Maine</option>
+                          <option value="MD">Maryland</option>
+                          <option value="MA">Massachusetts</option>
+                          <option value="MI">Michigan</option>
+                          <option value="MN">Minnesota</option>
+                          <option value="MS">Mississippi</option>
+                          <option value="MO">Missouri</option>
+                          <option value="MT">Montana</option>
+                          <option value="NE">Nebraska</option>
+                          <option value="NV">Nevada</option>
+                          <option value="NH">New Hampshire</option>
+                          <option value="NJ">New Jersey</option>
+                          <option value="NM">New Mexico</option>
+                          <option value="NY">New York</option>
+                          <option value="NC">North Carolina</option>
+                          <option value="ND">North Dakota</option>
+                          <option value="OH">Ohio</option>
+                          <option value="OK">Oklahoma</option>
+                          <option value="OR">Oregon</option>
+                          <option value="PA">Pennsylvania</option>
+                          <option value="RI">Rhode Island</option>
+                          <option value="SC">South Carolina</option>
+                          <option value="SD">South Dakota</option>
+                          <option value="TN">Tennessee</option>
+                          <option value="TX">Texas</option>
+                          <option value="UT">Utah</option>
+                          <option value="VT">Vermont</option>
+                          <option value="VA">Virginia</option>
+                          <option value="WA">Washington</option>
+                          <option value="WV">West Virginia</option>
+                          <option value="WI">Wisconsin</option>
+                          <option value="WY">Wyoming</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="zip">ZIP Code (Optional)</label>
+                    <div className="input-wrapper">
+                      <div className="input-icon">
+                        <HomeIcon />
+                      </div>
+                      <input
+                        type="text"
+                        id="zip"
+                        name="zip"
+                        value={formData.zip}
+                        onChange={handleInputChange}
+                        placeholder="Enter your ZIP code"
+                        maxLength={10}
+                        className="form-input"
+                      />
                     </div>
                   </div>
                 </div>
+              )}
 
-
-              </div>
-
-              {/* Skills and Preferences */}
-              <div className="form-section">
-                <h4 className="section-title">Skills and Preferences</h4>
-
-                <div className="form-group">
-                  <label htmlFor="skills">Skills</label>
-                  <div className="input-wrapper">
-                    <select
-                      id="skills"
-                      name="skills"
-                      multiple
-                      className="form-input form-select"
-                      value={formData.skills || []}
-                      onChange={e => {
-                        const options = Array.from(e.target.selectedOptions, option => option.value);
-                        setFormData(prev => ({ ...prev, skills: options }));
-                      }}
-                    >
-                      <option value="Animal Care">Animal Care</option>
-                      <option value="Event Planning">Event Planning</option>
-                      <option value="Fundraising">Fundraising</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Transport">Transport</option>
-                      <option value="Medical">Medical</option>
-                      <option value="Training">Training</option>
-                      
-                    </select>
+              {/* Volunteer Specific Fields */}
+              {formData.role === "volunteer" && (
+                <div className="form-section">
+                  <h4 className="section-title">Emergency Contact</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="emergencyContact">Emergency Contact Name</label>
+                      <div className="input-wrapper">
+                        <div className="input-icon">
+                          <UserIcon />
+                        </div>
+                        <input
+                          type="text"
+                          id="emergencyContact"
+                          name="emergencyContact"
+                          value={formData.emergencyContact}
+                          onChange={handleInputChange}
+                          placeholder="Enter emergency contact name"
+                          required
+                          className="form-input"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="emergencyPhone">Emergency Contact Phone</label>
+                      <div className="input-wrapper">
+                        <div className="input-icon">
+                          <UserIcon />
+                        </div>
+                        <input
+                          type="tel"
+                          id="emergencyPhone"
+                          name="emergencyPhone"
+                          value={formData.emergencyPhone}
+                          onChange={handleInputChange}
+                          placeholder="Enter emergency contact phone"
+                          required
+                          className="form-input"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <div className="form-group">
-                  <label htmlFor="preferences">Preferences (Optional)</label>
-                  <textarea
-                    id="preferences"
-                    name="preferences"
-                    value={formData.preferences || ''}
-                    onChange={handleInputChange}
-                    placeholder="Share any preferences or special requirements..."
-                    maxLength={500}
-                    className="form-input"
-                  />
-                </div>
+              {/* Skills and Preferences - Only for volunteers and veterinarians */}
+              {(formData.role === "volunteer" || formData.role === "veterinarian") && (
+                <div className="form-section">
+                  <h4 className="section-title">Skills and Preferences</h4>
+                  <div className="form-group">
+                    <label htmlFor="skills">Skills</label>
+                    <div className="input-wrapper">
+                      <select
+                        id="skills"
+                        name="skills"
+                        multiple
+                        className="form-input form-select"
+                        value={formData.skills || []}
+                        onChange={(e) => {
+                          const options = Array.from(e.target.selectedOptions, (option) => option.value)
+                          setFormData((prev) => ({ ...prev, skills: options }))
+                        }}
+                      >
+                        <option value="Animal Care">Animal Care</option>
+                        <option value="Event Planning">Event Planning</option>
+                        <option value="Fundraising">Fundraising</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Training">Training</option>
+                      </select>
+                    </div>
+                    <small style={{ color: "#6b7280", fontSize: "12px" }}>
+                      Hold Ctrl/Cmd to select multiple skills
+                    </small>
+                  </div>
 
-                <div className="form-group" style={{ marginBottom: '2.5rem', position: 'relative', zIndex: 100 }}>
-                  <label htmlFor="availability">Availability</label>
-                  <DatePicker
-                    multiple
-                    value={formData.availability || []}
-                    onChange={dates => setFormData(prev => ({ ...prev, availability: dates }))}
-                    format="YYYY-MM-DD"
-                    id="availability"
-                    name="availability"
-                    plugins={[<DatePanel />]}
-                    input={false}
-                  />
-                  <small>Select one or more dates you are available.</small>
-                  <style>{`
+                  <div className="form-group">
+                    <label htmlFor="preferences">Preferences (Optional)</label>
+                    <textarea
+                      id="preferences"
+                      name="preferences"
+                      value={formData.preferences || ""}
+                      onChange={handleInputChange}
+                      placeholder="Share any preferences or special requirements..."
+                      maxLength={500}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: "2.5rem", position: "relative", zIndex: 100 }}>
+                    <label htmlFor="availability">Availability</label>
+                    <DatePicker
+                      multiple
+                      value={formData.availability || []}
+                      onChange={(dates) => setFormData((prev) => ({ ...prev, availability: dates }))}
+                      format="YYYY-MM-DD"
+                      id="availability"
+                      name="availability"
+                      plugins={[<DatePanel key="datePanel" />]}
+                      input={false}
+                    />
+                    <small>Select one or more dates you are available.</small>
+                    <style>{`
                     .form-group[style*='zIndex: 100'] .rmdp-wrapper, .form-group[style*='zIndex: 100'] .rmdp-shadow {
                       z-index: 99999 !important;
                       position: absolute !important;
                       background: #fff !important;
                     }
                   `}</style>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Security Information */}
               <div className="form-section">
                 <h4 className="section-title">Security Information</h4>
-
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="password">Password</label>
@@ -561,7 +784,6 @@ function RegisterUSER() {
                       </button>
                     </div>
                   </div>
-
                   <div className="form-group">
                     <label htmlFor="confirmPassword">Confirm Password</label>
                     <div className="input-wrapper">
