@@ -210,9 +210,24 @@ router.post('/assign/:eventId', auth, async (req, res) => {
       return res.status(400).json({ message: 'Volunteer IDs must be an array' });
     }
     
+    // Get event details to check capacity
+    const [eventDetails] = await pool.query(
+      'SELECT max_volunteers, title, description, date, time FROM events WHERE id = ?',
+      [eventId]
+    );
+
+    if (eventDetails.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const eventTitle = eventDetails[0].title;
+    const eventDescription = eventDetails[0].description;
+    const eventDate = eventDetails[0].date;
+    const eventTime = eventDetails[0].time;
+
     // Check event capacity
     const [event] = await pool.query(
-      'SELECT max_volunteers, (SELECT COUNT(*) FROM event_registrations WHERE event_id = ?) as current_volunteers FROM events WHERE id = ?',
+      'SELECT max_volunteers, (SELECT COUNT(DISTINCT vh.user_id) FROM volunteer_tasks vt JOIN volunteer_history vh ON vt.task_id = vh.task_id WHERE vt.event_id = ? AND vh.status IN ("registered", "attended")) as current_volunteers FROM events WHERE id = ?',
       [eventId, eventId]
     );
     
@@ -223,9 +238,16 @@ router.post('/assign/:eventId', auth, async (req, res) => {
     // Assign volunteers
     const assignments = [];
     for (const volunteerId of volunteerIds) {
+      // Create volunteer task for this event
+      const [taskResult] = await pool.query(
+        'INSERT INTO volunteer_tasks (task_name, description, task_date, status, event_id, USERS_id_user) VALUES (?, ?, ?, ?, ?, ?)',
+        [eventTitle, eventDescription, eventDate, 'pending', eventId, volunteerId]
+      );
+      
+      // Create volunteer history record
       await pool.query(
-        'INSERT INTO event_registrations (event_id, user_id, registration_date, assigned_by) VALUES (?, ?, NOW(), ?)',
-        [eventId, volunteerId, req.user.id_user]
+        'INSERT INTO volunteer_history (user_id, task_id, participation_date, status) VALUES (?, ?, ?, ?)',
+        [volunteerId, taskResult.insertId, new Date(), 'registered']
       );
       
       // Create notification for volunteer

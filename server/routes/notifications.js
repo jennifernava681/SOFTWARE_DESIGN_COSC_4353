@@ -151,9 +151,10 @@ router.post('/event-reminder/:eventId', auth, async (req, res) => {
     // Get all volunteers registered for this event
     const [volunteers] = await pool.query(`
       SELECT u.id_user, u.name 
-      FROM event_registrations er
-      JOIN users u ON er.user_id = u.id_user
-      WHERE er.event_id = ?
+      FROM volunteer_tasks vt
+      JOIN volunteer_history vh ON vt.task_id = vh.task_id
+      JOIN users u ON vh.user_id = u.id_user
+      WHERE vt.event_id = ? AND vh.status IN ('registered', 'attended')
     `, [eventId]);
     
     // Send reminder to each volunteer
@@ -195,9 +196,10 @@ router.post('/event-update/:eventId', auth, async (req, res) => {
     // Get all volunteers registered for this event
     const [volunteers] = await pool.query(`
       SELECT u.id_user 
-      FROM event_registrations er
-      JOIN users u ON er.user_id = u.id_user
-      WHERE er.event_id = ?
+      FROM volunteer_tasks vt
+      JOIN volunteer_history vh ON vt.task_id = vh.task_id
+      JOIN users u ON vh.user_id = u.id_user
+      WHERE vt.event_id = ? AND vh.status IN ('registered', 'attended')
     `, [eventId]);
     
     // Send update to each volunteer

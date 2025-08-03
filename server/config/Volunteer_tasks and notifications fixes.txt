@@ -1,0 +1,13 @@
+-- Just add a column to reference events
+ALTER TABLE `volunteer_tasks` 
+ADD COLUMN `event_id` int DEFAULT NULL AFTER `USERS_id_user`;
+
+-- Add the foreign key constraint
+ALTER TABLE `volunteer_tasks` 
+ADD KEY `fk_volunteer_tasks_event` (`event_id`),
+ADD CONSTRAINT `fk_volunteer_tasks_event` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE SET NULL;
+
+-- Add identification coliumn to notifications
+ALTER TABLE `notifications` 
+ADD COLUMN `message` text AFTER `is_read`,
+ADD COLUMN `type` varchar(50) DEFAULT 'general' AFTER `message`;

@@ -64,11 +64,9 @@ router.get('/:id', async (req, res) => {
   try {
     const [events] = await pool.query(`
       SELECT e.*, 
-             GROUP_CONCAT(es.skill_name) as required_skills,
-             COUNT(er.user_id) as registered_volunteers
+             GROUP_CONCAT(es.skill_name) as required_skills
       FROM events e
       LEFT JOIN event_skills es ON e.id = es.event_id
-      LEFT JOIN event_registrations er ON e.id = er.event_id
       WHERE e.id = ?
       GROUP BY e.id
     `, [req.params.id]);
