@@ -182,7 +182,7 @@
 .login-stat-number {
   font-size: 2rem;
   font-weight: 700;
-  color: #DF4C73;
+  color: #ffffff;
   margin-bottom: 0.5rem;
 }
 
@@ -258,13 +258,13 @@
 }
 
 .section-title {
-  color: #14532d;
-  font-size: 1.25rem;
+  color: #2e77a1;
+  font-size: 2.25rem;
   font-weight: 700;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 3px solid transparent;
-    background: linear-gradient(90deg, #B0DDE4 0%, #E2F0F9 50%, #286FB4 100%);
+  
 }
 
 /* Form rows and groups */

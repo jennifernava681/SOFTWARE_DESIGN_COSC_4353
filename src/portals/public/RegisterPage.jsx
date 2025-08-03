@@ -49,12 +49,6 @@ const MailIcon = () => (
   </svg>
 )
 
-const HomeIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M10 20V14H14V20H19V12H22L12 3L2 12H5V20H10Z" />
-  </svg>
-)
-
 const CalendarIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M19 19H5V8H19V19M7 10H12V15H7" />
@@ -73,6 +67,18 @@ const HeartIcon = () => (
   </svg>
 )
 
+const HomeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+  </svg>
+)
+
+const MapIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+  </svg>
+)
+
 function RegisterUSER() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
@@ -82,7 +88,7 @@ function RegisterUSER() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "", // Add role selection
+    role: "public", // Fixed role for public users
     address: "",
     address2: "",
     city: "",
@@ -92,17 +98,10 @@ function RegisterUSER() {
     dateOfBirth: "",
     securityQuestion: "",
     securityAnswer: "",
-    agreeToTerms: false,
     skills: [],
     preferences: "",
     availability: [],
-    // Veterinarian specific fields
-    licenseNumber: "",
-    specialization: "",
-    yearsOfExperience: "",
-    // Volunteer specific fields
-    emergencyContact: "",
-    emergencyPhone: "",
+    agreeToTerms: false,
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -111,6 +110,34 @@ function RegisterUSER() {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
+    }))
+  }
+
+  const handleDateChange = (date) => {
+    if (date) {
+      // Convert date to YYYY-MM-DD format
+      const formattedDate = date.format("YYYY-MM-DD")
+      setFormData((prev) => ({
+        ...prev,
+        dateOfBirth: formattedDate,
+      }))
+    }
+  }
+
+  const handleSkillsChange = (e) => {
+    const value = e.target.value
+    if (value && !formData.skills.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, value],
+      }))
+    }
+  }
+
+  const removeSkill = (skillToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
     }))
   }
 
@@ -125,47 +152,18 @@ function RegisterUSER() {
       return
     }
 
-    // Check required fields based on role
-    let requiredFields = ["name", "email", "password", "role"]
-
-    if (formData.role === "volunteer" || formData.role === "veterinarian") {
-      requiredFields = [...requiredFields, "address", "city", "state", "dateOfBirth"]
-    }
-
-    if (formData.role === "veterinarian") {
-      requiredFields = [...requiredFields, "licenseNumber", "specialization"]
-    }
-
-    if (formData.role === "volunteer") {
-      requiredFields = [...requiredFields, "emergencyContact", "emergencyPhone"]
-    }
-
-    const missingFields = requiredFields.filter((field) => !formData[field])
-
-    if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(", ")}`)
+    if (formData.password.length < 8) {
+      alert("Password must be at least 8 characters long!")
       setIsLoading(false)
       return
     }
 
     try {
-      // Format availability dates
-      const availabilityDates =
-        formData.availability && Array.isArray(formData.availability)
-          ? formData.availability
-              .map((date) => {
-                if (typeof date === "string") return date
-                if (date && date.format) return date.format("YYYY-MM-DD")
-                return null
-              })
-              .filter((date) => date)
-          : []
-
       const userPayload = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role, // Use selected role
+        role: "public", // Fixed role for public users
         address: formData.address,
         address2: formData.address2,
         city: formData.city,
@@ -175,79 +173,17 @@ function RegisterUSER() {
         dateOfBirth: formData.dateOfBirth,
         securityQuestion: formData.securityQuestion,
         securityAnswer: formData.securityAnswer,
-        skills: formData.skills || [],
+        skills: formData.skills,
         preferences: formData.preferences,
-        availability: availabilityDates,
-        // Add veterinarian specific fields
-        licenseNumber: formData.licenseNumber,
-        specialization: formData.specialization,
-        yearsOfExperience: formData.yearsOfExperience,
-        // Add volunteer specific fields
-        emergencyContact: formData.emergencyContact,
-        emergencyPhone: formData.emergencyPhone,
+        availability: formData.availability,
       }
 
       // Debug: Log the payload being sent
       console.log("=== FRONTEND DEBUG ===")
       console.log("Form data:", formData)
       console.log("User payload:", userPayload)
-      console.log("Required fields check:")
-      console.log(
-        "- name:",
-        userPayload.name,
-        "type:",
-        typeof userPayload.name,
-        "length:",
-        userPayload.name ? userPayload.name.length : 0,
-      )
-      console.log(
-        "- email:",
-        userPayload.email,
-        "type:",
-        typeof userPayload.email,
-        "length:",
-        userPayload.email ? userPayload.email.length : 0,
-      )
-      console.log(
-        "- password:",
-        userPayload.password ? "[HIDDEN]" : "null",
-        "type:",
-        typeof userPayload.password,
-        "length:",
-        userPayload.password ? userPayload.password.length : 0,
-      )
-      console.log(
-        "- address:",
-        userPayload.address,
-        "type:",
-        typeof userPayload.address,
-        "length:",
-        userPayload.address ? userPayload.address.length : 0,
-      )
-      console.log(
-        "- city:",
-        userPayload.city,
-        "type:",
-        typeof userPayload.city,
-        "length:",
-        userPayload.city ? userPayload.city.length : 0,
-      )
-      console.log(
-        "- state:",
-        userPayload.state,
-        "type:",
-        typeof userPayload.state,
-        "length:",
-        userPayload.state ? userPayload.state.length : 0,
-      )
-      console.log("- sex:", userPayload.sex, "type:", typeof userPayload.sex)
-      console.log("- dateOfBirth:", userPayload.dateOfBirth, "type:", typeof userPayload.dateOfBirth)
-      console.log("- securityQuestion:", userPayload.securityQuestion, "type:", typeof userPayload.securityQuestion)
 
-      // Skip the optional checks and go straight to registration
-      console.log("Proceeding with registration...")
       const response = await apiFetch("/api/users/register", "POST", userPayload)
-
       if (response.message) {
         alert("Account created successfully! You can now log in.")
         navigate("/login")
@@ -263,27 +199,94 @@ function RegisterUSER() {
     }
   }
 
+  const availableSkills = [
+    "Animal Care",
+    "Veterinary Assistant",
+    "Dog Walking",
+    "Cat Care",
+    "Animal Training",
+    "Fundraising",
+    "Event Planning",
+    "Social Media",
+    "Photography",
+    "Transportation",
+    "Administrative",
+    "Cleaning",
+    "Construction/Maintenance",
+    "Foster Care",
+  ]
+
+  const usStates = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+  ]
+
   return (
     <div className="login-page">
       {/* Background with animal silhouettes */}
-      <div className="login-background">
-        <div className="login-background-overlay"></div>
-        <div className="floating-paws">
-          <div className="floating-paw paw-1">
-            <PawIcon />
-          </div>
-          <div className="floating-paw paw-2">
-            <PawIcon />
-          </div>
-          <div className="floating-paw paw-3">
-            <PawIcon />
-          </div>
-          <div className="floating-paw paw-4">
-            <PawIcon />
-          </div>
-          <div className="floating-paw paw-5">
-            <PawIcon />
-          </div>
+      <div className="floating-paws">
+        <div className="floating-paw paw-1">
+          <PawIcon />
+        </div>
+        <div className="floating-paw paw-2">
+          <PawIcon />
+        </div>
+        <div className="floating-paw paw-3">
+          <PawIcon />
+        </div>
+        <div className="floating-paw paw-4">
+          <PawIcon />
+        </div>
+        <div className="floating-paw paw-5">
+          <PawIcon />
         </div>
       </div>
 
@@ -304,12 +307,12 @@ function RegisterUSER() {
             <p>Create your account and help us save more animals in need</p>
             <div className="login-stats">
               <div className="login-stat">
-                <span className="stat-number">500+</span>
-                <span className="stat-label">Animals Rescued</span>
+                <div className="login-stat-number">500+</div>
+                <div className="login-stat-label">Animals Rescued</div>
               </div>
               <div className="login-stat">
-                <span className="stat-number">200+</span>
-                <span className="stat-label">Active Volunteers</span>
+                <div className="login-stat-number">200+</div>
+                <div className="login-stat-label">Active Volunteers</div>
               </div>
             </div>
           </div>
@@ -324,37 +327,12 @@ function RegisterUSER() {
             </div>
 
             <form onSubmit={handleSubmit} className="login-form">
-              <div className="form-section">
-                <h4 className="section-title">Account Type</h4>
-                <div className="form-group">
-                  <label htmlFor="role">I want to register as:</label>
-                  <div className="input-wrapper">
-                    <div className="input-icon">
-                      <UserIcon />
-                    </div>
-                    <select
-                      id="role"
-                      name="role"
-                      value={formData.role}
-                      onChange={handleInputChange}
-                      required
-                      className="form-input form-select"
-                    >
-                      <option value="">Select your role</option>
-                      <option value="public">Public User</option>
-                      <option value="volunteer">Volunteer</option>
-                      <option value="veterinarian">Veterinarian</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
               {/* Personal Information */}
               <div className="form-section">
                 <h4 className="section-title">Personal Information</h4>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="name">Full Name</label>
+                    <label htmlFor="name">Full Name *</label>
                     <div className="input-wrapper">
                       <div className="input-icon">
                         <UserIcon />
@@ -373,7 +351,7 @@ function RegisterUSER() {
                     </div>
                   </div>
                   <div className="form-group">
-                    <label htmlFor="email">Email Address</label>
+                    <label htmlFor="email">Email Address *</label>
                     <div className="input-wrapper">
                       <div className="input-icon">
                         <MailIcon />
@@ -391,7 +369,6 @@ function RegisterUSER() {
                     </div>
                   </div>
                 </div>
-
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="dateOfBirth">Date of Birth</label>
@@ -399,14 +376,17 @@ function RegisterUSER() {
                       <div className="input-icon">
                         <CalendarIcon />
                       </div>
-                      <input
-                        type="date"
-                        id="dateOfBirth"
-                        name="dateOfBirth"
+                      <DatePicker
                         value={formData.dateOfBirth}
-                        onChange={handleInputChange}
-                        required
+                        onChange={handleDateChange}
+                        format="YYYY-MM-DD"
+                        placeholder="Select your date of birth"
                         className="form-input"
+                        inputClass="form-input datepicker-input"
+                        containerClassName="date-picker-container"
+                        calendarPosition="bottom-start"
+                        plugins={[<DatePanel key="date-panel" />]}
+                        maxDate={new Date()}
                       />
                     </div>
                   </div>
@@ -418,7 +398,6 @@ function RegisterUSER() {
                         name="sex"
                         value={formData.sex}
                         onChange={handleInputChange}
-                        required
                         className="form-input form-select"
                       >
                         <option value="">Select Gender</option>
@@ -432,339 +411,107 @@ function RegisterUSER() {
                 </div>
               </div>
 
-              {/* Veterinarian Specific Fields */}
-              {formData.role === "veterinarian" && (
-                <div className="form-section">
-                  <h4 className="section-title">Professional Information</h4>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="licenseNumber">License Number</label>
-                      <div className="input-wrapper">
-                        <div className="input-icon">
-                          <UserIcon />
-                        </div>
-                        <input
-                          type="text"
-                          id="licenseNumber"
-                          name="licenseNumber"
-                          value={formData.licenseNumber}
-                          onChange={handleInputChange}
-                          placeholder="Enter your veterinary license number"
-                          required
-                          className="form-input"
-                        />
-                      </div>
+              {/* Address Information */}
+              <div className="form-section">
+                <h4 className="section-title">Address Information</h4>
+                <div className="form-group">
+                  <label htmlFor="address">Street Address *</label>
+                  <div className="input-wrapper">
+                    <div className="input-icon">
+                      <HomeIcon />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="specialization">Specialization</label>
-                      <div className="input-wrapper">
-                        <select
-                          id="specialization"
-                          name="specialization"
-                          value={formData.specialization}
-                          onChange={handleInputChange}
-                          required
-                          className="form-input form-select"
-                        >
-                          <option value="">Select specialization</option>
-                          <option value="General Practice">General Practice</option>
-                          <option value="Surgery">Surgery</option>
-                          <option value="Internal Medicine">Internal Medicine</option>
-                          <option value="Emergency Medicine">Emergency Medicine</option>
-                          <option value="Exotic Animals">Exotic Animals</option>
-                          <option value="Wildlife Medicine">Wildlife Medicine</option>
-                          <option value="Rehabilitation">Rehabilitation</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="yearsOfExperience">Years of Experience</label>
-                    <div className="input-wrapper">
-                      <input
-                        type="number"
-                        id="yearsOfExperience"
-                        name="yearsOfExperience"
-                        value={formData.yearsOfExperience}
-                        onChange={handleInputChange}
-                        placeholder="Enter years of experience"
-                        min="0"
-                        max="50"
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Address Information - Only for volunteers and veterinarians */}
-              {(formData.role === "volunteer" || formData.role === "veterinarian") && (
-                <div className="form-section">
-                  <h4 className="section-title">Address Information</h4>
-                  <div className="form-group">
-                    <label htmlFor="address">Address 1</label>
-                    <div className="input-wrapper">
-                      <div className="input-icon">
-                        <HomeIcon />
-                      </div>
-                      <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        placeholder="Enter your street address"
-                        required
-                        maxLength={100}
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="address2">Address 2 (Optional)</label>
-                    <div className="input-wrapper">
-                      <div className="input-icon">
-                        <HomeIcon />
-                      </div>
-                      <input
-                        type="text"
-                        id="address2"
-                        name="address2"
-                        value={formData.address2}
-                        onChange={handleInputChange}
-                        placeholder="Apartment, suite, unit, etc."
-                        maxLength={100}
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="city">City</label>
-                      <div className="input-wrapper">
-                        <input
-                          type="text"
-                          id="city"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          placeholder="Enter your city"
-                          required
-                          maxLength={100}
-                          className="form-input"
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="state">State</label>
-                      <div className="input-wrapper">
-                        <select
-                          id="state"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          required
-                          className="form-input form-select"
-                        >
-                          <option value="">Select State</option>
-                          <option value="AL">Alabama</option>
-                          <option value="AK">Alaska</option>
-                          <option value="AZ">Arizona</option>
-                          <option value="AR">Arkansas</option>
-                          <option value="CA">California</option>
-                          <option value="CO">Colorado</option>
-                          <option value="CT">Connecticut</option>
-                          <option value="DE">Delaware</option>
-                          <option value="FL">Florida</option>
-                          <option value="GA">Georgia</option>
-                          <option value="HI">Hawaii</option>
-                          <option value="ID">Idaho</option>
-                          <option value="IL">Illinois</option>
-                          <option value="IN">Indiana</option>
-                          <option value="IA">Iowa</option>
-                          <option value="KS">Kansas</option>
-                          <option value="KY">Kentucky</option>
-                          <option value="LA">Louisiana</option>
-                          <option value="ME">Maine</option>
-                          <option value="MD">Maryland</option>
-                          <option value="MA">Massachusetts</option>
-                          <option value="MI">Michigan</option>
-                          <option value="MN">Minnesota</option>
-                          <option value="MS">Mississippi</option>
-                          <option value="MO">Missouri</option>
-                          <option value="MT">Montana</option>
-                          <option value="NE">Nebraska</option>
-                          <option value="NV">Nevada</option>
-                          <option value="NH">New Hampshire</option>
-                          <option value="NJ">New Jersey</option>
-                          <option value="NM">New Mexico</option>
-                          <option value="NY">New York</option>
-                          <option value="NC">North Carolina</option>
-                          <option value="ND">North Dakota</option>
-                          <option value="OH">Ohio</option>
-                          <option value="OK">Oklahoma</option>
-                          <option value="OR">Oregon</option>
-                          <option value="PA">Pennsylvania</option>
-                          <option value="RI">Rhode Island</option>
-                          <option value="SC">South Carolina</option>
-                          <option value="SD">South Dakota</option>
-                          <option value="TN">Tennessee</option>
-                          <option value="TX">Texas</option>
-                          <option value="UT">Utah</option>
-                          <option value="VT">Vermont</option>
-                          <option value="VA">Virginia</option>
-                          <option value="WA">Washington</option>
-                          <option value="WV">West Virginia</option>
-                          <option value="WI">Wisconsin</option>
-                          <option value="WY">Wyoming</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="zip">ZIP Code (Optional)</label>
-                    <div className="input-wrapper">
-                      <div className="input-icon">
-                        <HomeIcon />
-                      </div>
-                      <input
-                        type="text"
-                        id="zip"
-                        name="zip"
-                        value={formData.zip}
-                        onChange={handleInputChange}
-                        placeholder="Enter your ZIP code"
-                        maxLength={10}
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Volunteer Specific Fields */}
-              {formData.role === "volunteer" && (
-                <div className="form-section">
-                  <h4 className="section-title">Emergency Contact</h4>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="emergencyContact">Emergency Contact Name</label>
-                      <div className="input-wrapper">
-                        <div className="input-icon">
-                          <UserIcon />
-                        </div>
-                        <input
-                          type="text"
-                          id="emergencyContact"
-                          name="emergencyContact"
-                          value={formData.emergencyContact}
-                          onChange={handleInputChange}
-                          placeholder="Enter emergency contact name"
-                          required
-                          className="form-input"
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="emergencyPhone">Emergency Contact Phone</label>
-                      <div className="input-wrapper">
-                        <div className="input-icon">
-                          <UserIcon />
-                        </div>
-                        <input
-                          type="tel"
-                          id="emergencyPhone"
-                          name="emergencyPhone"
-                          value={formData.emergencyPhone}
-                          onChange={handleInputChange}
-                          placeholder="Enter emergency contact phone"
-                          required
-                          className="form-input"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Skills and Preferences - Only for volunteers and veterinarians */}
-              {(formData.role === "volunteer" || formData.role === "veterinarian") && (
-                <div className="form-section">
-                  <h4 className="section-title">Skills and Preferences</h4>
-                  <div className="form-group">
-                    <label htmlFor="skills">Skills</label>
-                    <div className="input-wrapper">
-                      <select
-                        id="skills"
-                        name="skills"
-                        multiple
-                        className="form-input form-select"
-                        value={formData.skills || []}
-                        onChange={(e) => {
-                          const options = Array.from(e.target.selectedOptions, (option) => option.value)
-                          setFormData((prev) => ({ ...prev, skills: options }))
-                        }}
-                      >
-                        <option value="Animal Care">Animal Care</option>
-                        <option value="Event Planning">Event Planning</option>
-                        <option value="Fundraising">Fundraising</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Transport">Transport</option>
-                        <option value="Medical">Medical</option>
-                        <option value="Training">Training</option>
-                      </select>
-                    </div>
-                    <small style={{ color: "#6b7280", fontSize: "12px" }}>
-                      Hold Ctrl/Cmd to select multiple skills
-                    </small>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="preferences">Preferences (Optional)</label>
-                    <textarea
-                      id="preferences"
-                      name="preferences"
-                      value={formData.preferences || ""}
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
                       onChange={handleInputChange}
-                      placeholder="Share any preferences or special requirements..."
-                      maxLength={500}
+                      placeholder="Enter your street address"
+                      required
                       className="form-input"
                     />
                   </div>
-
-                  <div className="form-group" style={{ marginBottom: "2.5rem", position: "relative", zIndex: 100 }}>
-                    <label htmlFor="availability">Availability</label>
-                    <DatePicker
-                      multiple
-                      value={formData.availability || []}
-                      onChange={(dates) => setFormData((prev) => ({ ...prev, availability: dates }))}
-                      format="YYYY-MM-DD"
-                      id="availability"
-                      name="availability"
-                      plugins={[<DatePanel key="datePanel" />]}
-                      input={false}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="address2">Address Line 2</label>
+                  <div className="input-wrapper">
+                    <div className="input-icon">
+                      <HomeIcon />
+                    </div>
+                    <input
+                      type="text"
+                      id="address2"
+                      name="address2"
+                      value={formData.address2}
+                      onChange={handleInputChange}
+                      placeholder="Apartment, suite, etc. (optional)"
+                      className="form-input"
                     />
-                    <small>Select one or more dates you are available.</small>
-                    <style>{`
-                    .form-group[style*='zIndex: 100'] .rmdp-wrapper, .form-group[style*='zIndex: 100'] .rmdp-shadow {
-                      z-index: 99999 !important;
-                      position: absolute !important;
-                      background: #fff !important;
-                    }
-                  `}</style>
                   </div>
                 </div>
-              )}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="city">City *</label>
+                    <div className="input-wrapper">
+                      <div className="input-icon">
+                        <MapIcon />
+                      </div>
+                      <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        placeholder="Enter your city"
+                        required
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="state">State *</label>
+                    <div className="input-wrapper">
+                      <select
+                        id="state"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        required
+                        className="form-input form-select"
+                      >
+                        <option value="">Select State</option>
+                        {usStates.map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="zip">ZIP Code</label>
+                  <div className="input-wrapper">
+                    <input
+                      type="text"
+                      id="zip"
+                      name="zip"
+                      value={formData.zip}
+                      onChange={handleInputChange}
+                      placeholder="Enter ZIP code"
+                      maxLength={10}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Security Information */}
               <div className="form-section">
                 <h4 className="section-title">Security Information</h4>
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">Password *</label>
                     <div className="input-wrapper">
                       <div className="input-icon">
                         <LockIcon />
@@ -777,6 +524,7 @@ function RegisterUSER() {
                         onChange={handleInputChange}
                         placeholder="Create a password"
                         required
+                        minLength={8}
                         className="form-input"
                       />
                       <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
@@ -785,7 +533,7 @@ function RegisterUSER() {
                     </div>
                   </div>
                   <div className="form-group">
-                    <label htmlFor="confirmPassword">Confirm Password</label>
+                    <label htmlFor="confirmPassword">Confirm Password *</label>
                     <div className="input-wrapper">
                       <div className="input-icon">
                         <LockIcon />
@@ -810,7 +558,6 @@ function RegisterUSER() {
                     </div>
                   </div>
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="securityQuestion">Security Question</label>
                   <div className="input-wrapper">
@@ -822,7 +569,6 @@ function RegisterUSER() {
                       name="securityQuestion"
                       value={formData.securityQuestion}
                       onChange={handleInputChange}
-                      required
                       className="form-input form-select"
                     >
                       <option value="">Choose a security question</option>
@@ -834,7 +580,6 @@ function RegisterUSER() {
                     </select>
                   </div>
                 </div>
-
                 <div className="form-group">
                   <label htmlFor="securityAnswer">Security Answer</label>
                   <div className="input-wrapper">
@@ -845,7 +590,50 @@ function RegisterUSER() {
                       value={formData.securityAnswer}
                       onChange={handleInputChange}
                       placeholder="Enter your answer"
-                      required
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Volunteer Information */}
+              <div className="form-section">
+                <h4 className="section-title">Volunteer Information (Optional)</h4>
+                <div className="form-group">
+                  <label htmlFor="skills">Skills & Interests</label>
+                  <div className="input-wrapper">
+                    <select id="skills" onChange={handleSkillsChange} className="form-input form-select">
+                      <option value="">Select skills you have</option>
+                      {availableSkills.map((skill) => (
+                        <option key={skill} value={skill}>
+                          {skill}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {formData.skills.length > 0 && (
+                    <div className="skills-list">
+                      {formData.skills.map((skill, index) => (
+                        <span key={index} className="skill-tag">
+                          {skill}
+                          <button type="button" onClick={() => removeSkill(skill)} className="remove-skill">
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label htmlFor="preferences">Additional Preferences</label>
+                  <div className="input-wrapper">
+                    <textarea
+                      id="preferences"
+                      name="preferences"
+                      value={formData.preferences}
+                      onChange={handleInputChange}
+                      placeholder="Tell us about your preferences, availability, or anything else we should know..."
+                      rows={4}
                       className="form-input"
                     />
                   </div>
@@ -908,14 +696,6 @@ function RegisterUSER() {
           </div>
         </div>
       </div>
-
-      <style>{`
-      .rmdp-wrapper, .rmdp-shadow {
-        z-index: 99999 !important;
-        position: absolute !important;
-        background: #fff !important;
-      }
-      `}</style>
     </div>
   )
 }
