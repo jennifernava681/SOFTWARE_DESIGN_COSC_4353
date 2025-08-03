@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
 // Validation helper for donations
 const validateDonationData = (data) => {

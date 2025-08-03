@@ -1,5 +1,14 @@
 const API_BASE = process.env.REACT_APP_API_URL || 'https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net';
 
+export const isAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  return !!token;
+};
+
+export const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
 export const apiFetch = async (endpoint, method = 'GET', body = null) => {
   const options = {
     method,
@@ -7,6 +16,13 @@ export const apiFetch = async (endpoint, method = 'GET', body = null) => {
       'Content-Type': 'application/json',
     },
   };
+  
+  // Add auth token if available
+  const token = getAuthToken();
+  if (token) {
+    options.headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   if (body) options.body = JSON.stringify(body);
 
   console.log(`Making ${method} request to: ${API_BASE}${endpoint}`);

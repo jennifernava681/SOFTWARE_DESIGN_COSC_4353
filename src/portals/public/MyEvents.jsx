@@ -1,38 +1,12 @@
 "use client"
 import { useState, useEffect } from "react"
 import "../../css/home.css"
-
-// API Configuration
-const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token")
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  }
-}
-
-// Check if user is authenticated
-const isAuthenticated = () => {
-  const token = localStorage.getItem("token")
-  return token && token.length > 0
-}
+import { apiFetch, isAuthenticated } from "../../api"
 
 // API Functions
 const getAllEvents = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/events`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const events = await response.json()
+    const events = await apiFetch("/api/events", "GET")
     return events
   } catch (error) {
     console.error("Error fetching events:", error)
@@ -42,17 +16,7 @@ const getAllEvents = async () => {
 
 const registerForEvent = async (eventId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/events/${eventId}/register`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
-    }
-
-    const result = await response.json()
+    const result = await apiFetch(`/api/events/${eventId}/register`, "POST")
     return result
   } catch (error) {
     console.error("Registration error:", error)
@@ -62,20 +26,7 @@ const registerForEvent = async (eventId) => {
 
 const getMyRegisteredEvents = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/events/my/registered`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    })
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        // User not authenticated, return empty array
-        return []
-      }
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const events = await response.json()
+    const events = await apiFetch("/api/events/my/registered", "GET")
     return events
   } catch (error) {
     console.error("Error fetching registered events:", error)
@@ -84,15 +35,6 @@ const getMyRegisteredEvents = async () => {
 }
 
 // Reuse icons and header layout from HomePage
-const PawIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-    <ellipse cx="12" cy="16" rx="4" ry="3" />
-    <circle cx="8" cy="10" r="1.5" />
-    <circle cx="12" cy="8" r="1.5" />
-    <circle cx="16" cy="10" r="1.5" />
-    <circle cx="18" cy="13" r="1.2" />
-  </svg>
-)
 
 const CalendarIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -106,11 +48,7 @@ const MapPinIcon = () => (
   </svg>
 )
 
-const MenuIcon = () => (
-  <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-    <path d="M4 6h16M4 12h16M4 18h16" stroke="white" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-)
+
 
 function MyEvents() {
   const [events, setEvents] = useState([])

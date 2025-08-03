@@ -2,10 +2,10 @@ import React from "react";
 import "../../css/SubmitAdoptionRequest.css";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
+import { apiFetch } from "../../api";
+import NotificationBanner from "../../NotificationBanner";
 
 function SubmitAdoptionRequest() {
-
   const [formData, setFormData] = useState({
     household: "",
     firstName: "",
@@ -18,31 +18,85 @@ function SubmitAdoptionRequest() {
     interest: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [bannerMessage, setBannerMessage] = useState("");
+
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => setShowBanner(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setShowBanner(false);
 
     try {
-      const response = await fetch("/api/adoption-request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        alert("Adoption request submitted successfully!");
-      } else {
-        alert("Something went wrong. Please try again.");
+      // First, check if user is logged in
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setBannerMessage("Please log in to submit an adoption request.");
+        setShowBanner(true);
+        setIsLoading(false);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      alert("Server error. Try again later.");
+
+      // Get user info from localStorage
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      
+      const adoptionData = {
+        ...formData,
+        user_id: user.id_user,
+        request_date: new Date().toISOString(),
+        status: 'pending'
+      };
+
+      const response = await apiFetch("/api/adoptions", "POST", adoptionData);
+      
+      setBannerMessage("Adoption request submitted successfully! We'll contact you soon.");
+      setShowBanner(true);
+      
+      // Reset form
+      setFormData({
+        household: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        address: "",
+        serviceType: "",
+        experience: "",
+        interest: "",
+      });
+    } catch (error) {
+      console.error("Adoption request error:", error);
+      setBannerMessage("Failed to submit adoption request. Please try again.");
+      setShowBanner(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="adoption-container">
+      <NotificationBanner
+        floating
+        onClose={() => setShowBanner(false)}
+        show={showBanner}
+        message={bannerMessage}
+      />
+      
       <div
         className="hero-image"
         style={{

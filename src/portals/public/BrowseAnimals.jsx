@@ -2,44 +2,12 @@
 import { useState, useEffect } from "react"
 import "../../css/home.css"
 import "../../css/MobileNav.css"
-
-// API Configuration
-const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
-const API_ENDPOINTS = {
-  animals: `${API_BASE_URL}/animals`,
-}
-
-// Helper functions
-const getAuthToken = () => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("authToken")
-  }
-  return null
-}
-
-const createAuthHeaders = () => {
-  const token = getAuthToken()
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  }
-}
+import { apiFetch } from "../../api"
 
 // API Service Functions
 const getAllAnimals = async () => {
   try {
-    const response = await fetch(API_ENDPOINTS.animals, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
+    const data = await apiFetch("/api/animals", "GET")
     return Array.isArray(data) ? data : []
   } catch (error) {
     console.error("Error fetching animals:", error)
@@ -110,7 +78,6 @@ const getStatusClass = (status) => {
 }
 
 function BrowseAnimals() {
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [animals, setAnimals] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")

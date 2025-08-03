@@ -1,9 +1,11 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import "../../index.css";
 import "../../css/surrender.css";
+import { apiFetch } from "../../api";
+import NotificationBanner from "../../NotificationBanner";
 
 
 // Icons
@@ -55,6 +57,15 @@ function SurrenderAnimal() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [showBanner, setShowBanner] = useState(false)
+  const [bannerMessage, setBannerMessage] = useState("")
+
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => setShowBanner(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -67,18 +78,53 @@ function SurrenderAnimal() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setShowBanner(false)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      setSubmitted(true)
-      console.log("Surrender request submitted:", formData)
-    }, 2000)
+    try {
+      // Check if user is logged in
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setBannerMessage("Please log in to submit a surrender request.");
+        setShowBanner(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Get user info from localStorage
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      
+      const surrenderData = {
+        ...formData,
+        user_id: user.id_user,
+        status: 'pending',
+        surrender_date: new Date().toISOString()
+      };
+
+      const response = await apiFetch("/api/surrender", "POST", surrenderData);
+      
+      setBannerMessage("Surrender request submitted successfully! We'll contact you soon.");
+      setShowBanner(true);
+      setSubmitted(true);
+      
+    } catch (error) {
+      console.error("Surrender request error:", error);
+      setBannerMessage("Failed to submit surrender request. Please try again.");
+      setShowBanner(true);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   if (submitted) {
     return (
       <div className="surrender-page">
+        <NotificationBanner
+          floating
+          onClose={() => setShowBanner(false)}
+          show={showBanner}
+          message={bannerMessage}
+        />
+        
         <div className="surrender-background">
           <div className="surrender-background-overlay"></div>
           <div className="floating-paws">
@@ -123,6 +169,13 @@ function SurrenderAnimal() {
 
   return (
     <div className="surrender-page">
+      <NotificationBanner
+        floating
+        onClose={() => setShowBanner(false)}
+        show={showBanner}
+        message={bannerMessage}
+      />
+      
       {/* Background with animal silhouettes */}
       <div className="surrender-background">
         <div className="surrender-background-overlay"></div>

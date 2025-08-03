@@ -3,45 +3,12 @@ import { Link } from "react-router-dom"
 import { Stethoscope, CheckCircle, RefreshCw } from "lucide-react"
 import { useState, useEffect } from "react"
 import "../../../css/vet.css"
-
-// API Configuration
-const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
-const API_ENDPOINTS = {
-  animals: `${API_BASE_URL}/animals`,
-  vets: `${API_BASE_URL}/vets`,
-}
-
-// Helper functions
-const getAuthToken = () => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("authToken")
-  }
-  return null
-}
-
-const createAuthHeaders = () => {
-  const token = getAuthToken()
-  return {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  }
-}
+import { apiFetch } from "../../../api"
 
 // API Service Functions
 const getAllAnimals = async () => {
   try {
-    const response = await fetch(API_ENDPOINTS.animals, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
+    const data = await apiFetch("/api/animals", "GET")
     return Array.isArray(data) ? data : []
   } catch (error) {
     console.error("Error fetching animals:", error)
@@ -52,27 +19,7 @@ const getAllAnimals = async () => {
 const updateAnimalStatus = async (animalId, status) => {
   try {
     console.log("Updating animal status:", animalId, status)
-
-    const response = await fetch(`${API_ENDPOINTS.vets}/ready-status/${animalId}`, {
-      method: "PUT",
-      headers: createAuthHeaders(),
-    })
-
-    console.log("Update status response:", response.status)
-
-    if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`
-      try {
-        const errorData = await response.json()
-        console.log("Update status error data:", errorData)
-        errorMessage = errorData.message || errorMessage
-      } catch (e) {
-        console.log("Could not parse error response")
-      }
-      throw new Error(errorMessage)
-    }
-
-    const result = await response.json()
+    const result = await apiFetch(`/api/vets/ready-status/${animalId}`, "PUT", { status })
     console.log("Update status success result:", result)
     return result
   } catch (error) {

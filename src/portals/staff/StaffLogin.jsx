@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom"
 import "../../css/LoginUSER.css"
 import "../../index.css"
 import NotificationBanner from "../../NotificationBanner.jsx"
+import { apiFetch } from "../../api"
 
 // API Configuration
 const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"

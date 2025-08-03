@@ -12,6 +12,7 @@ const donationRoutes = require('./routes/donations');
 const volunteerRoutes = require('./routes/volunteers');
 const notificationRoutes = require('./routes/notifications');
 const vetRoutes = require('./routes/vets');
+const surrenderRoutes = require('./routes/surrender');
 
 console.log(">>> Starting backend app...");
 
@@ -44,6 +45,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/surrender', surrenderRoutes);
 
 app.get('/', (req, res) => res.send('API Running'));
 app.get('/api/test', (req, res) => {

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import NotificationBanner from '../../../NotificationBanner.jsx';
+import { apiFetch } from '../../../api';
 
 function VolunteerDash() {
   const [notifications, setNotifications] = useState([]);
@@ -54,12 +55,7 @@ function VolunteerDash() {
     setApiBanner("");
     setShowApiBanner(false);
     try {
-      const response = await fetch("http://localhost:5000/api/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ test: true })
-      });
-      const data = await response.json();
+      const data = await apiFetch("/api/test", "POST", { test: true });
       setApiBanner(data.message || "POST success");
     } catch (err) {
       setApiBanner("POST network error");
@@ -71,8 +67,7 @@ function VolunteerDash() {
     setApiBanner("");
     setShowApiBanner(false);
     try {
-      const response = await fetch("http://localhost:5000/api/test");
-      const data = await response.json();
+      const data = await apiFetch("/api/test", "GET");
       setApiBanner(data.message || "GET success");
     } catch (err) {
       setApiBanner("GET network error");
@@ -93,8 +88,7 @@ function VolunteerDash() {
     height: 'auto',
   };
 
-  // Notification height and gap for stacking
-  const NOTIF_HEIGHT = 72; // in px
+  // Notification gap for stacking
   const NOTIF_OVERLAP = 32; // in px, how much each notif overlaps the previous
 
   return (

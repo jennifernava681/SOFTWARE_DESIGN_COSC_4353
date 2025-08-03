@@ -50,4 +50,14 @@ router.get('/user/:userId', auth, async (req, res) => {
   }
 });
 
+// Get current user's adoption requests
+router.get('/my', auth, async (req, res) => {
+  try {
+    const [requests] = await pool.query('SELECT * FROM adoption_requests WHERE USERS_id_user=?', [req.user.id_user]);
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 module.exports = router; 
