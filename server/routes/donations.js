@@ -75,6 +75,13 @@ router.post('/', async (req, res) => {
         'INSERT INTO users_has_donations (USERS_id, donations_id) VALUES (?, ?)',
         [userId, result.insertId]
       );
+      
+      // Create notification for user
+      const message = `Thank you for your ${donation_type} donation of ${amount}! Your contribution helps animals in need.`;
+      await pool.query(
+        'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+        [userId, message, 'donation_received']
+      );
     }
 
     res.status(201).json({ message: 'Donation recorded', donationId: result.insertId });

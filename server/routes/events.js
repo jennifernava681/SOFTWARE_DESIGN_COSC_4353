@@ -215,6 +215,12 @@ router.post('/:id/register', auth, async (req, res) => {
       [req.user.id_user, taskResult.insertId, new Date(), 'registered']
     );
     
+    // Create notification for user
+    await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+      [req.user.id_user, `You have successfully registered for "${event.title}" on ${event.date}. We'll send you a reminder closer to the event date.`, 'event_registration']
+    );
+    
     res.status(201).json({ 
       message: 'Successfully registered for event',
       task_id: taskResult.insertId

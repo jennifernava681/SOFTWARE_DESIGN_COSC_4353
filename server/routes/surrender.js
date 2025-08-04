@@ -115,6 +115,12 @@ router.post('/', async (req, res) => {
       [animal_description, reason, urgency, user_id, user.adrees_idadrees_id, user.adrees_state_state_id]
     );
     
+    // Create notification for user
+    await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+      [user_id, 'Your animal surrender request has been submitted and is under review. We will contact you soon to discuss next steps.', 'surrender_submitted']
+    );
+    
     // If animal details are provided, create an animal record
     if (animal_name && animal_type) {
       await pool.query(
@@ -159,6 +165,18 @@ router.put('/:id/status', auth, async (req, res) => {
     await pool.query(
       'UPDATE surrender_requests SET status = ? WHERE USERS_id_user = ?',
       [status, req.params.id]
+    );
+    
+    // Create notification for user based on status
+    const message = status === 'approved' 
+      ? 'Your animal surrender request has been approved. Please contact us to arrange the surrender.'
+      : 'Your animal surrender request has been reviewed. Unfortunately, it was not approved at this time.';
+    
+    const type = status === 'approved' ? 'surrender_approved' : 'surrender_rejected';
+    
+    await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+      [req.params.id, message, type]
     );
     
     res.json({ message: 'Surrender request status updated successfully' });

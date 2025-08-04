@@ -70,6 +70,13 @@ router.post('/apply', auth, async (req, res) => {
       'INSERT INTO volunteer_requests (availability_date, skills, motivation, request_date, status, availability_time, USERS_id_user) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [availability_date, skills, motivation, request_date, 'pending', availability_time, req.user.id_user]
     );
+    
+    // Create notification for user
+    await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+      [req.user.id_user, 'Your volunteer application has been submitted and is under review. We will notify you once a decision is made.', 'volunteer_submitted']
+    );
+    
     res.status(201).json({ message: 'Volunteer application submitted', id: result.insertId });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -85,6 +92,13 @@ router.post('/tasks', auth, async (req, res) => {
       'INSERT INTO volunteer_tasks (task_name, description, task_date, status, USERS_id_user) VALUES (?, ?, ?, ?, ?)',
       [task_name, description, task_date, status, USERS_id_user]
     );
+    
+    // Create notification for volunteer
+    await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+      [USERS_id_user, `New task assigned: ${task_name}. Date: ${task_date}. Please check your dashboard for details.`, 'task_assignment']
+    );
+    
     res.status(201).json({ message: 'Task assigned', id: result.insertId });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
