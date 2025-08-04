@@ -75,6 +75,20 @@ ALTER TABLE `notifications`
 ADD COLUMN IF NOT EXISTS `message` text AFTER `is_read`,
 ADD COLUMN IF NOT EXISTS `type` varchar(50) DEFAULT 'general' AFTER `message`;
 
+-- Fix notifications_id to be AUTO_INCREMENT (handle foreign key constraint)
+-- First drop the foreign key constraint
+ALTER TABLE `users_has_notifications` 
+DROP FOREIGN KEY IF EXISTS `fk_USERS_has_notifications_notifications1`;
+
+-- Then modify the notifications_id column
+ALTER TABLE `notifications` 
+MODIFY COLUMN `notifications_id` int NOT NULL AUTO_INCREMENT;
+
+-- Finally recreate the foreign key constraint
+ALTER TABLE `users_has_notifications` 
+ADD CONSTRAINT `fk_USERS_has_notifications_notifications1` 
+FOREIGN KEY (`notifications_notifications_id`) REFERENCES `notifications` (`notifications_id`);
+
 -- Add missing columns to donations table
 ALTER TABLE `donations` 
 ADD COLUMN IF NOT EXISTS `name` varchar(100) AFTER `id`,

@@ -28,6 +28,7 @@ import RemoveVolunteer from './portals/staff/manager/RemoveVolunteer.jsx';
 import ReviewSurrenderRequests from './portals/staff/manager/ReviewSurrenderRequests.jsx';
 import ReviewVolunteersApps from './portals/staff/manager/ReviewVolunteersApps.jsx';
 import VolunteerPerformance from './portals/staff/manager/VolunteerPerformance.jsx';
+import VolunteerReports from './portals/staff/manager/VolunteerReports.jsx';
 
 // STAFF/VET PAGES
 import AnimalMedicalForm from './portals/staff/vet/AnimalMedicalForm.jsx';
@@ -80,6 +81,7 @@ function App() {
         <Route path="/reviewSurrenderRequest" element={<Layout userType="manager"><ReviewSurrenderRequests /></Layout>} />
         <Route path="/reviewVolunteersApps" element={<Layout userType="manager"><ReviewVolunteersApps /></Layout>} />
         <Route path="/volunteerPerformance" element={<Layout userType="manager"><VolunteerPerformance /></Layout>} />
+        <Route path="/volunteer-reports" element={<Layout userType="manager"><VolunteerReports /></Layout>} />
 
         {/* Vet routes with header */}
         <Route path="/animalMedicalForm" element={<Layout userType="vet"><AnimalMedicalForm /></Layout>} />

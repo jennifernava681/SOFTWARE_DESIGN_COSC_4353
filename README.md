@@ -71,3 +71,123 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Real-time Notification System
+
+### Overview
+The Real-time Notification System provides automatic notification checking and display from the database. Users receive notifications for various events such as task assignments, event updates, reminders, and system messages.
+
+### Features
+- **Automatic Database Polling**: Checks for new notifications every 30 seconds
+- **Real-time Display**: Shows notifications as they arrive
+- **Read/Unread Management**: Tracks notification status
+- **Type-based Styling**: Different colors and icons for notification types
+- **Responsive Design**: Works on desktop and mobile devices
+- **Floating Notifications**: Auto-display new notifications as overlays
+- **Notification Center**: Comprehensive notification management interface
+
+### Components
+
+#### Core Components
+- `useNotifications.js` - Custom React hook for notification management
+- `NotificationCenter.jsx` - Main notification display and management component
+- `NotificationBell.jsx` - Notification bell with badge count
+- `NotificationBanner.jsx` - Individual notification display component
+
+#### Styling
+- `NotificationCenter.css` - Styles for the notification center
+- `NotificationBell.css` - Styles for the notification bell
+
+### API Endpoints
+- `GET /api/notifications` - Get user's notifications
+- `GET /api/notifications/unread-count` - Get unread notification count
+- `PUT /api/notifications/:id/read` - Mark notification as read
+- `PUT /api/notifications/read-all` - Mark all notifications as read
+- `DELETE /api/notifications/:id` - Delete notification
+- `POST /api/notifications/new` - Create new notification
+- `POST /api/notifications/event-assignment` - Send event assignment notification
+- `POST /api/notifications/event-reminder/:eventId` - Send event reminders
+- `POST /api/notifications/event-update/:eventId` - Send event updates
+
+### Notification Types
+- `event_assignment` - New event or task assignments
+- `event_reminder` - Event reminders and scheduling
+- `event_update` - Event changes and updates
+- `task_assignment` - New task assignments
+- `adoption_update` - Adoption request updates
+- `donation_received` - Donation confirmations
+- `general` - General system notifications
+
+### Database Schema
+The notification system uses the `notifications` table:
+```sql
+CREATE TABLE notifications (
+  notifications_id INT PRIMARY KEY AUTO_INCREMENT,
+  USERS_id INT NOT NULL,
+  message TEXT NOT NULL,
+  type VARCHAR(50) DEFAULT 'general',
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (USERS_id) REFERENCES users(id_user)
+);
+```
+
+### Usage Instructions
+1. **For Users**: 
+   - Click the notification bell in the header to view notifications
+   - New notifications appear automatically as floating overlays
+   - Click on notifications to mark them as read
+   - Use the notification center to manage all notifications
+
+2. **For Developers**:
+   - Use the `useNotifications` hook in any component
+   - Import `NotificationBell` for header integration
+   - Use `NotificationCenter` for full notification management
+
+### Integration Examples
+
+#### Adding to Header
+```jsx
+import NotificationBell from './components/NotificationBell';
+
+// In header component
+<NotificationBell position="top-right" />
+```
+
+#### Using in Components
+```jsx
+import { useNotifications } from './hooks/useNotifications';
+
+function MyComponent() {
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  // Component logic
+}
+```
+
+### Technical Implementation
+- **Polling**: Automatic database checks every 30 seconds
+- **State Management**: React hooks for notification state
+- **Real-time Updates**: Immediate UI updates when notifications change
+- **Performance**: Optimized queries and minimal data transfer
+- **Accessibility**: ARIA labels and keyboard navigation support
+
+### Security Features
+- User-specific notifications (filtered by user ID)
+- Authentication required for all endpoints
+- Role-based access control for notification creation
+- Secure token-based authentication
+
+### Testing
+Run the test script to add sample notifications:
+```bash
+cd server
+node test-notifications.js
+```
+
+### Future Enhancements
+- WebSocket support for real-time updates
+- Push notifications for mobile devices
+- Email integration for important notifications
+- Notification preferences and filtering
+- Bulk notification management
+- Notification templates and customization

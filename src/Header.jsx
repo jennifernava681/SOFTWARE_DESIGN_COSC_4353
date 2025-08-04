@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import NotificationBell from "./components/NotificationBell";
 
 const Header = ({ userType = "manager" }) => {
   const navigate = useNavigate();
@@ -112,6 +113,7 @@ const Header = ({ userType = "manager" }) => {
           {/* Desktop Header Buttons */}
           <div className="header-buttons">
             <div className="desktop-only">
+              <NotificationBell position="top-right" />
               <Link to="/profilePage" className="btn btn-outline">
                 <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{width: '16px', height: '16px', marginRight: '0.5rem'}}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -133,6 +135,9 @@ const Header = ({ userType = "manager" }) => {
           <div className="mobile-nav-dropdown">
             {getNavLinks()}
             <div className="mobile-buttons">
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <NotificationBell position="top-right" />
+              </div>
               <Link to="/profilePage" className="btn btn-outline" onClick={() => setMobileMenuOpen(false)}>
                 Profile
               </Link>

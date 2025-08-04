@@ -16,8 +16,7 @@ export const apiFetch = async (endpoint, method = 'GET', body = null) => {
       'Content-Type': 'application/json',
     },
   };
-  
-  // Add auth token if available
+
   const token = getAuthToken();
   if (token) {
     options.headers['Authorization'] = `Bearer ${token}`;
