@@ -318,5 +318,38 @@ router.put('/availability', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+// ✅ Deactivate a volunteer (sets active = 0)
+router.put('/deactivate/volunteers/:id/deactivate', auth, async (req, res) => {
+  const volunteerId = req.params.id;
+
+  try {
+    const [result] = await pool.query(
+      'UPDATE users SET active = 0 WHERE id_user = ? AND role = "volunteer"',
+      [volunteerId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Volunteer not found or already deactivated' });
+    }
+
+    res.json({ message: 'Volunteer deactivated successfully' });
+  } catch (err) {
+    console.error('Error deactivating volunteer:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ✅ Get all active volunteers
+router.get('/deactivate/volunteers/active/all', auth, async (req, res) => {
+  try {
+    const [volunteers] = await pool.query(
+      'SELECT id_user, name, email, role FROM users WHERE role = "volunteer" AND active = 1'
+    );
+    res.json(volunteers);
+  } catch (err) {
+    console.error('Error fetching active volunteers:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 module.exports = router; 
