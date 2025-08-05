@@ -1,70 +1,58 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import NotificationBanner from "../../NotificationBanner.jsx"
-import "../../css/LoginUSER.css"
-import "../../index.css"
-
-const API_BASE_URL = "https://hopepaws-api-hfbwhtazhsg4cjbb.centralus-01.azurewebsites.net/api"
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import NotificationBanner from "../../NotificationBanner.jsx";
+import "../../css/LoginUSER.css";
+import "../../index.css";
+import { apiFetch } from "../../api"; // ✅ Use the working fetch logic
 
 function LoginSTAFF() {
-  const navigate = useNavigate()
-  const [formData, setFormData] = useState({ email: "", password: "" })
-  const [showPassword, setShowPassword] = useState(false)
-  const [banner, setBanner] = useState({ message: "", type: "success", show: false })
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [banner, setBanner] = useState({ message: "", type: "success", show: false });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (banner.show) {
-      const timer = setTimeout(() => setBanner({ ...banner, show: false }), 4000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setBanner({ ...banner, show: false }), 4000);
+      return () => clearTimeout(timer);
     }
-  }, [banner])
+  }, [banner]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-  }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      })
+      // ✅ Use centralized working fetch method
+      const data = await apiFetch("/users/login", "POST", formData);
 
-      const data = await response.json()
+      // Save user data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed")
-      }
+      setBanner({ message: "Login successful!", type: "success", show: true });
 
-      // Guardar token e info de usuario
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-
-      setBanner({ message: "Login successful!", type: "success", show: true })
-
-      // Redireccionar según rol
+      // Redirect based on role
       setTimeout(() => {
         if (data.user.role === "manager") {
-          navigate("/managerDashboard")
+          navigate("/managerDashboard");
         } else if (data.user.role === "veterinarian") {
-          navigate("/vetDashboard")
+          navigate("/vetDashboard");
         } else {
-          navigate("/animals") // fallback
+          navigate("/animals"); // fallback
         }
-      }, 1500)
+      }, 1500);
     } catch (err) {
-      setBanner({ message: err.message, type: "error", show: true })
+      setBanner({ message: err.message || "Login failed", type: "error", show: true });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="login-page">
@@ -134,8 +122,7 @@ function LoginSTAFF() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default LoginSTAFF
-
+export default LoginSTAFF;
