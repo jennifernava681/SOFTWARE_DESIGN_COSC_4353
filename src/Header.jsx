@@ -28,6 +28,7 @@ const Header = ({ userType = "manager" }) => {
             <Link to="/eventmanager" className="nav-link">Events</Link>
             <Link to="/donatereports" className="nav-link">Reports</Link>
             <Link to="/reviewVolunteersApps" className="nav-link">Volunteers</Link>
+            <Link to="/volunteerMatchPage" className="nav-link">Volunteer Matches</Link>
           </>
         );
       case "volunteer":
@@ -36,7 +37,6 @@ const Header = ({ userType = "manager" }) => {
             <Link to="/volunteerDash" className="nav-link">Dashboard</Link>
             <Link to="/mytasks" className="nav-link">My Tasks</Link>
             <Link to="/activityHistory" className="nav-link">History</Link>
-            <Link to="/volunteerMatchPage" className="nav-link">Matches</Link>
           </>
         );
       case "vet":

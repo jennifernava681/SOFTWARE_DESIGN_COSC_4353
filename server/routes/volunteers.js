@@ -83,6 +83,199 @@ router.post('/apply', auth, async (req, res) => {
   }
 });
 
+// Get volunteer matches (admin/manager only)
+router.get('/matches', auth, async (req, res) => {
+  if (req.user.role !== 'manager' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Only managers and admins can view volunteer matches.' });
+  }
+  
+  try {
+    // Get all events that need volunteers
+    const [events] = await pool.query(`
+      SELECT 
+        e.id,
+        e.title,
+        e.description,
+        e.date,
+        e.time,
+        e.location,
+        e.urgency,
+        e.max_volunteers,
+        es.skill_name as required_skills
+      FROM events e
+      LEFT JOIN event_skills es ON e.id = es.event_id
+      WHERE e.date >= CURDATE()
+      ORDER BY e.urgency DESC, e.date ASC
+    `);
+    
+    // Get all volunteers with their skills
+    const [volunteers] = await pool.query(`
+      SELECT 
+        u.id_user,
+        u.name,
+        u.email,
+        vr.skills as volunteer_skills,
+        vr.availability_date,
+        vr.availability_time
+      FROM users u
+      LEFT JOIN volunteer_requests vr ON u.id_user = vr.USERS_id_user
+      WHERE u.role = 'volunteer' AND vr.status = 'approved'
+    `);
+    
+    // Create matches based on skills and availability
+    const matches = [];
+    
+    events.forEach(event => {
+      const eventSkills = event.required_skills ? event.required_skills.split(',').map(s => s.trim()) : [];
+      
+      volunteers.forEach(volunteer => {
+        const volunteerSkills = volunteer.volunteer_skills ? volunteer.volunteer_skills.split(',').map(s => s.trim()) : [];
+        
+        // Calculate match score based on skills overlap
+        const skillMatches = eventSkills.filter(skill => 
+          volunteerSkills.some(vSkill => vSkill.toLowerCase().includes(skill.toLowerCase()))
+        );
+        
+        const matchScore = eventSkills.length > 0 ? 
+          Math.round((skillMatches.length / eventSkills.length) * 100) : 50;
+        
+        // Check availability
+        const eventDate = new Date(event.date);
+        const volunteerDate = volunteer.availability_date ? new Date(volunteer.availability_date) : null;
+        const availabilityMatch = !volunteerDate || volunteerDate.toDateString() === eventDate.toDateString();
+        
+        // Only create matches with reasonable scores
+        if (matchScore >= 30 || availabilityMatch) {
+          matches.push({
+            id: `${event.id}-${volunteer.id_user}`,
+            volunteerId: volunteer.id_user,
+            volunteerName: volunteer.name,
+            volunteerEmail: volunteer.email,
+            eventId: event.id,
+            event: event.title,
+            eventDate: event.date,
+            eventTime: event.time,
+            eventLocation: event.location,
+            urgency: event.urgency,
+            requiredSkills: eventSkills,
+            volunteerSkills: volunteerSkills,
+            matchScore: availabilityMatch ? Math.max(matchScore, 60) : matchScore,
+            availabilityMatch: availabilityMatch,
+            status: 'pending'
+          });
+        }
+      });
+    });
+    
+    // Sort by match score and urgency
+    matches.sort((a, b) => {
+      const urgencyOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+      const aUrgency = urgencyOrder[a.urgency] || 1;
+      const bUrgency = urgencyOrder[b.urgency] || 1;
+      
+      if (aUrgency !== bUrgency) return bUrgency - aUrgency;
+      return b.matchScore - a.matchScore;
+    });
+    
+    res.json(matches);
+  } catch (err) {
+    console.error('Error fetching volunteer matches:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Assign volunteer to event
+router.post('/assign', auth, async (req, res) => {
+  if (req.user.role !== 'manager' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Only managers and admins can assign volunteers.' });
+  }
+  
+  const { volunteerId, eventId, taskName, taskDescription, taskDate } = req.body;
+  
+  try {
+    // Create a volunteer task
+    const [taskResult] = await pool.query(
+      'INSERT INTO volunteer_tasks (task_id, task_name, description, task_date, status, USERS_id_user) VALUES (?, ?, ?, ?, ?, ?)',
+      [Date.now(), taskName || 'Event Assignment', taskDescription || 'Assigned to event', taskDate, 'pending', volunteerId]
+    );
+    
+    // Create volunteer history entry
+    await pool.query(
+      'INSERT INTO volunteer_history (user_id, task_id, participation_date, status) VALUES (?, ?, ?, ?)',
+      [volunteerId, taskResult.insertId, taskDate, 'registered']
+    );
+    
+    // Create notification for volunteer
+    await pool.query(
+      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+      [volunteerId, `You have been assigned to: ${taskName || 'Event Assignment'} on ${taskDate}. Please check your dashboard for details.`, 'task_assignment']
+    );
+    
+    res.status(201).json({ 
+      message: 'Volunteer assigned successfully', 
+      taskId: taskResult.insertId 
+    });
+  } catch (err) {
+    console.error('Error assigning volunteer:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Get volunteer history (admin/manager only)
+router.get('/history', auth, async (req, res) => {
+  if (req.user.role !== 'manager' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Only managers and admins can view volunteer history.' });
+  }
+  
+  try {
+    const [history] = await pool.query(`
+      SELECT 
+        vh.id,
+        u.name as volunteer_name,
+        vt.task_name as event_title,
+        vt.description as location,
+        'Medium' as urgency,
+        'General Assistance' as skills_used,
+        vh.participation_date,
+        vh.status,
+        0 as hours_worked
+      FROM volunteer_history vh
+      LEFT JOIN users u ON vh.user_id = u.id_user
+      LEFT JOIN volunteer_tasks vt ON vh.task_id = vt.task_id
+      ORDER BY vh.participation_date DESC
+    `);
+    
+    res.json(history);
+  } catch (err) {
+    console.error('Error fetching volunteer history:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Add volunteer history entry (admin/manager only)
+router.post('/history', auth, async (req, res) => {
+  if (req.user.role !== 'manager' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Only managers and admins can add volunteer history.' });
+  }
+  
+  const { user_id, task_id, participation_date, status } = req.body;
+  
+  try {
+    const [result] = await pool.query(
+      'INSERT INTO volunteer_history (user_id, task_id, participation_date, status) VALUES (?, ?, ?, ?)',
+      [user_id, task_id, participation_date, status]
+    );
+    
+    res.status(201).json({ 
+      message: 'Volunteer history entry added', 
+      id: result.insertId 
+    });
+  } catch (err) {
+    console.error('Error adding volunteer history:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // Assign a task 
 router.post('/tasks', auth, async (req, res) => {
   if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });

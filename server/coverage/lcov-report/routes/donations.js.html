@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">90.9% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>48/54</span>
+                <span class='fraction'>50/55</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">84.61% </span>
+                <span class="strong">86.48% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>33/39</span>
+                <span class='fraction'>32/37</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.38% </span>
+                <span class="strong">90.74% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>47/52</span>
+                <span class='fraction'>49/54</span>
             </div>
         
             
@@ -172,7 +172,16 @@
 <a name='L107'></a><a href='#L107'>107</a>
 <a name='L108'></a><a href='#L108'>108</a>
 <a name='L109'></a><a href='#L109'>109</a>
-<a name='L110'></a><a href='#L110'>110</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -250,6 +259,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -272,7 +288,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -285,6 +301,7 @@
 const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 &nbsp;
 // Validation helper for donations
 const validateDonationData = (data) =&gt; {
@@ -357,6 +374,13 @@ router.post('/', async (req, res) =&gt; {
         'INSERT INTO users_has_donations (USERS_id, donations_id) VALUES (?, ?)',
         [userId, result.insertId]
       );
+      
+      // Create notification for user
+      const message = `Thank you for your ${donation_type} donation of ${amount}! Your contribution helps animals in need.`;
+      await pool.query(
+        'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+        [userId, message, 'donation_received']
+      );
     }
 &nbsp;
     res.status(201).json({ message: 'Donation recorded', donationId: result.insertId });
@@ -379,9 +403,9 @@ router.get('/my', auth, async (req, res) =&gt; {
   }
 });
 &nbsp;
-// All donations (probably should require auth later)
-router.get('/', auth, async (req, res) =&gt; {
-  <span class="missing-if-branch" title="if path not taken" >I</span>if (req.user.role !== 'manager') <span class="cstat-no" title="statement not covered" >return res.status(403).json({ message: 'Forbidden' });</span>
+// All donations (probably should require auth later) // Got rid of the auth for now
+router.get('/', async (req, res) =&gt; {
+  // if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
   try {
     const [donations] = await pool.query('SELECT * FROM donations');
     res.json(donations);
@@ -397,7 +421,7 @@ module.exports = router; </pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-07-31T19:45:56.854Z
+                at 2025-08-05T20:34:52.242Z
             </div>
         <script src="../prettify.js"></script>
         <script>

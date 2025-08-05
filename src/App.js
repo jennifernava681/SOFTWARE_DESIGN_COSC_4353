@@ -93,7 +93,9 @@ function App() {
         <Route path="/applyVolunteer" element={<Layout userType="volunteer"><ApplyVolunteer /></Layout>} />
         <Route path="/mytasks" element={<Layout userType="volunteer"><MyTasks /></Layout>} />
         <Route path="/volunteerDash" element={<Layout userType="volunteer"><VolunteerDash /></Layout>} />
-        <Route path="/volunteerMatchPage" element={<Layout userType="volunteer"><VolunteerMatchPage /></Layout>} />
+        
+        {/* Admin/Manager only routes */}
+        <Route path="/volunteerMatchPage" element={<Layout userType="manager"><VolunteerMatchPage /></Layout>} />
       </Routes>
     </Router>
   );

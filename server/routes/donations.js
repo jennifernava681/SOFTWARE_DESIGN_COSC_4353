@@ -104,13 +104,57 @@ router.get('/my', auth, async (req, res) => {
   }
 });
 
-// All donations (probably should require auth later) // Got rid of the auth for now
-router.get('/', async (req, res) => {
-  // if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
+// All donations (managers only)
+router.get('/', auth, async (req, res) => {
+  if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
   try {
-    const [donations] = await pool.query('SELECT * FROM donations');
+    const [donations] = await pool.query(`
+      SELECT 
+        d.*,
+        u.name as donor_name,
+        u.email as donor_email
+      FROM donations d
+      LEFT JOIN users_has_donations uhd ON d.id = uhd.donations_id
+      LEFT JOIN users u ON uhd.USERS_id = u.id_user
+      ORDER BY d.donation_date DESC
+    `);
     res.json(donations);
   } catch (err) {
+    console.error('Error fetching donations:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Get donation statistics (managers only)
+router.get('/stats', auth, async (req, res) => {
+  if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
+  try {
+    const [totalDonations] = await pool.query('SELECT COUNT(*) as count FROM donations');
+    const [totalAmount] = await pool.query('SELECT SUM(CAST(amount AS DECIMAL(10,2))) as total FROM donations WHERE donation_type = "monetary"');
+    const [typeStats] = await pool.query(`
+      SELECT donation_type, COUNT(*) as count, SUM(CAST(amount AS DECIMAL(10,2))) as total
+      FROM donations 
+      GROUP BY donation_type
+    `);
+    const [monthlyStats] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(donation_date, '%Y-%m') as month,
+        COUNT(*) as count,
+        SUM(CAST(amount AS DECIMAL(10,2))) as total
+      FROM donations 
+      WHERE donation_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+      GROUP BY DATE_FORMAT(donation_date, '%Y-%m')
+      ORDER BY month DESC
+    `);
+    
+    res.json({
+      totalDonations: totalDonations[0].count,
+      totalAmount: totalAmount[0].total || 0,
+      typeStats,
+      monthlyStats
+    });
+  } catch (err) {
+    console.error('Error fetching donation stats:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

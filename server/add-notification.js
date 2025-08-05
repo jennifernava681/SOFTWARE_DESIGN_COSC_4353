@@ -1,38 +1,34 @@
 const pool = require('./db');
 
-async function addNotification(userId, message, type) {
+async function addTestNotification() {
   try {
-    console.log(`Adding notification for user ${userId}...`);
+    console.log('Adding test notification...');
     
-    await pool.query(
+    // Add a test notification for user ID 51
+    const [result] = await pool.query(
       'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
-      [userId, message, type]
+      [51, 'This is a test notification from the add-notification.js script!', 'test']
     );
     
-    console.log('Notification added successfully!');
+    console.log('✅ Test notification added successfully!');
+    console.log('Notification ID:', result.insertId);
     
-    // Display the new notification
+    // Verify the notification was added
     const [notifications] = await pool.query(
       'SELECT * FROM notifications WHERE USERS_id = ? ORDER BY created_at DESC LIMIT 1',
-      [userId]
+      [51]
     );
     
     if (notifications.length > 0) {
-      const notif = notifications[0];
-      console.log(`\nNew notification for user ${userId}:`);
-      console.log(`[${notif.type}] ${notif.message} (${notif.is_read ? 'Read' : 'Unread'})`);
+      console.log('✅ Verification successful!');
+      console.log('Notification details:', notifications[0]);
     }
     
   } catch (error) {
-    console.error('Error adding notification:', error);
+    console.error('❌ Error adding test notification:', error);
   } finally {
     process.exit(0);
   }
 }
 
-// Example usage - modify these values as needed
-const userId = 51; // John Doe
-const message = "Your volunteer application has been approved! Welcome to the team!";
-const type = "volunteer_approval";
-
-addNotification(userId, message, type); 
+addTestNotification(); 
