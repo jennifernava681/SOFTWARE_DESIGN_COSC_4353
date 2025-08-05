@@ -217,7 +217,7 @@ router.get('/profile', auth, async (req, res) => {
     const [users] = await pool.query(`
       SELECT u.id_user, u.name, u.email, u.role, u.sex, u.date_of_birth, 
              u.Security_question, u.adrees_idadrees_id, u.adrees_state_state_id,
-             a.line_1, a.line_2, a.city, s.state
+             a.line_1, a.line_2, a.city, s.state, s.state_id
       FROM users u 
       LEFT JOIN adrees a ON u.adrees_idadrees_id = a.idadrees_id 
       LEFT JOIN state s ON a.state_state_id = s.state_id 
@@ -228,54 +228,132 @@ router.get('/profile', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Get user skills (if we had a skills table)
-    const [skills] = await pool.query('SELECT * FROM user_skills WHERE user_id = ?', [req.user.id_user]);
-    
     const user = users[0];
-    user.skills = skills.map(s => s.skill_name);
     
-    res.json(user);
+    // Get volunteer request data for skills and availability
+    const [volunteerRequests] = await pool.query(`
+      SELECT skills, availability_date, availability_time, motivation
+      FROM volunteer_requests 
+      WHERE USERS_id_user = ? AND status = 'approved'
+      ORDER BY request_date DESC 
+      LIMIT 1
+    `, [req.user.id_user]);
+    
+    // Parse skills from volunteer request
+    let skills = [];
+    let preferences = '';
+    let availability = [];
+    
+    if (volunteerRequests.length > 0) {
+      const volunteerData = volunteerRequests[0];
+      skills = volunteerData.skills ? volunteerData.skills.split(',').map(s => s.trim()) : [];
+      preferences = volunteerData.motivation || '';
+      
+      // Create availability array from date and time
+      if (volunteerData.availability_date) {
+        availability.push({
+          date: volunteerData.availability_date,
+          time: volunteerData.availability_time || 'Any time'
+        });
+      }
+    }
+    
+    // Format the response to match frontend expectations
+    const profileData = {
+      id_user: user.id_user,
+      name: user.name || '',
+      email: user.email || '',
+      role: user.role || 'public',
+      sex: user.sex || '',
+      date_of_birth: user.date_of_birth,
+      phone: '', // Not stored in current schema
+      address: user.line_1 || '',
+      apartment: user.line_2 || '',
+      city: user.city || '',
+      state: user.state || '',
+      zip: '', // Not stored in current schema
+      skills: skills,
+      preferences: preferences,
+      availability: availability
+    };
+    
+    res.json(profileData);
   } catch (err) {
+    console.error('Error fetching profile:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Update user profile (make it better)
+// Update user profile
 router.put('/profile', auth, async (req, res) => {
-  const { name, email, phone, skills, preferences, availability } = req.body;
+  const { name, email, address, apartment, city, state, skills, preferences, availability } = req.body;
   
-  // Validate the data (because we care)
-  const errors = validateUserData({ name, email, phone, skills });
+  // Validate the data
+  const errors = validateUserData({ name, email });
   if (errors.length > 0) {
     return res.status(400).json({ message: 'Validation failed', errors });
   }
   
   try {
-    // Update basic info
+    // Update basic user info
     await pool.query(
       'UPDATE users SET name = ?, email = ? WHERE id_user = ?',
       [name, email, req.user.id_user]
     );
     
-    // Update skills (if we had a skills table)
-    if (skills && Array.isArray(skills)) {
-      await pool.query('DELETE FROM user_skills WHERE user_id = ?', [req.user.id_user]);
-      for (const skill of skills) {
-        await pool.query('INSERT INTO user_skills (user_id, skill_name) VALUES (?, ?)', 
-          [req.user.id_user, skill]);
+    // Get user's address ID
+    const [userAddress] = await pool.query(
+      'SELECT adrees_idadrees_id, adrees_state_state_id FROM users WHERE id_user = ?',
+      [req.user.id_user]
+    );
+    
+    if (userAddress.length > 0) {
+      const addressId = userAddress[0].adrees_idadrees_id;
+      const stateId = userAddress[0].adrees_state_state_id;
+      
+      // Update address information
+      await pool.query(
+        'UPDATE adrees SET line_1 = ?, line_2 = ?, city = ? WHERE idadrees_id = ?',
+        [address || '', apartment || '', city || '', addressId]
+      );
+      
+      // Update state if provided
+      if (state) {
+        const [stateResult] = await pool.query('SELECT state_id FROM state WHERE state = ?', [state]);
+        if (stateResult.length > 0) {
+          await pool.query(
+            'UPDATE adrees SET state_state_id = ? WHERE idadrees_id = ?',
+            [stateResult[0].state_id, addressId]
+          );
+        }
       }
     }
     
-    // Update preferences (if we had a preferences table)
-    if (preferences) {
+    // Update volunteer request with skills and preferences
+    const [existingVolunteerRequest] = await pool.query(
+      'SELECT id FROM volunteer_requests WHERE USERS_id_user = ? ORDER BY request_date DESC LIMIT 1',
+      [req.user.id_user]
+    );
+    
+    if (existingVolunteerRequest.length > 0) {
+      // Update existing volunteer request
+      const skillsString = skills && Array.isArray(skills) ? skills.join(', ') : '';
       await pool.query(
-        'INSERT INTO user_preferences (user_id, preferences) VALUES (?, ?) ON DUPLICATE KEY UPDATE preferences = ?',
-        [req.user.id_user, JSON.stringify(preferences), JSON.stringify(preferences)]
+        'UPDATE volunteer_requests SET skills = ?, motivation = ? WHERE id = ?',
+        [skillsString, preferences || '', existingVolunteerRequest[0].id]
+      );
+    } else {
+      // Create new volunteer request for profile data
+      const skillsString = skills && Array.isArray(skills) ? skills.join(', ') : '';
+      await pool.query(
+        'INSERT INTO volunteer_requests (skills, motivation, request_date, status, USERS_id_user) VALUES (?, ?, CURDATE(), "approved", ?)',
+        [skillsString, preferences || '', req.user.id_user]
       );
     }
     
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {
+    console.error('Error updating profile:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });

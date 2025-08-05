@@ -35,23 +35,43 @@ function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await apiFetch("/users/profile");
+        const data = await apiFetch("/api/users/profile");
+        console.log("Fetched profile data:", data);
+        
         const updated = {
-          ...data,
-          address: data.line_1 || "N/A",
-          apartment: data.line_2 || "N/A",
-          city: data.city || "N/A",
-          state: data.state || "N/A",
+          name: data.name || "",
+          email: data.email || "",
+          address: data.address || "",
+          apartment: data.apartment || "",
+          city: data.city || "",
+          state: data.state || "",
           zip: data.zip || "",
-          phone: data.phone || "(555) 123-4567",
-          preferences: data.preferences || "No preferences",
+          phone: data.phone || "",
+          preferences: data.preferences || "",
           availability: data.availability || [],
           skills: data.skills || [],
         };
+        
         setProfile(updated);
         setEditForm(updated);
       } catch (err) {
         console.error("Failed to load profile:", err);
+        // Set default values if profile fetch fails
+        const defaultProfile = {
+          name: "",
+          email: "",
+          address: "",
+          apartment: "",
+          city: "",
+          state: "",
+          zip: "",
+          phone: "",
+          preferences: "",
+          availability: [],
+          skills: [],
+        };
+        setProfile(defaultProfile);
+        setEditForm(defaultProfile);
       }
     };
 
@@ -65,11 +85,34 @@ function ProfilePage() {
     setIsEditing(true)
   }
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
-    setProfile(editForm)
     setIsEditing(false)
-    alert("Profile updated successfully!")
+    
+    try {
+      // Prepare data for API
+      const updateData = {
+        name: editForm.name,
+        email: editForm.email,
+        address: editForm.address,
+        apartment: editForm.apartment,
+        city: editForm.city,
+        state: editForm.state,
+        skills: editForm.skills,
+        preferences: editForm.preferences
+      };
+      
+      await apiFetch("/api/users/profile", "PUT", updateData);
+      
+      // Update local state
+      setProfile(editForm);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+      // Revert to original data
+      setEditForm(profile);
+    }
   }
 
   const handleCancel = () => {
@@ -204,13 +247,27 @@ function ProfilePage() {
           {/* Skills */}
           <div className="form-group full-width">
             <label className="form-label">Skills & Abilities</label>
-            <div className="skills-display">
-              {profile.skills.map((skill, idx) => (
-                <span key={idx} className="skill-tag">
-                  {skill}
-                </span>
-              ))}
-            </div>
+            {isEditing ? (
+              <textarea
+                value={editForm.skills.join(', ')}
+                onChange={(e) => handleInputChange("skills", e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                placeholder="Enter skills separated by commas..."
+                className="form-textarea"
+                rows={3}
+              />
+            ) : (
+              <div className="skills-display">
+                {profile.skills.length > 0 ? (
+                  profile.skills.map((skill, idx) => (
+                    <span key={idx} className="skill-tag">
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-data">No skills listed</span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Preferences */}
@@ -227,13 +284,31 @@ function ProfilePage() {
           {/* Availability */}
           <div className="form-group full-width">
             <label className="form-label">Availability Dates</label>
-            <div className="availability-display">
-              {profile.availability.map((date, idx) => (
-                <span key={idx} className="availability-tag">
-                  {new Date(date).toLocaleDateString()}
-                </span>
-              ))}
-            </div>
+            {isEditing ? (
+              <textarea
+                value={editForm.availability.map(a => a.date).join(', ')}
+                onChange={(e) => {
+                  const dates = e.target.value.split(',').map(d => d.trim()).filter(d => d);
+                  const availability = dates.map(date => ({ date, time: 'Any time' }));
+                  handleInputChange("availability", availability);
+                }}
+                placeholder="Enter dates separated by commas (e.g., 2024-03-15, 2024-03-20)..."
+                className="form-textarea"
+                rows={3}
+              />
+            ) : (
+              <div className="availability-display">
+                {profile.availability.length > 0 ? (
+                  profile.availability.map((date, idx) => (
+                    <span key={idx} className="availability-tag">
+                      {new Date(date.date || date).toLocaleDateString()}
+                    </span>
+                  ))
+                ) : (
+                  <span className="no-data">No availability dates set</span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

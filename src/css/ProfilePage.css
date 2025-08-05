@@ -156,3 +156,42 @@
 .profile-form button {
   color: white !important;
 }
+
+/* No data styling */
+.no-data {
+  color: #6b7280;
+  font-style: italic;
+  padding: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.25rem;
+  border: 1px dashed #d1d5db;
+}
+
+/* Skills and availability display */
+.skills-display,
+.availability-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.skill-tag,
+.availability-tag {
+  background-color: #15803d;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Form textarea styling */
+.form-textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+}
