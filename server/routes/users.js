@@ -215,14 +215,12 @@ const validateUserData = (data) => {
 // Get user profile
 router.get('/profile', auth, async (req, res) => {
   try {
+    // Get user information with address fields
     const [users] = await pool.query(`
-      SELECT u.id_user, u.name, u.email, u.role, u.sex, u.date_of_birth, 
-             u.Security_question, u.adrees_idadrees_id, u.adrees_state_state_id,
-             a.line_1, a.line_2, a.city, s.state, s.state_id
-      FROM users u 
-      LEFT JOIN adrees a ON u.adrees_idadrees_id = a.idadrees_id 
-      LEFT JOIN state s ON a.state_state_id = s.state_id 
-      WHERE u.id_user = ?
+      SELECT id_user, name, email, role, sex, date_of_birth, Security_question,
+             address_1, address_2, city, state, zip
+      FROM users 
+      WHERE id_user = ?
     `, [req.user.id_user]);
     
     if (users.length === 0) {
@@ -231,33 +229,40 @@ router.get('/profile', auth, async (req, res) => {
     
     const user = users[0];
     
-    // Get volunteer request data for skills and availability
-    const [volunteerRequests] = await pool.query(`
-      SELECT skills, availability_date, availability_time, motivation
-      FROM volunteer_requests 
-      WHERE USERS_id_user = ? AND status = 'approved'
-      ORDER BY request_date DESC 
-      LIMIT 1
+    // Get user skills from user_skills table
+    const [userSkills] = await pool.query(`
+      SELECT skill_name 
+      FROM user_skills 
+      WHERE user_id = ?
     `, [req.user.id_user]);
     
-    // Parse skills from volunteer request
-    let skills = [];
-    let preferences = '';
-    let availability = [];
+    // Get user preferences from user_preferences table
+    const [userPreferences] = await pool.query(`
+      SELECT preferences 
+      FROM user_preferences 
+      WHERE user_id = ?
+    `, [req.user.id_user]);
     
-    if (volunteerRequests.length > 0) {
-      const volunteerData = volunteerRequests[0];
-      skills = volunteerData.skills ? volunteerData.skills.split(',').map(s => s.trim()) : [];
-      preferences = volunteerData.motivation || '';
-      
-      // Create availability array from date and time
-      if (volunteerData.availability_date) {
-        availability.push({
-          date: volunteerData.availability_date,
-          time: volunteerData.availability_time || 'Any time'
-        });
-      }
-    }
+    // Get user availability from user_availability table
+    const [userAvailability] = await pool.query(`
+      SELECT available_date, day_of_week, start_time, end_time
+      FROM user_availability 
+      WHERE user_id = ?
+    `, [req.user.id_user]);
+    
+    // Format skills array
+    const skills = userSkills.map(skill => skill.skill_name);
+    
+    // Format preferences
+    const preferences = userPreferences.length > 0 ? userPreferences[0].preferences : '';
+    
+    // Format availability array
+    const availability = userAvailability.map(avail => ({
+      date: avail.available_date,
+      time: avail.start_time && avail.end_time ? 
+        `${avail.start_time} - ${avail.end_time}` : 
+        'Any time'
+    }));
     
     // Format the response to match frontend expectations
     const profileData = {
@@ -268,11 +273,11 @@ router.get('/profile', auth, async (req, res) => {
       sex: user.sex || '',
       date_of_birth: user.date_of_birth,
       phone: '', // Not stored in current schema
-      address: user.line_1 || '',
-      apartment: user.line_2 || '',
+      address: user.address_1 || '',
+      apartment: user.address_2 || '',
       city: user.city || '',
       state: user.state || '',
-      zip: '', // Not stored in current schema
+      zip: user.zip || '',
       skills: skills,
       preferences: preferences,
       availability: availability
@@ -287,7 +292,7 @@ router.get('/profile', auth, async (req, res) => {
 
 // Update user profile
 router.put('/profile', auth, async (req, res) => {
-  const { name, email, address, apartment, city, state, skills, preferences, availability } = req.body;
+  const { name, email, address, apartment, city, state, zip, skills, preferences, availability } = req.body;
   
   // Validate the data
   const errors = validateUserData({ name, email });
@@ -296,60 +301,50 @@ router.put('/profile', auth, async (req, res) => {
   }
   
   try {
-    // Update basic user info
+    // Update user information including address fields
     await pool.query(
-      'UPDATE users SET name = ?, email = ? WHERE id_user = ?',
-      [name, email, req.user.id_user]
+      'UPDATE users SET name = ?, email = ?, address_1 = ?, address_2 = ?, city = ?, state = ?, zip = ? WHERE id_user = ?',
+      [name, email, address || '', apartment || '', city || '', state || '', zip || '', req.user.id_user]
     );
     
-    // Get user's address ID
-    const [userAddress] = await pool.query(
-      'SELECT adrees_idadrees_id, adrees_state_state_id FROM users WHERE id_user = ?',
-      [req.user.id_user]
-    );
-    
-    if (userAddress.length > 0) {
-      const addressId = userAddress[0].adrees_idadrees_id;
-      const stateId = userAddress[0].adrees_state_state_id;
+    // Update skills in user_skills table
+    if (skills && Array.isArray(skills)) {
+      // Delete existing skills
+      await pool.query('DELETE FROM user_skills WHERE user_id = ?', [req.user.id_user]);
       
-      // Update address information
-      await pool.query(
-        'UPDATE adrees SET line_1 = ?, line_2 = ?, city = ? WHERE idadrees_id = ?',
-        [address || '', apartment || '', city || '', addressId]
-      );
-      
-      // Update state if provided
-      if (state) {
-        const [stateResult] = await pool.query('SELECT state_id FROM state WHERE state = ?', [state]);
-        if (stateResult.length > 0) {
+      // Insert new skills
+      for (const skill of skills) {
+        if (skill.trim()) {
           await pool.query(
-            'UPDATE adrees SET state_state_id = ? WHERE idadrees_id = ?',
-            [stateResult[0].state_id, addressId]
+            'INSERT INTO user_skills (user_id, skill_name) VALUES (?, ?)',
+            [req.user.id_user, skill.trim()]
           );
         }
       }
     }
     
-    // Update volunteer request with skills and preferences
-    const [existingVolunteerRequest] = await pool.query(
-      'SELECT id FROM volunteer_requests WHERE USERS_id_user = ? ORDER BY request_date DESC LIMIT 1',
-      [req.user.id_user]
-    );
+    // Update preferences in user_preferences table
+    if (preferences !== undefined) {
+      await pool.query(
+        'INSERT INTO user_preferences (user_id, preferences) VALUES (?, ?) ON DUPLICATE KEY UPDATE preferences = ?',
+        [req.user.id_user, preferences, preferences]
+      );
+    }
     
-    if (existingVolunteerRequest.length > 0) {
-      // Update existing volunteer request
-      const skillsString = skills && Array.isArray(skills) ? skills.join(', ') : '';
-      await pool.query(
-        'UPDATE volunteer_requests SET skills = ?, motivation = ? WHERE id = ?',
-        [skillsString, preferences || '', existingVolunteerRequest[0].id]
-      );
-    } else {
-      // Create new volunteer request for profile data
-      const skillsString = skills && Array.isArray(skills) ? skills.join(', ') : '';
-      await pool.query(
-        'INSERT INTO volunteer_requests (skills, motivation, request_date, status, USERS_id_user) VALUES (?, ?, CURDATE(), "approved", ?)',
-        [skillsString, preferences || '', req.user.id_user]
-      );
+    // Update availability in user_availability table
+    if (availability && Array.isArray(availability)) {
+      // Delete existing availability
+      await pool.query('DELETE FROM user_availability WHERE user_id = ?', [req.user.id_user]);
+      
+      // Insert new availability
+      for (const avail of availability) {
+        if (avail.date) {
+          await pool.query(
+            'INSERT INTO user_availability (user_id, available_date) VALUES (?, ?)',
+            [req.user.id_user, avail.date]
+          );
+        }
+      }
     }
     
     res.json({ message: 'Profile updated successfully' });
