@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import "../../css/home.css"
 import "../../css/MobileNav.css"
+import "../../css/vet.css"
 import { apiFetch } from "../../api"
 
 // API Service Functions

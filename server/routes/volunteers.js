@@ -276,6 +276,22 @@ router.post('/history', auth, async (req, res) => {
   }
 });
 
+// Get all tasks (managers only)
+router.get('/tasks', auth, async (req, res) => {
+  if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
+  try {
+    const [tasks] = await pool.query(`
+      SELECT vt.*, u.name as volunteer_name 
+      FROM volunteer_tasks vt 
+      LEFT JOIN users u ON vt.USERS_id_user = u.id_user 
+      ORDER BY vt.task_date DESC
+    `);
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // Assign a task 
 router.post('/tasks', auth, async (req, res) => {
   if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
@@ -303,6 +319,32 @@ router.get('/tasks/my', auth, async (req, res) => {
   try {
     const [tasks] = await pool.query('SELECT * FROM volunteer_tasks WHERE USERS_id_user = ?', [req.user.id_user]);
     res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Update a task
+router.put('/tasks/:id', auth, async (req, res) => {
+  if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
+  const { task_name, description, task_date, status, USERS_id_user } = req.body;
+  try {
+    await pool.query(
+      'UPDATE volunteer_tasks SET task_name = ?, description = ?, task_date = ?, status = ?, USERS_id_user = ? WHERE task_id = ?',
+      [task_name, description, task_date, status, USERS_id_user, req.params.id]
+    );
+    res.json({ message: 'Task updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Delete a task
+router.delete('/tasks/:id', auth, async (req, res) => {
+  if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
+  try {
+    await pool.query('DELETE FROM volunteer_tasks WHERE task_id = ?', [req.params.id]);
+    res.json({ message: 'Task deleted' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
