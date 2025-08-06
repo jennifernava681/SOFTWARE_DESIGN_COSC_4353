@@ -204,7 +204,7 @@ export default function VetDashboard() {
           <div className="hero-container">
             <div className="hero-content">
               <h1 className="hero-title">
-                Welcome, <span className="hero-title-gradient">Doctor!</span>
+                Welcome, <span className="hero-title-gradient">vet!</span>
               </h1>
               <p className="hero-description">
                 We're glad to have you back in the system. You can view and update medical records, manage checkups, and
