@@ -38,7 +38,7 @@ function NewMedicalRecordForm() {
   ]
 
   function getAnimals() {
-    return apiFetch("/vet/animals", "GET")
+    return apiFetch("/api/vets/animals", "GET")
       .then(data => Array.isArray(data) ? data : [])
       .catch(error => {
         console.error("Error fetching animals:", error)
@@ -47,7 +47,7 @@ function NewMedicalRecordForm() {
   }
 
   function getMedicalRecords() {
-    return apiFetch("/vet/medical-records", "GET")
+    return apiFetch("/api/vets/medical-records", "GET")
       .then(data => Array.isArray(data) ? data : [])
       .catch(error => {
         console.error("Error fetching medical records:", error)
@@ -67,7 +67,7 @@ function NewMedicalRecordForm() {
       treatments: recordData.treatments,
     }
     
-    return apiFetch("/vet/medical-records", "POST", payload)
+    return apiFetch("/api/vets/medical-records", "POST", payload)
       .catch(error => {
         console.error("Error creating medical record:", error)
         throw error
