@@ -1,10 +1,11 @@
 "use client"
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../../../api";
 import "../../../css/home.css";
 
-// Icons
+// Cute Icons
 const PawIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
     <ellipse cx="12" cy="16" rx="4" ry="3" />
@@ -51,6 +52,12 @@ const ChartIcon = () => (
   </svg>
 );
 
+const HeartIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </svg>
+);
+
 function ManagerDash() {
   const [dashboardData, setDashboardData] = useState({
     totalAnimals: 0,
@@ -62,6 +69,7 @@ function ManagerDash() {
     totalDonations: 0,
     recentDonations: []
   });
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -114,7 +122,7 @@ function ManagerDash() {
       });
     } catch (err) {
       console.error('Error loading dashboard data:', err);
-      setError('Failed to load dashboard data');
+      setError('Oops! Something went wrong while fetching your adorable data 🐾');
     } finally {
       setIsLoading(false);
     }
@@ -125,8 +133,8 @@ function ManagerDash() {
       <div className="dashboard-container">
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <h3>Loading Dashboard...</h3>
-          <p>Please wait while we fetch your data</p>
+          <h3>🐕 Fetching Your Furry Friends Data...</h3>
+          <p>Please wait while we gather all the tail-wagging statistics! 🐾</p>
         </div>
       </div>
     );
@@ -137,24 +145,24 @@ function ManagerDash() {
       <div className="dashboard-container">
         <div className="error-state">
           <AlertIcon />
-          <h3>Error Loading Dashboard</h3>
+          <h3>Whoopsie! 🙈 Our Digital Pets Got Confused</h3>
           <p>{error}</p>
           <button onClick={loadDashboardData} className="btn btn-primary">
-            Try Again
+            🔄 Try Again (Pretty Please!)
           </button>
         </div>
       </div>
     );
   }
 
-  const StatCard = ({ title, value, icon: Icon, color = "blue", link }) => (
+  const StatCard = ({ title, value, icon: Icon, color = "blue", link, emoji }) => (
     <Link to={link} className="stat-card">
       <div className={`stat-card-inner stat-card-${color}`}>
         <div className="stat-icon">
           <Icon />
         </div>
         <div className="stat-content">
-          <h3 className="stat-value">{value}</h3>
+          <h3 className="stat-value">{value} {emoji}</h3>
           <p className="stat-label">{title}</p>
         </div>
         <div className="stat-arrow">
@@ -166,14 +174,14 @@ function ManagerDash() {
     </Link>
   );
 
-  const QuickActionCard = ({ title, description, icon: Icon, link, color = "blue" }) => (
+  const QuickActionCard = ({ title, description, icon: Icon, link, color = "blue", emoji }) => (
     <Link to={link} className="quick-action-card">
       <div className={`quick-action-inner quick-action-${color}`}>
         <div className="quick-action-icon">
           <Icon />
         </div>
         <div className="quick-action-content">
-          <h4 className="quick-action-title">{title}</h4>
+          <h4 className="quick-action-title">{emoji} {title}</h4>
           <p className="quick-action-description">{description}</p>
         </div>
         <div className="quick-action-arrow">
@@ -187,7 +195,7 @@ function ManagerDash() {
 
   return (
     <div className="dashboard-container">
-      {/* Hero Section */}
+      {/* Adorable Hero Section */}
       <div className="dashboard-hero bg-gradient-hero">
         <div className="dashboard-hero-overlay">
           <div className="dashboard-hero-container">
@@ -197,18 +205,18 @@ function ManagerDash() {
                   <PawIcon />
                 </div>
                 <div className="dashboard-hero-badge-text">
-                  <span>Manager Dashboard</span>
+                  <span>🌟 Manager Dashboard</span>
                 </div>
               </div>
               <h1 className="dashboard-hero-title">
-                Welcome back to <span className="hero-title-gradient">Hope Paws</span>
+                Welcome back to <span className="hero-title-gradient">Hope Paws</span> 🏠
               </h1>
               <p className="dashboard-hero-description">
-                Manage your shelter operations, track volunteer activities, and ensure every animal finds their forever home.
+                🐾 Manage your shelter with love, track our amazing volunteers, and help every precious furry friend find their forever family! 💕
               </p>
               <div className="dashboard-hero-actions">
                 <button onClick={loadDashboardData} className="btn btn-primary" disabled={isLoading}>
-                  {isLoading ? "Refreshing..." : "Refresh Data"}
+                  {isLoading ? "🔄 Refreshing..." : "✨ Refresh Data"}
                 </button>
               </div>
             </div>
@@ -216,121 +224,198 @@ function ManagerDash() {
         </div>
       </div>
 
-      {/* Stats Section */}
+      {/* Cute Stats Section */}
       <div className="stats bg-gradient-stats">
         <div className="stats-container">
           <div className="stats-header">
-            <h2 className="stats-title">Shelter Overview</h2>
-            <p className="stats-description">Key metrics and statistics for today</p>
+            <h2 className="stats-title">🏠 Shelter Overview</h2>
+            <p className="stats-description">Today's heartwarming statistics and tail-wagging metrics! 📊</p>
           </div>
           <div className="stats-grid">
-            <StatCard
-              title="Total Animals"
-              value={dashboardData.totalAnimals}
-              icon={PawIcon}
-              color="green"
-              link="/manageanimals"
-            />
-            <StatCard
-              title="Available Animals"
-              value={dashboardData.availableAnimals}
-              icon={PawIcon}
-              color="blue"
-              link="/manageanimals"
-            />
-            <StatCard
-              title="Pending Adoptions"
-              value={dashboardData.pendingAdoptions}
-              icon={UsersIcon}
-              color="orange"
-              link="/reviewAdoptions"
-            />
-            <StatCard
-              title="Pending Surrenders"
-              value={dashboardData.pendingSurrenders}
-              icon={AlertIcon}
-              color="red"
-              link="/reviewSurrenderRequest"
-            />
-            <StatCard
-              title="Active Volunteers"
-              value={dashboardData.totalVolunteers}
-              icon={UsersIcon}
-              color="purple"
-              link="/reviewVolunteersApps"
-            />
-            <StatCard
-              title="Upcoming Events"
-              value={dashboardData.activeEvents}
-              icon={CalendarIcon}
-              color="teal"
-              link="/eventmanager"
-            />
+            <div className="stat-item">
+              <Link to="/manageanimals" className="stat-card">
+                <div className="stat-card-inner stat-card-green">
+                  <div className="stat-icon">
+                    <PawIcon />
+                  </div>
+                  <div className="stat-content">
+                    <h3 className="stat-value">{dashboardData.totalAnimals} 🐕🐱</h3>
+                    <p className="stat-label">Total Furry Friends</p>
+                  </div>
+                  <div className="stat-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            <div className="stat-item">
+              <Link to="/manageanimals" className="stat-card">
+                <div className="stat-card-inner stat-card-blue">
+                  <div className="stat-icon">
+                    <HeartIcon />
+                  </div>
+                  <div className="stat-content">
+                    <h3 className="stat-value">{dashboardData.availableAnimals} 💙</h3>
+                    <p className="stat-label">Ready for Adoption</p>
+                  </div>
+                  <div className="stat-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            <div className="stat-item">
+              <Link to="/reviewAdoptions" className="stat-card">
+                <div className="stat-card-inner stat-card-orange">
+                  <div className="stat-icon">
+                    <UsersIcon />
+                  </div>
+                  <div className="stat-content">
+                    <h3 className="stat-value">{dashboardData.pendingAdoptions} 📝</h3>
+                    <p className="stat-label">Adoption Applications</p>
+                  </div>
+                  <div className="stat-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            <div className="stat-item">
+              <Link to="/reviewSurrenderRequest" className="stat-card">
+                <div className="stat-card-inner stat-card-red">
+                  <div className="stat-icon">
+                    <AlertIcon />
+                  </div>
+                  <div className="stat-content">
+                    <h3 className="stat-value">{dashboardData.pendingSurrenders} 🤗</h3>
+                    <p className="stat-label">Surrender Requests</p>
+                  </div>
+                  <div className="stat-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            <div className="stat-item">
+              <Link to="/reviewVolunteersApps" className="stat-card">
+                <div className="stat-card-inner stat-card-purple">
+                  <div className="stat-icon">
+                    <UsersIcon />
+                  </div>
+                  <div className="stat-content">
+                    <h3 className="stat-value">{dashboardData.totalVolunteers} ⭐</h3>
+                    <p className="stat-label">Amazing Volunteers</p>
+                  </div>
+                  <div className="stat-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            <div className="stat-item">
+              <Link to="/eventmanager" className="stat-card">
+                <div className="stat-card-inner stat-card-teal">
+                  <div className="stat-icon">
+                    <CalendarIcon />
+                  </div>
+                  <div className="stat-content">
+                    <h3 className="stat-value">{dashboardData.activeEvents} 🎉</h3>
+                    <p className="stat-label">Upcoming Events</p>
+                  </div>
+                  <div className="stat-arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions Section */}
+      {/* Adorable Quick Actions Section */}
       <div className="section bg-gradient-section">
-        <div className="section-container">
+        <div className="stats-container">
           <div className="section-header">
-            <h2 className="section-title">Quick Actions</h2>
-            <p className="section-description">Access key management functions</p>
+            <h2 className="section-title">🚀 Quick Actions</h2>
+            <p className="section-description">Your magical management toolkit - everything you need at your fingertips! ✨</p>
             <div className="section-divider"></div>
           </div>
           <div className="quick-actions-grid">
             <QuickActionCard
               title="Manage Animals"
-              description="Add, edit, or remove animals from the shelter"
+              description="Add new furry friends or update their adorable profiles"
               icon={PawIcon}
               link="/manageanimals"
               color="green"
+              emoji="🐾"
             />
             <QuickActionCard
               title="Review Applications"
-              description="Review volunteer and adoption applications"
+              description="Help volunteers and families join our loving community"
               icon={UsersIcon}
               link="/reviewVolunteersApps"
               color="blue"
+              emoji="💝"
             />
             <QuickActionCard
-              title="Event Management"
-              description="Create and manage upcoming events"
+              title="Event Magic"
+              description="Create pawsome events that bring our community together"
               icon={CalendarIcon}
               link="/eventmanager"
               color="purple"
+              emoji="🎪"
             />
             <QuickActionCard
               title="Donation Reports"
-              description="View donation reports and analytics"
+              description="Track the generous hearts supporting our mission"
               icon={DollarIcon}
               link="/donatereports"
               color="orange"
+              emoji="💰"
             />
             <QuickActionCard
-              title="Assign Tasks"
-              description="Assign tasks to volunteers"
+              title="Task Assignment"
+              description="Spread the love by assigning meaningful tasks"
               icon={CheckIcon}
               link="/assigntasks"
               color="teal"
+              emoji="✅"
             />
             <QuickActionCard
               title="Performance Review"
-              description="Review volunteer performance metrics"
+              description="Celebrate our volunteers' amazing contributions"
               icon={ChartIcon}
               link="/volunteerPerformance"
               color="indigo"
+              emoji="📈"
             />
           </div>
         </div>
       </div>
 
-      {/* Recent Activity Section */}
+      {/* Sweet Recent Activity Section */}
       <div className="section bg-gradient-section">
-        <div className="section-container">
+        <div className="stats-container">
           <div className="section-header">
-            <h2 className="section-title">Recent Donations</h2>
-            <p className="section-description">Latest contributions to our cause</p>
+            <h2 className="section-title">💕 Recent Donations</h2>
+            <p className="section-description">Beautiful souls who've opened their hearts (and wallets) for our furry friends! 🌟</p>
             <div className="section-divider"></div>
           </div>
           <div className="activity-list">
@@ -338,13 +423,17 @@ function ManagerDash() {
               dashboardData.recentDonations.map((donation, index) => (
                 <div key={index} className="activity-item">
                   <div className="activity-icon">
-                    <DollarIcon />
+                    <HeartIcon />
                   </div>
                   <div className="activity-content">
-                    <h4 className="activity-title">{donation.name || "Anonymous"}</h4>
-                    <p className="activity-description">{donation.donation_type} - ${donation.amount}</p>
+                    <h4 className="activity-title">
+                      💖 {donation.name || "Anonymous Angel"}
+                    </h4>
+                    <p className="activity-description">
+                      {donation.donation_type} - ${donation.amount} 🎁
+                    </p>
                     <span className="activity-date">
-                      {new Date(donation.donation_date).toLocaleDateString()}
+                      📅 {new Date(donation.donation_date).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -352,8 +441,8 @@ function ManagerDash() {
             ) : (
               <div className="no-activity">
                 <DollarIcon />
-                <h4>No Recent Donations</h4>
-                <p>Donations will appear here when received</p>
+                <h4>🌈 No Recent Donations</h4>
+                <p>New donations will sparkle here when they arrive! ✨</p>
               </div>
             )}
           </div>
