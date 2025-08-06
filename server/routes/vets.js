@@ -131,4 +131,31 @@ router.put('/ready-status/:animal_id', auth, restrictTo('veterinarian'), async (
   }
 });
 
+// POST /api/medical-records
+router.post('/medical-records', auth, async (req, res) => {
+  const {
+    record_type,
+    record_date,
+    created_at,
+    note,
+    ANIMALS_id_animal,
+    USERS_id_user,
+  } = req.body;
+
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO medical_records 
+        (record_type, record_date, created_at, note, ANIMALS_id_animal, USERS_id_user)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [record_type, record_date, created_at, note, ANIMALS_id_animal, USERS_id_user]
+    );
+
+    res.status(201).json({ message: "Medical record created", id: result.insertId });
+  } catch (err) {
+    console.error("Insert medical record error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 module.exports = router;

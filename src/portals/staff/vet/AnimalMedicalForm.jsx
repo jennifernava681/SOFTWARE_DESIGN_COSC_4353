@@ -1,59 +1,12 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { Plus, Stethoscope, Calendar, Tag, ArrowLeft } from "lucide-react"
-
+import { Link } from "react-router-dom"
+import { Plus, Stethoscope, Calendar, Tag, ArrowLeft } from 'lucide-react'
 import "../../../css/vet.css"
+import { apiFetch } from "../../../api"
 
-// Helper function to generate a random animal for selection
-const generateRandomAnimal = (id) => {
-  const animalTypes = ["Dog", "Cat", "Bird", "Reptile"]
-  const breeds = ["Golden Retriever", "Siamese Mix", "German Shepherd", "Ball Python", "Parrot", "Beagle"]
-  return {
-    id: id,
-    name: `Animal ${id}`,
-    type: animalTypes[Math.floor(Math.random() * animalTypes.length)],
-    breed: breeds[Math.floor(Math.random() * breeds.length)],
-  }
-}
-
-// Helper function to generate a random medical record
-const generateRandomMedicalRecord = (animalId, animalName) => {
-  const recordTypes = ["Vaccination", "Check-up", "Injury", "Medication", "Surgery", "Diagnosis"]
-  const notes = [
-    "Annual vaccine administered.",
-    "Routine check-up, healthy overall.",
-    "Minor paw injury, treated and bandaged.",
-    "Prescribed antibiotics for respiratory infection.",
-    "Successful spay/neuter surgery.",
-    "Diagnosed with mild allergies.",
-  ]
-  const diagnoses = ["Allergies", "Parasites", "Dental Issues", "Respiratory Infection", "Arthritis"]
-  const treatments = ["Antibiotics", "Pain Medication", "Dietary Change", "Surgery", "Vaccine"]
-
-  const randomDiagnoses = Array.from({ length: Math.floor(Math.random() * 3) }).map(
-    () => diagnoses[Math.floor(Math.random() * diagnoses.length)],
-  )
-  const randomTreatments = Array.from({ length: Math.floor(Math.random() * 3) }).map(
-    () => treatments[Math.floor(Math.random() * treatments.length)],
-  )
-
-  return {
-    id: Date.now() + Math.random(), // Unique ID
-    animalId: animalId,
-    animalName: animalName,
-    recordType: recordTypes[Math.floor(Math.random() * recordTypes.length)],
-    date: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)).toISOString().split("T")[0], // Last 30 days
-    note: notes[Math.floor(Math.random() * notes.length)],
-    diagnoses: [...new Set(randomDiagnoses)], // Ensure unique diagnoses
-    treatments: [...new Set(randomTreatments)], // Ensure unique treatments
-  }
-}
-
-export default function NewMedicalRecordForm() {
-  const navigate = useNavigate()
+function NewMedicalRecordForm() {
   const [medicalRecords, setMedicalRecords] = useState([])
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     animalId: "",
     recordType: "",
@@ -62,22 +15,12 @@ export default function NewMedicalRecordForm() {
     diagnoses: [],
     treatments: [],
   })
-
   const [availableAnimals, setAvailableAnimals] = useState([])
-
-  useEffect(() => {
-    // Generate a few random animals for the dropdown selection
-    const animals = Array.from({ length: 5 }).map((_, i) => generateRandomAnimal(i + 1))
-    setAvailableAnimals(animals)
-    if (animals.length > 0) {
-      setFormData((prev) => ({ ...prev, animalId: animals[0].id.toString() })) // Select first animal by default
-    }
-  }, [])
 
   const recordTypes = ["Vaccination", "Check-up", "Injury", "Medication", "Surgery", "Diagnosis", "Other"]
   const allDiagnoses = [
     "Allergies",
-    "Parasites",
+    "Parasites", 
     "Dental Issues",
     "Respiratory Infection",
     "Arthritis",
@@ -86,7 +29,7 @@ export default function NewMedicalRecordForm() {
   ]
   const allTreatments = [
     "Antibiotics",
-    "Pain Medication",
+    "Pain Medication", 
     "Dietary Change",
     "Surgery",
     "Vaccine",
@@ -94,52 +37,148 @@ export default function NewMedicalRecordForm() {
     "Topical Cream",
   ]
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  function getAnimals() {
+    return apiFetch("/vet/animals", "GET")
+      .then(data => Array.isArray(data) ? data : [])
+      .catch(error => {
+        console.error("Error fetching animals:", error)
+        throw error
+      })
   }
 
-  const handleMultiSelectChange = (e, fieldName, availableOptions) => {
+  function getMedicalRecords() {
+    return apiFetch("/vet/medical-records", "GET")
+      .then(data => Array.isArray(data) ? data : [])
+      .catch(error => {
+        console.error("Error fetching medical records:", error)
+        throw error
+      })
+  }
+
+  function createMedicalRecord(recordData) {
+    const payload = {
+      record_type: recordData.recordType,
+      record_date: recordData.date,
+      created_at: new Date().toISOString(),
+      note: recordData.note,
+      ANIMALS_id_animal: recordData.animalId,
+      USERS_id_user: 1,
+      diagnoses: recordData.diagnoses,
+      treatments: recordData.treatments,
+    }
+    
+    return apiFetch("/vet/medical-records", "POST", payload)
+      .catch(error => {
+        console.error("Error creating medical record:", error)
+        throw error
+      })
+  }
+
+  function loadInitialData() {
+    Promise.all([getAnimals(), getMedicalRecords()])
+      .then(results => {
+        const animals = results[0]
+        const records = results[1]
+        
+        setAvailableAnimals(animals)
+        setMedicalRecords(records)
+        
+        if (animals.length > 0) {
+          setFormData(prev => ({ ...prev, animalId: animals[0].id.toString() }))
+        }
+      })
+      .catch(error => {
+        console.error('Error loading data:', error)
+        const mockAnimals = [
+          { id: 1, name: "Buddy", type: "Dog", breed: "Golden Retriever" },
+          { id: 2, name: "Whiskers", type: "Cat", breed: "Siamese Mix" },
+          { id: 3, name: "Rex", type: "Dog", breed: "German Shepherd" },
+          { id: 4, name: "Polly", type: "Bird", breed: "Parrot" },
+          { id: 5, name: "Slither", type: "Reptile", breed: "Ball Python" },
+        ]
+        setAvailableAnimals(mockAnimals)
+        if (mockAnimals.length > 0) {
+          setFormData(prev => ({ ...prev, animalId: mockAnimals[0].id.toString() }))
+        }
+      })
+  }
+
+  useEffect(() => {
+    loadInitialData()
+  }, [])
+
+  function handleChange(e) {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  function handleMultiSelectChange(e, fieldName) {
     const selectedValue = e.target.value
     if (selectedValue && !formData[fieldName].includes(selectedValue)) {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         [fieldName]: [...prev[fieldName], selectedValue],
       }))
-      e.target.value = "" // Reset select after adding
+      e.target.value = ""
     }
   }
 
-  const removeMultiSelectItem = (itemToRemove, fieldName) => {
-    setFormData((prev) => ({
+  function removeMultiSelectItem(itemToRemove, fieldName) {
+    setFormData(prev => ({
       ...prev,
-      [fieldName]: prev[fieldName].filter((item) => item !== itemToRemove),
+      [fieldName]: prev[fieldName].filter(item => item !== itemToRemove),
     }))
   }
 
-  const handleSubmit = (e) => {
+  function handleSubmit(e) {
     e.preventDefault()
-    const selectedAnimal = availableAnimals.find((a) => a.id.toString() === formData.animalId)
-    if (!selectedAnimal) {
-      alert("Please select an animal.")
+    
+    if (!formData.animalId || !formData.recordType || !formData.date || !formData.note) {
+      alert("Please fill in all required fields.")
       return
     }
 
-    // Generate a new random medical record based on the selected animal
-    const newRecord = generateRandomMedicalRecord(selectedAnimal.id, selectedAnimal.name)
+    setLoading(true)
+    
+    const selectedAnimal = availableAnimals.find(a => a.id.toString() === formData.animalId)
+    if (!selectedAnimal) {
+      alert("Please select an animal.")
+      setLoading(false)
+      return
+    }
 
-    setMedicalRecords((prev) => [newRecord, ...prev]) // Add to the top of the list
-    alert("Medical record added successfully (simulated)!")
+    const recordData = {
+      animalId: parseInt(formData.animalId),
+      recordType: formData.recordType,
+      date: formData.date,
+      note: formData.note,
+      diagnoses: formData.diagnoses,
+      treatments: formData.treatments,
+    }
 
-    // Reset form, keeping the selected animal
-    setFormData((prev) => ({
-      ...prev,
-      recordType: "",
-      date: "",
-      note: "",
-      diagnoses: [],
-      treatments: [],
-    }))
+    createMedicalRecord(recordData)
+      .then(() => {
+        return getMedicalRecords()
+      })
+      .then(updatedRecords => {
+        setMedicalRecords(updatedRecords)
+        setFormData(prev => ({
+          ...prev,
+          recordType: "",
+          date: "",
+          note: "",
+          diagnoses: [],
+          treatments: [],
+        }))
+        alert("Medical record added successfully!")
+      })
+      .catch(error => {
+        console.error('Error creating medical record:', error)
+        alert("Error creating medical record. Please try again.")
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   return (
@@ -153,13 +192,14 @@ export default function NewMedicalRecordForm() {
             <ArrowLeft className="h-5 w-5" /> Volver al Dashboard
           </Link>
         </div>
+        
         <div className="task-container">
           <div className="task-header">
             <h1 className="task-title">Add New Medical Record</h1>
             <p className="task-subtitle">Create and manage medical records for animals</p>
           </div>
+          
           <div className="task-grid">
-            {/* Medical Record Creation Form */}
             <div className="task-card">
               <div className="card-header">
                 <h2 className="card-title">
@@ -168,6 +208,7 @@ export default function NewMedicalRecordForm() {
                 </h2>
                 <p className="card-description">Fill out the details to add a new medical record.</p>
               </div>
+              
               <div className="card-content">
                 <form onSubmit={handleSubmit}>
                   <div className="form-group">
@@ -261,8 +302,8 @@ export default function NewMedicalRecordForm() {
                     </div>
                     <select
                       className="form-select"
-                      onChange={(e) => handleMultiSelectChange(e, "diagnoses", allDiagnoses)}
-                      value="" // Reset value after selection
+                      onChange={(e) => handleMultiSelectChange(e, "diagnoses")}
+                      value=""
                     >
                       <option value="">Add diagnoses</option>
                       {allDiagnoses
@@ -291,8 +332,8 @@ export default function NewMedicalRecordForm() {
                     </div>
                     <select
                       className="form-select"
-                      onChange={(e) => handleMultiSelectChange(e, "treatments", allTreatments)}
-                      value="" // Reset value after selection
+                      onChange={(e) => handleMultiSelectChange(e, "treatments")}
+                      value=""
                     >
                       <option value="">Add treatments</option>
                       {allTreatments
@@ -305,14 +346,13 @@ export default function NewMedicalRecordForm() {
                     </select>
                   </div>
 
-                  <button type="submit" className="btn btn-primary btn-full">
-                    Add Medical Record
+                  <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+                    {loading ? "Adding Record..." : "Add Medical Record"}
                   </button>
                 </form>
               </div>
             </div>
 
-            {/* Recent Medical Records List */}
             <div className="task-card">
               <div className="card-header">
                 <h2 className="card-title">Recent Medical Records</h2>
@@ -320,6 +360,7 @@ export default function NewMedicalRecordForm() {
                   {medicalRecords.length} record{medicalRecords.length !== 1 ? "s" : ""} added
                 </p>
               </div>
+              
               <div className="card-content">
                 <div className="task-list">
                   {medicalRecords.length === 0 ? (
@@ -328,21 +369,21 @@ export default function NewMedicalRecordForm() {
                     </div>
                   ) : (
                     medicalRecords.map((record) => (
-                      <div key={record.id} className="task-item">
+                      <div key={record.id_record || record.id} className="task-item">
                         <div className="task-item-header">
                           <h3 className="task-item-title">
-                            {record.recordType} for {record.animalName}
+                            {record.record_type || record.recordType} for {record.animal_name || record.animalName}
                           </h3>
                         </div>
                         <p className="task-item-description">{record.note}</p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                          {record.diagnoses.map((diag) => (
+                          {record.diagnoses && record.diagnoses.map((diag) => (
                             <span key={diag} className="badge badge-secondary">
                               <Tag className="h-3 w-3 mr-1" />
                               {diag}
                             </span>
                           ))}
-                          {record.treatments.map((treat) => (
+                          {record.treatments && record.treatments.map((treat) => (
                             <span key={treat} className="badge badge-secondary">
                               <Plus className="h-3 w-3 mr-1" />
                               {treat}
@@ -353,7 +394,7 @@ export default function NewMedicalRecordForm() {
                         <div className="task-item-meta">
                           <div className="task-item-meta-item">
                             <Calendar className="icon-sm" />
-                            {record.date}
+                            {record.record_date || record.date}
                           </div>
                         </div>
                       </div>
@@ -368,3 +409,5 @@ export default function NewMedicalRecordForm() {
     </div>
   )
 }
+
+export default NewMedicalRecordForm
