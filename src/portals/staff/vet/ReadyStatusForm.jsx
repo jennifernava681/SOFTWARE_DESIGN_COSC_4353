@@ -1,42 +1,56 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { CheckCircle, ArrowLeft } from "lucide-react"
 import { Link } from "react-router-dom"
-
 import "../../../css/vet.css"
 
-// Helper function to generate a random animal for selection
-const generateRandomAnimal = (id) => {
-  const animalTypes = ["Dog", "Cat", "Bird", "Reptile"]
-  const breeds = ["Golden Retriever", "Siamese Mix", "German Shepherd", "Ball Python", "Parrot", "Beagle"]
-  return {
-    id: id,
-    name: `Animal ${id}`,
-    type: animalTypes[Math.floor(Math.random() * animalTypes.length)],
-    breed: breeds[Math.floor(Math.random() * breeds.length)],
-    readyForAdoption: Math.random() > 0.5, // Random initial status
+// Use apiFetch if available, fallback to native fetch
+const getAnimals = async () => {
+  try {
+    const response = await fetch("/vet/animals", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    })
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (err) {
+    console.error("Error fetching animals:", err)
+    return []
+  }
+}
+
+const updateAdoptionStatus = async (animalId, status) => {
+  try {
+    const payload = { readyForAdoption: status }
+    const response = await fetch(`/vet/animals/${animalId}`, {
+      method: "PUT", // or "PATCH" if your API uses PATCH
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) throw new Error("Failed to update status")
+  } catch (err) {
+    console.error("Error updating adoption status:", err)
+    throw err
   }
 }
 
 export default function NewReadyStatusForm() {
   const navigate = useNavigate()
   const [updatedStatuses, setUpdatedStatuses] = useState([])
+  const [availableAnimals, setAvailableAnimals] = useState([])
   const [formData, setFormData] = useState({
     animalId: "",
-    readyForAdoption: "false", // Default to 'No'
+    readyForAdoption: "false",
   })
 
-  const [availableAnimals, setAvailableAnimals] = useState([])
-
   useEffect(() => {
-    // Generate a few random animals for the dropdown selection
-    const animals = Array.from({ length: 5 }).map((_, i) => generateRandomAnimal(i + 1))
-    setAvailableAnimals(animals)
-    if (animals.length > 0) {
-      setFormData((prev) => ({ ...prev, animalId: animals[0].id.toString() })) // Select first animal by default
-    }
+    getAnimals().then((animals) => {
+      setAvailableAnimals(animals)
+      if (animals.length > 0) {
+        setFormData((prev) => ({ ...prev, animalId: animals[0].id.toString() }))
+      }
+    })
   }, [])
 
   const handleChange = (e) => {
@@ -44,40 +58,43 @@ export default function NewReadyStatusForm() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+
     const selectedAnimal = availableAnimals.find((a) => a.id.toString() === formData.animalId)
     if (!selectedAnimal) {
-      alert("Please select an animal.")
+      alert("Please select a valid animal.")
       return
     }
 
     const newStatus = formData.readyForAdoption === "true"
     const statusText = newStatus ? "Ready for Adoption" : "Not Ready Yet"
 
-    const newUpdate = {
-      id: Date.now() + Math.random(), // Unique ID
-      animalName: selectedAnimal.name,
-      oldStatus: selectedAnimal.readyForAdoption ? "Ready for Adoption" : "Not Ready Yet",
-      newStatus: statusText,
-      date: new Date().toISOString().split("T")[0],
+    try {
+      await updateAdoptionStatus(formData.animalId, newStatus)
+
+      const newUpdate = {
+        id: Date.now() + Math.random(),
+        animalName: selectedAnimal.name,
+        oldStatus: selectedAnimal.readyForAdoption ? "Ready for Adoption" : "Not Ready Yet",
+        newStatus: statusText,
+        date: new Date().toISOString().split("T")[0],
+      }
+
+      setUpdatedStatuses((prev) => [newUpdate, ...prev])
+      setAvailableAnimals((prev) =>
+        prev.map((animal) =>
+          animal.id.toString() === formData.animalId
+            ? { ...animal, readyForAdoption: newStatus }
+            : animal
+        )
+      )
+
+      alert(`Status for ${selectedAnimal.name} updated to ${statusText}!`)
+      setFormData((prev) => ({ ...prev, readyForAdoption: "false" }))
+    } catch (error) {
+      alert("Error updating status. Please try again.")
     }
-
-    setUpdatedStatuses((prev) => [newUpdate, ...prev]) // Add to the top of the list
-    alert(`Status for ${selectedAnimal.name} updated to ${statusText} (simulated)!`)
-
-    // Optionally, update the animal's status in the availableAnimals list for consistency
-    setAvailableAnimals((prevAnimals) =>
-      prevAnimals.map((animal) =>
-        animal.id.toString() === formData.animalId ? { ...animal, readyForAdoption: newStatus } : animal,
-      ),
-    )
-
-    // Reset form, keeping the selected animal
-    setFormData((prev) => ({
-      ...prev,
-      readyForAdoption: "false",
-    }))
   }
 
   return (
@@ -97,7 +114,6 @@ export default function NewReadyStatusForm() {
             <p className="task-subtitle">Manage the adoption readiness of animals</p>
           </div>
           <div className="task-grid">
-            {/* Status Update Form */}
             <div className="task-card">
               <div className="card-header">
                 <h2 className="card-title">
@@ -154,7 +170,6 @@ export default function NewReadyStatusForm() {
               </div>
             </div>
 
-            {/* Recent Status Updates List */}
             <div className="task-card">
               <div className="card-header">
                 <h2 className="card-title">Recent Status Updates</h2>
@@ -175,7 +190,9 @@ export default function NewReadyStatusForm() {
                           <h3 className="task-item-title">Status for {update.animalName}</h3>
                           <span
                             className={`badge ${
-                              update.newStatus === "Ready for Adoption" ? "badge-priority-low" : "badge-priority-high"
+                              update.newStatus === "Ready for Adoption"
+                                ? "badge-priority-low"
+                                : "badge-priority-high"
                             }`}
                           >
                             {update.newStatus}
