@@ -1,6 +1,6 @@
 import React from "react";
-import "../../css/SubmitAdoptionRequest.css";
 import { useState, useEffect } from "react";
+import "../../css/SubmitAdoptionRequest.css";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../../api";
 import NotificationBanner from "../../NotificationBanner";
@@ -43,7 +43,6 @@ function SubmitAdoptionRequest() {
     setShowBanner(false);
 
     try {
-      // First, check if user is logged in
       const token = localStorage.getItem("token");
       if (!token) {
         setBannerMessage("Please log in to submit an adoption request.");
@@ -52,14 +51,15 @@ function SubmitAdoptionRequest() {
         return;
       }
 
-      // Get user info from localStorage
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       
       const adoptionData = {
-        ...formData,
-        user_id: user.id_user,
         request_date: new Date().toISOString(),
-        status: 'pending'
+        USERS_id_user: user.id_user,
+        USERS_adrees_idadrees_id: 1, // Replace with actual address ID if available
+        USERS_adrees_state_state_id: 1, // Replace with actual state ID if available
+        animal_id: 1, // This should come from parent component or page context
+        reason: formData.interest || "", // Optional field for backend
       };
 
       const response = await apiFetch("/api/adoptions", "POST", adoptionData);
@@ -67,7 +67,6 @@ function SubmitAdoptionRequest() {
       setBannerMessage("Adoption request submitted successfully! We'll contact you soon.");
       setShowBanner(true);
       
-      // Reset form
       setFormData({
         household: "",
         firstName: "",
@@ -96,7 +95,7 @@ function SubmitAdoptionRequest() {
         show={showBanner}
         message={bannerMessage}
       />
-      
+            
       <div
         className="hero-image"
         style={{
@@ -132,7 +131,6 @@ function SubmitAdoptionRequest() {
           completed. We do not adopt out unaltered animals.
         </p>
       </section>
-
       <div className="button-group">
         <Link to="/animals" className="button-no-style">
           <button className="browse-animals">Search for Animals</button>
@@ -203,11 +201,10 @@ function SubmitAdoptionRequest() {
               name="household"
               min="0"
               value={formData.household}
-              onChange={(e) => setFormData({ ...formData, household: e.target.value})}
+              onChange={handleInputChange}
               className="household"
             />
           </div>
-
           <div className="name">
             <div>
               <label htmlFor="firstName" className="fName">
@@ -218,7 +215,7 @@ function SubmitAdoptionRequest() {
                 id="firstName"
                 name="firstName"
                 value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value})}
+                onChange={handleInputChange}
                 className="inName"
                 required
               />
@@ -232,13 +229,12 @@ function SubmitAdoptionRequest() {
                 id="lastName"
                 name="lastName"
                 value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value})}
+                onChange={handleInputChange}
                 className="inName"
                 required
               />
             </div>
           </div>
-
           <div className="emailAddress">
             <div>
               <label htmlFor="email" className="labelEmail">
@@ -249,7 +245,7 @@ function SubmitAdoptionRequest() {
                 id="email"
                 name="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value})}
+                onChange={handleInputChange}
                 className="inEmail"
                 required
               />
@@ -263,13 +259,12 @@ function SubmitAdoptionRequest() {
                 id="phone"
                 name="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value})}
+                onChange={handleInputChange}
                 className="inPhone"
                 required
               />
             </div>
           </div>
-
           <div>
             <label htmlFor="address" className="labelAddress">
               Home Address
@@ -279,17 +274,16 @@ function SubmitAdoptionRequest() {
               id="address"
               name="address"
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value})}
+              onChange={handleInputChange}
               className="inAddress"
               required
             />
           </div>
-
           <div>
             <label className="labelService">Type of Service</label>
             <div className="service-buttons-wrapper">
-              <button type="button" className={`pet-btn ${formData.serviceType === "cat" ? "selected" : ""}`} 
-              onClick={() => setFormData({ ...formData, serviceType: "cat"})}>
+              <button type="button" className={`pet-btn ${formData.serviceType === "cat" ? "selected" : ""}`}
+               onClick={() => setFormData({ ...formData, serviceType: "cat"})}>
                 Cat/Kitten
               </button>
               <button type="button" className={`pet-btn ${formData.serviceType === "dog" ? "selected" : ""}`}
@@ -298,7 +292,6 @@ function SubmitAdoptionRequest() {
               </button>
             </div>
           </div>
-
           <div>
             <label htmlFor="experience" className="labelExperience">
               Tell us about your experience with pets and your lifestyle
@@ -307,12 +300,11 @@ function SubmitAdoptionRequest() {
               id="experience"
               name="experience"
               value={formData.experience}
-              onChange={(e) => setFormData({ ...formData, experience: e.target.value})}
+              onChange={handleInputChange}
               rows="4"
               className="inExperience"
             ></textarea>
           </div>
-
           <div>
             <label htmlFor="interest" className="labelInterest">
               Why are you interested in adopting?
@@ -321,14 +313,14 @@ function SubmitAdoptionRequest() {
               id="interest"
               name="interest"
               value={formData.interest}
-              onChange={(e) => setFormData({ ...formData, interest: e.target.value})}
+              onChange={handleInputChange}
               rows="4"
               className="inInterest"
             ></textarea>
           </div>
           <div className="button-group">
-            <button type="submit" className="action-button" variant="outline">
-              Make an Adoption Request
+            <button type="submit" className="action-button" variant="outline" disabled={isLoading}>
+              {isLoading ? "Submitting..." : "Make an Adoption Request"}
             </button>
           </div>
         </form>
@@ -337,4 +329,4 @@ function SubmitAdoptionRequest() {
   );
 }
 
-export default SubmitAdoptionRequest
+export default SubmitAdoptionRequest;
