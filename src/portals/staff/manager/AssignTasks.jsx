@@ -3,13 +3,14 @@
 import "../../../css/managetasks.css" // Import the new CSS file
 import { useState, useEffect } from "react"
 import { X, Pencil } from "lucide-react" // Import necessary icons
+import { apiFetch } from "../../../api"
 
 function AssignTasks() {
   const [formData, setFormData] = useState({
     task_name: "",
     description: "",
     task_date: "",
-    status: "",
+    status: "pending",
     USERS_id_user: "",
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -17,49 +18,34 @@ function AssignTasks() {
   const [tasks, setTasks] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
-  const [employees, setEmployees] = useState([]) // New state for employees
+  const [employees, setEmployees] = useState([]) // State for volunteers
+  const [error, setError] = useState(null)
 
-  // Mock data for existing tasks
+  // Load tasks and volunteers from API
   useEffect(() => {
-    // Simulate loading existing tasks
-    setTasks([
-      {
-        task_id: 1,
-        task_name: "Feed Animals",
-        description: "Ensure all animals are fed according to their diet plan.",
-        task_date: "2024-07-20",
-        status: "Pending",
-        created_at: "2024-07-19T10:00:00Z",
-        USERS_id_user: 101,
-      },
-      {
-        task_id: 2,
-        task_name: "Clean Kennels",
-        description: "Thoroughly clean and disinfect all dog kennels.",
-        task_date: "2024-07-20",
-        status: "Completed",
-        created_at: "2024-07-19T11:30:00Z",
-        USERS_id_user: 102,
-      },
-      {
-        task_id: 3,
-        task_name: "Veterinary Check-up",
-        description: "Schedule and attend vet appointments for new intakes.",
-        task_date: "2024-07-21",
-        status: "In Progress",
-        created_at: "2024-07-19T14:00:00Z",
-        USERS_id_user: 101,
-      },
-    ])
-
-    // Simulate loading employees
-    setEmployees([
-      { id_user: 101, name: "Alice Smith", role: "Caregiver" },
-      { id_user: 102, name: "Bob Johnson", role: "Veterinarian" },
-      { id_user: 103, name: "Charlie Brown", role: "Administrator" },
-      { id_user: 104, name: "Diana Prince", role: "Volunteer" },
-    ])
+    loadTasks()
+    loadVolunteers()
   }, [])
+
+  const loadTasks = async () => {
+    try {
+      const tasksData = await apiFetch("/api/volunteers/tasks", "GET")
+      setTasks(tasksData)
+    } catch (err) {
+      console.error("Error loading tasks:", err)
+      setError("Failed to load tasks")
+    }
+  }
+
+  const loadVolunteers = async () => {
+    try {
+      const volunteersData = await apiFetch("/api/volunteers", "GET")
+      setEmployees(volunteersData)
+    } catch (err) {
+      console.error("Error loading volunteers:", err)
+      setError("Failed to load volunteers")
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -69,34 +55,31 @@ function AssignTasks() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
+    setError(null)
+    
+    try {
       if (editingTask) {
         // Update existing task
-        setTasks((prev) =>
-          prev.map((task) =>
-            task.task_id === editingTask.task_id ? { ...formData, task_id: editingTask.task_id } : task,
-          ),
-        )
+        await apiFetch(`/api/volunteers/tasks/${editingTask.task_id}`, "PUT", formData)
         setEditingTask(null)
       } else {
-        // Add new task
-        const newTask = {
-          ...formData,
-          task_id: tasks.length > 0 ? Math.max(...tasks.map((t) => t.task_id)) + 1 : 1,
-          created_at: new Date().toISOString(),
-        }
-        setTasks((prev) => [...prev, newTask])
+        // Create new task
+        await apiFetch("/api/volunteers/tasks", "POST", formData)
       }
+      
       setIsLoading(false)
       setShowSuccessMessage(true)
       setShowForm(false)
       resetForm()
+      await loadTasks() // Reload tasks
       setTimeout(() => setShowSuccessMessage(false), 3000)
-    }, 2000)
+    } catch (err) {
+      setIsLoading(false)
+      setError(err.message || "Failed to save task")
+    }
   }
 
   const resetForm = () => {
@@ -104,7 +87,7 @@ function AssignTasks() {
       task_name: "",
       description: "",
       task_date: "",
-      status: "",
+      status: "pending",
       USERS_id_user: "",
     })
   }
@@ -121,18 +104,18 @@ function AssignTasks() {
     setShowForm(true)
   }
 
-  const handleDelete = (taskId) => {
-    if (window.confirm("Are you sure you want to delete this task record?")) {
-      setTasks((prev) => prev.filter((task) => task.task_id !== taskId))
+  const handleDelete = async (taskId) => {
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      try {
+        await apiFetch(`/api/volunteers/tasks/${taskId}`, "DELETE")
+        await loadTasks() // Reload tasks
+      } catch (err) {
+        setError("Failed to delete task")
+      }
     }
   }
 
-  const handleEmployeeClick = (employeeId) => {
-    setFormData((prev) => ({
-      ...prev,
-      USERS_id_user: employeeId.toString(),
-    }))
-  }
+
 
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
@@ -164,6 +147,23 @@ function AssignTasks() {
           </div>
         </div>
       )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="notification-overlay">
+          <div className="notification-banner floating show error">
+            <svg className="icon" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <section className="tasks">
         <div className="tasks-container">
@@ -252,17 +252,23 @@ function AssignTasks() {
                     </div>
                     <div className="form-group">
                       <label htmlFor="USERS_id_user" className="form-label">
-                        Assigned User ID
+                        Assign To Volunteer
                       </label>
-                      <input
-                        type="number"
+                      <select
                         id="USERS_id_user"
                         name="USERS_id_user"
                         value={formData.USERS_id_user}
                         onChange={handleChange}
-                        placeholder="Enter user ID or click on an employee below"
-                        className="form-input"
-                      />
+                        required
+                        className="form-select"
+                      >
+                        <option value="">Select Volunteer</option>
+                        {employees.map((volunteer) => (
+                          <option key={volunteer.id_user} value={volunteer.id_user}>
+                            {volunteer.name} ({volunteer.role})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                   {/* Description */}
@@ -304,10 +310,10 @@ function AssignTasks() {
             </div>
           )}
 
-          {/* Employees List */}
+          {/* Volunteers Summary */}
           <div className="main-card">
             <div className="form-content">
-              <h3 className="form-title">Available Employees ({employees.length})</h3>
+              <h3 className="form-title">Available Volunteers ({employees.length})</h3>
               {employees.length === 0 ? (
                 <div className="empty-state">
                   <svg fill="currentColor" viewBox="0 0 20 20">
@@ -317,22 +323,23 @@ function AssignTasks() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <p>No employees in the system yet.</p>
+                  <p>No volunteers in the system yet.</p>
                 </div>
               ) : (
-                <div className="employees-grid">
-                  {employees.map((employee) => (
-                    <div
-                      key={employee.id_user}
-                      className="employee-card"
-                      onClick={() => handleEmployeeClick(employee.id_user)}
-                      title={`Click to assign task to ${employee.name}`}
-                    >
-                      <h4 className="employee-name">{employee.name}</h4>
-                      <p className="employee-role">{employee.role}</p>
-                      <span className="employee-id">ID: {employee.id_user}</span>
-                    </div>
-                  ))}
+                <div className="volunteers-summary">
+                  <p>You have {employees.length} volunteers available for task assignment. Use the form above to assign tasks to specific volunteers.</p>
+                  <div className="volunteers-list">
+                    {employees.slice(0, 5).map((volunteer) => (
+                      <span key={volunteer.id_user} className="volunteer-tag">
+                        {volunteer.name}
+                      </span>
+                    ))}
+                    {employees.length > 5 && (
+                      <span className="volunteer-tag more">
+                        +{employees.length - 5} more
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -368,7 +375,7 @@ function AssignTasks() {
                             <strong>Date:</strong> {task.task_date}
                           </span>
                           <span>
-                            <strong>User ID:</strong> {task.USERS_id_user}
+                            <strong>Assigned to:</strong> {task.volunteer_name || 'Unassigned'}
                           </span>
                           <span>
                             <strong>Created:</strong> {new Date(task.created_at).toLocaleDateString()}
