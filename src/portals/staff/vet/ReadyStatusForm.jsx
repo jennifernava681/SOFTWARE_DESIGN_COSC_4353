@@ -7,10 +7,11 @@ import "../../../css/vet.css"
 // Use apiFetch if available, fallback to native fetch
 const getAnimals = async () => {
   try {
-    const response = await fetch("/vet/animals", {
+    const response = await fetch("/api/vets/animals", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     })
+
     const data = await response.json()
     return Array.isArray(data) ? data : []
   } catch (err) {
@@ -22,8 +23,9 @@ const getAnimals = async () => {
 const updateAdoptionStatus = async (animalId, status) => {
   try {
     const payload = { readyForAdoption: status }
-    const response = await fetch(`/vet/animals/${animalId}`, {
-      method: "PUT", // or "PATCH" if your API uses PATCH
+
+    const response = await fetch(`/api/vets/animals/${animalId}`, {
+      method: "PUT", // or PATCH depending on your backend
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
@@ -34,6 +36,7 @@ const updateAdoptionStatus = async (animalId, status) => {
     throw err
   }
 }
+
 
 export default function NewReadyStatusForm() {
   const navigate = useNavigate()
