@@ -40,7 +40,7 @@ function LoginSTAFF() {
       // Redirect based on role
       setTimeout(() => {
         if (data.user.role === "manager") {
-          navigate("/managerDashboard");
+          navigate("/managerdash");
         } else if (data.user.role === "veterinarian") {
           navigate("/vetDashboard");
         } else {
