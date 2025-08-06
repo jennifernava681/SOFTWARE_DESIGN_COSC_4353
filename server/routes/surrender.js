@@ -33,7 +33,7 @@ router.get('/', auth, async (req, res) => {
       SELECT sr.*, u.name as user_name, u.email as user_email
       FROM surrender_requests sr
       JOIN users u ON sr.USERS_id_user = u.id_user
-      ORDER BY sr.status ASC, sr.surrender_requestscol DESC
+      ORDER BY sr.status ASC, sr.id_request DESC
     `);
     
     res.json(requests);
