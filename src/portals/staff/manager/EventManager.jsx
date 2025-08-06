@@ -1,259 +1,311 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { apiFetch } from "../../../api";
 import "../../../css/EventFormPage.css";
 
-
 const EventManager = () => {
-  const [tasks, setTasks] = useState([]);
+  const [events, setEvents] = useState([]);
   const [formData, setFormData] = useState({
-    eventName: "",
-    eventDescription: "",
-    category: "",
-    priority: "",
-    assignedTo: "",
-    dueDate: "",
-    dueTime: "",
+    title: "",
+    description: "",
+    date: "",
+    time: "",
     location: "",
-    specialInstructions: "",
-    skillsRequired: [],
+    max_volunteers: "",
+    urgency: "low",
+    required_skills: []
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [error, setError] = useState(null);
 
-  const categories = [
-    "Animal Care",
-    "Feeding",
-    "Cleaning",
-    "Dog Walking",
-    "Cat Socialization",
-    "Medical Assistance",
-    "Administrative",
-    "Maintenance",
-    "Event Setup",
-    "Transportation",
-  ];
-
-  const priorities = ["Low", "Medium", "High", "Urgent"];
-
+  const urgencyLevels = ["low", "medium", "high", "critical"];
   const availableSkills = [
     "Animal Handling",
-    "Medical Experience",
+    "Medical Experience", 
     "Heavy Lifting",
     "Dog Training",
     "Cat Care",
     "Administrative Skills",
     "Driving License",
-    "Event Planning",
+    "Event Planning"
   ];
 
-  const volunteers = ["Unassigned", "Sarah Johnson", "Mike Chen", "Emma Davis", "Alex Rodriguez", "Lisa Thompson"];
+  // Load existing events
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const loadEvents = async () => {
+    try {
+      const response = await apiFetch('/api/events');
+      if (response.ok) {
+        const eventsData = await response.json();
+        setEvents(eventsData);
+      }
+    } catch (err) {
+      console.error('Error loading events:', err);
+    }
+  };
 
-    const newTask = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-
-    setTasks([...tasks, newTask]);
-
-    // Reset form
-    setFormData({
-      eventName: "",
-      eventDescription: "",
-      category: "",
-      priority: "",
-      assignedTo: "",
-      dueDate: "",
-      dueTime: "",
-      location: "",
-      specialInstructions: "",
-      skillsRequired: [],
-    });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const addSkill = (skill) => {
-    if (!formData.skillsRequired.includes(skill)) {
-      setFormData({
-        ...formData,
-        skillsRequired: [...formData.skillsRequired, skill],
-      });
+    if (!formData.required_skills.includes(skill)) {
+      setFormData(prev => ({
+        ...prev,
+        required_skills: [...prev.required_skills, skill]
+      }));
     }
   };
 
   const removeSkill = (skill) => {
+    setFormData(prev => ({
+      ...prev,
+      required_skills: prev.required_skills.filter(s => s !== skill)
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setShowSuccessMessage(true);
+        resetForm();
+        await loadEvents(); // Reload events
+        setTimeout(() => setShowSuccessMessage(false), 3000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to create event');
+      }
+    } catch (err) {
+      setError('Network error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetForm = () => {
     setFormData({
-      ...formData,
-      skillsRequired: formData.skillsRequired.filter((s) => s !== skill),
+      title: "",
+      description: "",
+      date: "",
+      time: "",
+      location: "",
+      max_volunteers: "",
+      urgency: "low",
+      required_skills: []
     });
   };
 
-  const getPriorityClass = (priority) => {
-    switch (priority) {
-      case "Urgent":
-        return "badge-priority-urgent";
-      case "High":
-        return "badge-priority-high";
-      case "Medium":
-        return "badge-priority-medium";
-      case "Low":
-        return "badge-priority-low";
-      default:
-        return "badge-secondary";
+  const getUrgencyClass = (urgency) => {
+    switch (urgency) {
+      case "critical": return "badge-priority-urgent";
+      case "high": return "badge-priority-high";
+      case "medium": return "badge-priority-medium";
+      case "low": return "badge-priority-low";
+      default: return "badge-secondary";
     }
+  };
+
+  const getRegistrationStatus = (event) => {
+    if (!event.max_volunteers) return "No limit";
+    const registered = event.registered_volunteers || 0;
+    const remaining = event.max_volunteers - registered;
+    
+    if (remaining <= 0) return "Full";
+    return `${registered}/${event.max_volunteers} registered`;
   };
 
   return (
     <div className="task-manager">
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="notification-overlay">
+          <div className="notification-banner floating show">
+            <svg className="icon" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Event created successfully!
+          </div>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="notification-overlay">
+          <div className="notification-banner floating show error">
+            <svg className="icon" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {error}
+          </div>
+        </div>
+      )}
+
       <div className="task-container">
         <div className="task-header">
-          <h1 className="task-title">Animal Shelter Task Manager</h1>
-          <p className="task-subtitle">Create and manage volunteer tasks</p>
+          <h1 className="task-title">Event Management</h1>
+          <p className="task-subtitle">Create and manage shelter events</p>
         </div>
 
         <div className="task-grid">
-          {/* Task Creation Form */}
+          {/* Event Creation Form */}
           <div className="task-card">
             <div className="card-header">
               <h2 className="card-title">
                 <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Create New Task
+                Create New Event
               </h2>
-              <p className="card-description">Fill out the details to create a new volunteer task</p>
+              <p className="card-description">Fill out the details to create a new event</p>
             </div>
             <div className="card-content">
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label htmlFor="eventName" className="form-label">
-                    Event Name
+                  <label htmlFor="title" className="form-label">
+                    Event Title *
                   </label>
                   <input
-                    id="eventName"
+                    id="title"
+                    name="title"
                     type="text"
                     className="form-input"
                     placeholder="e.g., Adoption Fair, Volunteer Orientation"
-                    value={formData.eventName}
-                    onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
+                    value={formData.title}
+                    onChange={handleChange}
                     required
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="eventDescription" className="form-label">
-                    Event Description
+                  <label htmlFor="description" className="form-label">
+                    Event Description *
                   </label>
                   <textarea
-                    id="eventDescription"
+                    id="description"
+                    name="description"
                     className="form-textarea"
                     placeholder="Detailed description of the event..."
-                    value={formData.eventDescription}
-                    onChange={(e) => setFormData({ ...formData, eventDescription: e.target.value })}
+                    value={formData.description}
+                    onChange={handleChange}
                     required
                   />
                 </div>
 
                 <div className="form-grid form-grid-2">
                   <div className="form-group">
-                    <label className="form-label">Category</label>
-                    <select
-                      className="form-select"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      required
-                    >
-                      <option value="">Select category</option>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Priority</label>
-                    <select
-                      className="form-select"
-                      value={formData.priority}
-                      onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                      required
-                    >
-                      <option value="">Select priority</option>
-                      {priorities.map((priority) => (
-                        <option key={priority} value={priority}>
-                          {priority}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Assign to Volunteer</label>
-                  <select
-                    className="form-select"
-                    value={formData.assignedTo}
-                    onChange={(e) => setFormData({ ...formData, assignedTo: e.target.value })}
-                    required
-                  >
-                    <option value="">Select volunteer</option>
-                    {volunteers.map((volunteer) => (
-                      <option key={volunteer} value={volunteer}>
-                        {volunteer}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-grid form-grid-2">
-                  <div className="form-group">
-                    <label htmlFor="dueDate" className="form-label">
-                      Due Date
+                    <label htmlFor="date" className="form-label">
+                      Event Date *
                     </label>
                     <input
-                      id="dueDate"
+                      id="date"
+                      name="date"
                       type="date"
                       className="form-input"
-                      value={formData.dueDate}
-                      onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                      value={formData.date}
+                      onChange={handleChange}
                       required
                     />
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="dueTime" className="form-label">
-                      Due Time
+                    <label htmlFor="time" className="form-label">
+                      Event Time
                     </label>
                     <input
-                      id="dueTime"
+                      id="time"
+                      name="time"
                       type="time"
                       className="form-input"
-                      value={formData.dueTime}
-                      onChange={(e) => setFormData({ ...formData, dueTime: e.target.value })}
-                      required
+                      value={formData.time}
+                      onChange={handleChange}
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="location" className="form-label">
-                    Location
+                    Location *
                   </label>
                   <input
                     id="location"
+                    name="location"
                     type="text"
                     className="form-input"
-                    placeholder="e.g., Dog Kennel Area A, Cat Room 2"
+                    placeholder="e.g., Main Shelter, Community Center"
                     value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    onChange={handleChange}
+                    required
                   />
+                </div>
+
+                <div className="form-grid form-grid-2">
+                  <div className="form-group">
+                    <label htmlFor="max_volunteers" className="form-label">
+                      Max Volunteers
+                    </label>
+                    <input
+                      id="max_volunteers"
+                      name="max_volunteers"
+                      type="number"
+                      className="form-input"
+                      placeholder="Leave empty for no limit"
+                      value={formData.max_volunteers}
+                      onChange={handleChange}
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="urgency" className="form-label">
+                      Urgency Level
+                    </label>
+                    <select
+                      id="urgency"
+                      name="urgency"
+                      className="form-select"
+                      value={formData.urgency}
+                      onChange={handleChange}
+                    >
+                      {urgencyLevels.map(level => (
+                        <option key={level} value={level}>
+                          {level.charAt(0).toUpperCase() + level.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">Required Skills</label>
                   <div className="skills-container">
-                    {formData.skillsRequired.map((skill) => (
+                    {formData.required_skills.map((skill) => (
                       <span
                         key={skill}
                         className="badge badge-secondary badge-removable"
@@ -275,7 +327,7 @@ const EventManager = () => {
                   >
                     <option value="">Add required skills</option>
                     {availableSkills
-                      .filter((skill) => !formData.skillsRequired.includes(skill))
+                      .filter((skill) => !formData.required_skills.includes(skill))
                       .map((skill) => (
                         <option key={skill} value={skill}>
                           {skill}
@@ -284,61 +336,45 @@ const EventManager = () => {
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="specialInstructions" className="form-label">
-                    Special Instructions
-                  </label>
-                  <textarea
-                    id="specialInstructions"
-                    className="form-textarea"
-                    placeholder="Any special notes or instructions for the volunteer..."
-                    value={formData.specialInstructions}
-                    onChange={(e) => setFormData({ ...formData, specialInstructions: e.target.value })}
-                  />
-                </div>
-
-                <button type="submit" className="btn btn-primary btn-full">
-                  Create Task
+                <button 
+                  type="submit" 
+                  className="btn btn-primary btn-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating Event..." : "Create Event"}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Task List */}
+          {/* Events List */}
           <div className="task-card">
             <div className="card-header">
-              <h2 className="card-title">Recent Tasks</h2>
+              <h2 className="card-title">Created Events</h2>
               <p className="card-description">
-                {tasks.length} task{tasks.length !== 1 ? "s" : ""} created
+                {events.length} event{events.length !== 1 ? "s" : ""} created
               </p>
             </div>
             <div className="card-content">
               <div className="task-list">
-                {tasks.length === 0 ? (
+                {events.length === 0 ? (
                   <div className="empty-state">
-                    <p>No tasks created yet. Create your first task using the form.</p>
+                    <p>No events created yet. Create your first event using the form.</p>
                   </div>
                 ) : (
-                  tasks
+                  events
                     .slice()
                     .reverse()
-                    .map((task) => (
-                      <div key={task.id} className="task-item">
+                    .map((event) => (
+                      <div key={event.id} className="task-item">
                         <div className="task-item-header">
-                          <h3 className="task-item-title">{task.eventName}</h3>
-                          <span className={`badge ${getPriorityClass(task.priority)}`}>{task.priority}</span>
+                          <h3 className="task-item-title">{event.title}</h3>
+                          <span className={`badge ${getUrgencyClass(event.urgency)}`}>
+                            {event.urgency}
+                          </span>
                         </div>
 
-                        <p className="task-item-description">{task.eventDescription}</p>
-
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                          <span className="badge badge-secondary">{task.category}</span>
-                          {task.skillsRequired.map((skill) => (
-                            <span key={skill} className="badge badge-secondary">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="task-item-description">{event.description}</p>
 
                         <div className="task-separator"></div>
 
@@ -349,65 +385,61 @@ const EventManager = () => {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                              />
-                            </svg>
-                            {task.assignedTo}
-                          </div>
-                          <div className="task-item-meta-item">
-                            <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </svg>
-                            {task.dueDate}
+                            {new Date(event.date).toLocaleDateString()}
                           </div>
-                          <div className="task-item-meta-item">
-                            <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            {task.dueTime}
-                          </div>
-                          {task.location && (
+                          {event.time && (
                             <div className="task-item-meta-item">
                               <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
                                   strokeWidth={2}
-                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                               </svg>
-                              {task.location}
+                              {event.time}
                             </div>
                           )}
-                        </div>
-
-                        {task.specialInstructions && (
-                          <div className="task-special-instructions">
+                          <div className="task-item-meta-item">
                             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                               />
                             </svg>
-                            <span>{task.specialInstructions}</span>
+                            {event.location}
+                          </div>
+                          <div className="task-item-meta-item">
+                            <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                            {getRegistrationStatus(event)}
+                          </div>
+                        </div>
+
+                        {event.required_skills && event.required_skills.length > 0 && (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.75rem" }}>
+                            {event.required_skills.map((skill) => (
+                              <span key={skill} className="badge badge-secondary">
+                                {skill}
+                              </span>
+                            ))}
                           </div>
                         )}
                       </div>
