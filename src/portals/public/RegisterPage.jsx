@@ -85,6 +85,7 @@ function RegisterUSER() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "public",
     address: "",
     address2: "",
     city: "",
@@ -120,7 +121,7 @@ function RegisterUSER() {
     }
 
     // Check required fields
-    const requiredFields = ['name', 'email', 'password', 'address', 'city', 'state'];
+    const requiredFields = ['name', 'email', 'password', 'role', 'address', 'city', 'state'];
     const missingFields = requiredFields.filter(field => !formData[field]);
     
     if (missingFields.length > 0) {
@@ -143,7 +144,7 @@ function RegisterUSER() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: "public",
+        role: formData.role,
         address: formData.address,
         address2: formData.address2,
         city: formData.city,
@@ -292,6 +293,28 @@ function RegisterUSER() {
                         className="form-input"
                       />
                     </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="role">Account Type</label>
+                  <div className="input-wrapper">
+                    <div className="input-icon">
+                      <UserIcon />
+                    </div>
+                    <select
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      required
+                      className="form-input form-select"
+                    >
+                      <option value="public">Public User</option>
+                      <option value="volunteer">Volunteer</option>
+                      <option value="manager">Manager</option>
+                      <option value="veterinarian">Veterinarian</option>
+                    </select>
                   </div>
                 </div>
 
