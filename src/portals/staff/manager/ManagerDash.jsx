@@ -45,6 +45,12 @@ const CheckIcon = () => (
   </svg>
 );
 
+const ChartIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
+  </svg>
+);
+
 function ManagerDash() {
   const [dashboardData, setDashboardData] = useState({
     totalAnimals: 0,
@@ -106,51 +112,34 @@ function ManagerDash() {
         totalDonations,
         recentDonations
       });
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      setError("Failed to load dashboard data. Please try again.");
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
+      setError('Failed to load dashboard data');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color = "blue", link }) => (
-    <div className={`stat-card stat-${color}`}>
-      <div className="stat-icon">
-        <Icon />
+  if (isLoading) {
+    return (
+      <div className="dashboard-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <h3>Loading Dashboard...</h3>
+          <p>Please wait while we fetch your data</p>
+        </div>
       </div>
-      <div className="stat-content">
-        <h3 className="stat-title">{title}</h3>
-        <p className="stat-value">{isLoading ? "..." : value}</p>
-      </div>
-      {link && (
-        <Link to={link} className="stat-link">
-          View Details →
-        </Link>
-      )}
-    </div>
-  );
-
-  const QuickActionCard = ({ title, description, icon: Icon, link, color = "blue" }) => (
-    <Link to={link} className={`quick-action-card action-${color}`}>
-      <div className="action-icon">
-        <Icon />
-      </div>
-      <div className="action-content">
-        <h4 className="action-title">{title}</h4>
-        <p className="action-description">{description}</p>
-      </div>
-    </Link>
-  );
+    );
+  }
 
   if (error) {
     return (
       <div className="dashboard-container">
-        <div className="error-message">
+        <div className="error-state">
           <AlertIcon />
           <h3>Error Loading Dashboard</h3>
           <p>{error}</p>
-          <button onClick={loadDashboardData} className="retry-button">
+          <button onClick={loadDashboardData} className="btn btn-primary">
             Try Again
           </button>
         </div>
@@ -158,145 +147,216 @@ function ManagerDash() {
     );
   }
 
+  const StatCard = ({ title, value, icon: Icon, color = "blue", link }) => (
+    <Link to={link} className="stat-card">
+      <div className={`stat-card-inner stat-card-${color}`}>
+        <div className="stat-icon">
+          <Icon />
+        </div>
+        <div className="stat-content">
+          <h3 className="stat-value">{value}</h3>
+          <p className="stat-label">{title}</p>
+        </div>
+        <div className="stat-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          </svg>
+        </div>
+      </div>
+    </Link>
+  );
+
+  const QuickActionCard = ({ title, description, icon: Icon, link, color = "blue" }) => (
+    <Link to={link} className="quick-action-card">
+      <div className={`quick-action-inner quick-action-${color}`}>
+        <div className="quick-action-icon">
+          <Icon />
+        </div>
+        <div className="quick-action-content">
+          <h4 className="quick-action-title">{title}</h4>
+          <p className="quick-action-description">{description}</p>
+        </div>
+        <div className="quick-action-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          </svg>
+        </div>
+      </div>
+    </Link>
+  );
+
   return (
     <div className="dashboard-container">
-      {/* Header */}
-      <div className="dashboard-header">
-        <div className="header-content">
-          <div className="header-icon">
-            <PawIcon />
-          </div>
-          <div className="header-text">
-            <h1>Manager Dashboard</h1>
-            <p>Welcome back! Here's what's happening at Hope Paws today.</p>
-          </div>
-        </div>
-        <div className="header-actions">
-          <button onClick={loadDashboardData} className="refresh-button" disabled={isLoading}>
-            {isLoading ? "Loading..." : "Refresh"}
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <StatCard
-          title="Total Animals"
-          value={dashboardData.totalAnimals}
-          icon={PawIcon}
-          color="green"
-          link="/manageanimals"
-        />
-        <StatCard
-          title="Available Animals"
-          value={dashboardData.availableAnimals}
-          icon={PawIcon}
-          color="blue"
-          link="/manageanimals"
-        />
-        <StatCard
-          title="Pending Adoptions"
-          value={dashboardData.pendingAdoptions}
-          icon={UsersIcon}
-          color="orange"
-          link="/reviewAdoptions"
-        />
-        <StatCard
-          title="Pending Surrenders"
-          value={dashboardData.pendingSurrenders}
-          icon={AlertIcon}
-          color="red"
-          link="/reviewSurrenderRequest"
-        />
-        <StatCard
-          title="Active Volunteers"
-          value={dashboardData.totalVolunteers}
-          icon={UsersIcon}
-          color="purple"
-          link="/reviewVolunteersApps"
-        />
-        <StatCard
-          title="Upcoming Events"
-          value={dashboardData.activeEvents}
-          icon={CalendarIcon}
-          color="teal"
-          link="/eventmanager"
-        />
-      </div>
-
-      {/* Quick Actions */}
-      <div className="quick-actions-section">
-        <h2>Quick Actions</h2>
-        <div className="quick-actions-grid">
-          <QuickActionCard
-            title="Manage Animals"
-            description="Add, edit, or remove animals from the shelter"
-            icon={PawIcon}
-            link="/manageanimals"
-            color="green"
-          />
-          <QuickActionCard
-            title="Review Applications"
-            description="Review volunteer and adoption applications"
-            icon={UsersIcon}
-            link="/reviewVolunteersApps"
-            color="blue"
-          />
-          <QuickActionCard
-            title="Event Management"
-            description="Create and manage upcoming events"
-            icon={CalendarIcon}
-            link="/eventmanager"
-            color="purple"
-          />
-          <QuickActionCard
-            title="Donation Reports"
-            description="View donation reports and analytics"
-            icon={DollarIcon}
-            link="/donatereports"
-            color="orange"
-          />
-          <QuickActionCard
-            title="Assign Tasks"
-            description="Assign tasks to volunteers"
-            icon={CheckIcon}
-            link="/assigntasks"
-            color="teal"
-          />
-          <QuickActionCard
-            title="Performance Review"
-            description="Review volunteer performance metrics"
-            icon={UsersIcon}
-            link="/volunteerPerformance"
-            color="indigo"
-          />
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="recent-activity-section">
-        <h2>Recent Donations</h2>
-        <div className="activity-list">
-          {dashboardData.recentDonations.length > 0 ? (
-            dashboardData.recentDonations.map((donation, index) => (
-              <div key={index} className="activity-item">
-                <div className="activity-icon">
-                  <DollarIcon />
+      {/* Hero Section */}
+      <div className="dashboard-hero bg-gradient-hero">
+        <div className="dashboard-hero-overlay">
+          <div className="dashboard-hero-container">
+            <div className="dashboard-hero-content">
+              <div className="dashboard-hero-badge">
+                <div className="dashboard-hero-badge-icon">
+                  <PawIcon />
                 </div>
-                <div className="activity-content">
-                  <h4>{donation.name || "Anonymous"}</h4>
-                  <p>{donation.donation_type} - ${donation.amount}</p>
-                  <span className="activity-date">
-                    {new Date(donation.donation_date).toLocaleDateString()}
-                  </span>
+                <div className="dashboard-hero-badge-text">
+                  <span>Manager Dashboard</span>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="no-activity">
-              <p>No recent donations</p>
+              <h1 className="dashboard-hero-title">
+                Welcome back to <span className="hero-title-gradient">Hope Paws</span>
+              </h1>
+              <p className="dashboard-hero-description">
+                Manage your shelter operations, track volunteer activities, and ensure every animal finds their forever home.
+              </p>
+              <div className="dashboard-hero-actions">
+                <button onClick={loadDashboardData} className="btn btn-primary" disabled={isLoading}>
+                  {isLoading ? "Refreshing..." : "Refresh Data"}
+                </button>
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="stats bg-gradient-stats">
+        <div className="stats-container">
+          <div className="stats-header">
+            <h2 className="stats-title">Shelter Overview</h2>
+            <p className="stats-description">Key metrics and statistics for today</p>
+          </div>
+          <div className="stats-grid">
+            <StatCard
+              title="Total Animals"
+              value={dashboardData.totalAnimals}
+              icon={PawIcon}
+              color="green"
+              link="/manageanimals"
+            />
+            <StatCard
+              title="Available Animals"
+              value={dashboardData.availableAnimals}
+              icon={PawIcon}
+              color="blue"
+              link="/manageanimals"
+            />
+            <StatCard
+              title="Pending Adoptions"
+              value={dashboardData.pendingAdoptions}
+              icon={UsersIcon}
+              color="orange"
+              link="/reviewAdoptions"
+            />
+            <StatCard
+              title="Pending Surrenders"
+              value={dashboardData.pendingSurrenders}
+              icon={AlertIcon}
+              color="red"
+              link="/reviewSurrenderRequest"
+            />
+            <StatCard
+              title="Active Volunteers"
+              value={dashboardData.totalVolunteers}
+              icon={UsersIcon}
+              color="purple"
+              link="/reviewVolunteersApps"
+            />
+            <StatCard
+              title="Upcoming Events"
+              value={dashboardData.activeEvents}
+              icon={CalendarIcon}
+              color="teal"
+              link="/eventmanager"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Section */}
+      <div className="section bg-gradient-section">
+        <div className="section-container">
+          <div className="section-header">
+            <h2 className="section-title">Quick Actions</h2>
+            <p className="section-description">Access key management functions</p>
+            <div className="section-divider"></div>
+          </div>
+          <div className="quick-actions-grid">
+            <QuickActionCard
+              title="Manage Animals"
+              description="Add, edit, or remove animals from the shelter"
+              icon={PawIcon}
+              link="/manageanimals"
+              color="green"
+            />
+            <QuickActionCard
+              title="Review Applications"
+              description="Review volunteer and adoption applications"
+              icon={UsersIcon}
+              link="/reviewVolunteersApps"
+              color="blue"
+            />
+            <QuickActionCard
+              title="Event Management"
+              description="Create and manage upcoming events"
+              icon={CalendarIcon}
+              link="/eventmanager"
+              color="purple"
+            />
+            <QuickActionCard
+              title="Donation Reports"
+              description="View donation reports and analytics"
+              icon={DollarIcon}
+              link="/donatereports"
+              color="orange"
+            />
+            <QuickActionCard
+              title="Assign Tasks"
+              description="Assign tasks to volunteers"
+              icon={CheckIcon}
+              link="/assigntasks"
+              color="teal"
+            />
+            <QuickActionCard
+              title="Performance Review"
+              description="Review volunteer performance metrics"
+              icon={ChartIcon}
+              link="/volunteerPerformance"
+              color="indigo"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity Section */}
+      <div className="section bg-gradient-section">
+        <div className="section-container">
+          <div className="section-header">
+            <h2 className="section-title">Recent Donations</h2>
+            <p className="section-description">Latest contributions to our cause</p>
+            <div className="section-divider"></div>
+          </div>
+          <div className="activity-list">
+            {dashboardData.recentDonations.length > 0 ? (
+              dashboardData.recentDonations.map((donation, index) => (
+                <div key={index} className="activity-item">
+                  <div className="activity-icon">
+                    <DollarIcon />
+                  </div>
+                  <div className="activity-content">
+                    <h4 className="activity-title">{donation.name || "Anonymous"}</h4>
+                    <p className="activity-description">{donation.donation_type} - ${donation.amount}</p>
+                    <span className="activity-date">
+                      {new Date(donation.donation_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-activity">
+                <DollarIcon />
+                <h4>No Recent Donations</h4>
+                <p>Donations will appear here when received</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
