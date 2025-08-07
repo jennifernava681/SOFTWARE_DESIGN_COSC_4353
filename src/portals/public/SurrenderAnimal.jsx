@@ -40,11 +40,6 @@ function SurrenderAnimal() {
     age: "",
     gender: "",
     weight: "",
-    // color: "",
-    // microchipped: "",
-    // microchipNumber: "",
-    // spayedNeutered: "",
-    // vaccinated: "",
 
     // Surrender details
     animal_description: "",
@@ -76,36 +71,34 @@ function SurrenderAnimal() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setShowBanner(false)
+    e.preventDefault();
+    setIsLoading(true);
+    setShowBanner(false);
+
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    if (!token || !user?.id_user) {
+      setBannerMessage("You must be logged in to submit a surrender request.");
+      setShowBanner(true);
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // Check if user is logged in
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setBannerMessage("Please log in to submit a surrender request.");
-        setShowBanner(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // Get user info from localStorage
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      
       const surrenderData = {
         ...formData,
         user_id: user.id_user,
-        status: 'pending',
-        surrender_date: new Date().toISOString()
+        status: "pending",
+        surrender_date: new Date().toISOString(),
       };
 
       const response = await apiFetch("/api/surrender", "POST", surrenderData);
-      
-      setBannerMessage("Surrender request submitted successfully! We'll contact you soon.");
+
+      setBannerMessage("Surrender request submitted successfully.");
       setShowBanner(true);
       setSubmitted(true);
-      
     } catch (error) {
       console.error("Surrender request error:", error);
       setBannerMessage("Failed to submit surrender request. Please try again.");
@@ -113,7 +106,9 @@ function SurrenderAnimal() {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
+
 
   if (submitted) {
     return (
