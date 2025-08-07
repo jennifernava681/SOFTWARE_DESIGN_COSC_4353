@@ -1,8 +1,9 @@
 "use client"
 
 import "./index.css"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
+import { isAuthenticated } from "./api"
 
 // Proper Paw Print Icon that matches the design
 function PawIcon() {
@@ -113,6 +114,32 @@ const upcomingEvents = [
 
 function HomePage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userRole, setUserRole] = useState("")
+  const [userName, setUserName] = useState("")
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const authenticated = isAuthenticated()
+    setIsLoggedIn(authenticated)
+    
+    if (authenticated) {
+      // Get user info from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      setUserRole(user.role || "")
+      setUserName(user.name || "")
+    }
+  }, [])
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setIsLoggedIn(false)
+    setUserRole("")
+    setUserName("")
+    // Redirect to home page
+    window.location.href = '/'
+  }
 
   return (
     <div className="min-h-screen bg-gradient-main">
@@ -152,15 +179,33 @@ function HomePage() {
               </Link>
             </nav>
             <div className="header-buttons desktop-only">
-              <Link to="/login" className="btn btn-outline">
-                Sign In
-              </Link>
-              <Link to="/stafflogin" className="btn btn-outline">
-                Staff Login
-              </Link>
-              <Link to="/register" className="btn btn-primary">
-                Get Started
-              </Link>
+              {!isLoggedIn ? (
+                <>
+                  <Link to="/login" className="btn btn-outline">
+                    Sign In
+                  </Link>
+                  <Link to="/stafflogin" className="btn btn-outline">
+                    Staff Login
+                  </Link>
+                  <Link to="/register" className="btn btn-primary">
+                    Get Started
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="user-welcome" style={{ color: 'white', marginRight: '1rem' }}>
+                    Welcome, {userName || 'User'}!
+                  </span>
+                  {userRole === 'manager' && (
+                    <Link to="/manager-dashboard" className="btn btn-outline">
+                      Manager Dashboard
+                    </Link>
+                  )}
+                  <button onClick={handleSignOut} className="btn btn-outline">
+                    Sign Out
+                  </button>
+                </>
+              )}
             </div>
           </div>
           {showMobileMenu && (
@@ -179,15 +224,33 @@ function HomePage() {
               </Link>
 
               <div className="mobile-buttons">
-                <Link to="/login" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
-                  Sign In
-                </Link>
-                <Link to="/stafflogin" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
-                  Staff Login
-                </Link>
-                <Link to="/register" className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>
-                  Get Started
-                </Link>
+                {!isLoggedIn ? (
+                  <>
+                    <Link to="/login" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
+                      Sign In
+                    </Link>
+                    <Link to="/stafflogin" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
+                      Staff Login
+                    </Link>
+                    <Link to="/register" className="btn btn-primary" onClick={() => setShowMobileMenu(false)}>
+                      Get Started
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="user-welcome" style={{ color: 'white', marginBottom: '1rem', textAlign: 'center', display: 'block' }}>
+                      Welcome, {userName || 'User'}!
+                    </span>
+                    {userRole === 'manager' && (
+                      <Link to="/manager-dashboard" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
+                        Manager Dashboard
+                      </Link>
+                    )}
+                    <button onClick={() => { handleSignOut(); setShowMobileMenu(false); }} className="btn btn-outline">
+                      Sign Out
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
