@@ -429,6 +429,85 @@ LOCK TABLES `volunteer_tasks` WRITE;
 /*!40000 ALTER TABLE `volunteer_tasks` DISABLE KEYS */;
 /*!40000 ALTER TABLE `volunteer_tasks` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `events`
+--
+
+DROP TABLE IF EXISTS `events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `events` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(100) NOT NULL,
+  `description` text,
+  `date` date NOT NULL,
+  `time` time DEFAULT NULL,
+  `location` varchar(200) NOT NULL,
+  `urgency` enum('low','medium','high','critical') DEFAULT 'low',
+  `max_volunteers` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `events`
+--
+
+LOCK TABLES `events` WRITE;
+/*!40000 ALTER TABLE `events` DISABLE KEYS */;
+INSERT INTO `events` VALUES 
+(1,'Emergency Rescue Mission','Urgent rescue operation for abandoned animals in the downtown area. Need experienced volunteers for animal handling and medical assistance.','2024-02-09','08:00:00','Emergency Location - Downtown Area','critical',10,'2024-01-15 10:30:00','2024-01-15 10:30:00'),
+(2,'Community Adoption Day','Annual adoption event to find loving homes for our shelter animals. Volunteers needed for setup, animal handling, and customer assistance.','2024-02-15','10:00:00','Main Shelter - 123 Hope Street','medium',15,'2024-01-20 14:15:00','2024-01-20 14:15:00'),
+(3,'Veterinary Check-up Day','Routine health check-ups for all shelter animals. Volunteers needed to assist veterinarians and handle animals during examinations.','2024-02-20','09:00:00','Shelter Medical Wing','high',8,'2024-01-25 11:45:00','2024-01-25 11:45:00'),
+(4,'Training Workshop','Volunteer training session for new recruits. Learn proper animal handling techniques and shelter protocols.','2024-02-25','13:00:00','Training Room - Shelter Annex','low',20,'2024-01-30 16:20:00','2024-01-30 16:20:00'),
+(5,'Fundraising Gala','Annual fundraising event to support shelter operations. Volunteers needed for event coordination, guest assistance, and auction management.','2024-03-01','18:00:00','Grand Hotel - Downtown','medium',12,'2024-02-05 09:10:00','2024-02-05 09:10:00');
+/*!40000 ALTER TABLE `events` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `event_skills`
+--
+
+DROP TABLE IF EXISTS `event_skills`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `event_skills` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `event_id` int NOT NULL,
+  `skill_name` varchar(100) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_event_skills_events1_idx` (`event_id`),
+  CONSTRAINT `fk_event_skills_events1` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `event_skills`
+--
+
+LOCK TABLES `event_skills` WRITE;
+/*!40000 ALTER TABLE `event_skills` DISABLE KEYS */;
+INSERT INTO `event_skills` VALUES 
+(1,1,'Animal Handling','2024-01-15 10:30:00'),
+(2,1,'Medical Assistance','2024-01-15 10:30:00'),
+(3,1,'Emergency Response','2024-01-15 10:30:00'),
+(4,2,'Customer Service','2024-01-20 14:15:00'),
+(5,2,'Animal Handling','2024-01-20 14:15:00'),
+(6,2,'Event Setup','2024-01-20 14:15:00'),
+(7,3,'Medical Assistance','2024-01-25 11:45:00'),
+(8,3,'Animal Handling','2024-01-25 11:45:00'),
+(9,3,'Record Keeping','2024-01-25 11:45:00'),
+(10,4,'Training','2024-01-30 16:20:00'),
+(11,4,'Communication','2024-01-30 16:20:00'),
+(12,5,'Event Coordination','2024-02-05 09:10:00'),
+(13,5,'Customer Service','2024-02-05 09:10:00'),
+(14,5,'Fundraising','2024-02-05 09:10:00');
+/*!40000 ALTER TABLE `event_skills` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
