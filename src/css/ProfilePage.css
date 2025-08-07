@@ -150,6 +150,25 @@
 .profile-form textarea[readonly] {
   background-color: #f9fafb;
   color: #374151;
+  cursor: not-allowed;
+}
+
+/* When editing, make inputs look normal */
+.profile-form input:not([readonly]),
+.profile-form select:not(:disabled),
+.profile-form textarea:not([readonly]) {
+  background-color: white;
+  color: #111827;
+  cursor: text;
+  border-color: #15803d;
+}
+
+/* Add visual feedback for edit mode */
+.profile-form.editing input:not([readonly]),
+.profile-form.editing select:not(:disabled),
+.profile-form.editing textarea:not([readonly]) {
+  border-color: #15803d;
+  box-shadow: 0 0 0 1px rgba(21, 128, 61, 0.2);
 }
 
 /* Ensure the button text is white even after global overrides */
