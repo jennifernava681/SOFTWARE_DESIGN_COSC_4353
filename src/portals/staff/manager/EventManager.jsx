@@ -32,6 +32,8 @@ const EventManager = () => {
 
   // Load existing events
   useEffect(() => {
+    // Clear any existing errors on component mount
+    setError(null);
     loadEvents();
     
     // Test API connection
@@ -52,8 +54,11 @@ const EventManager = () => {
     try {
       const eventsData = await apiFetch('/api/events');
       setEvents(eventsData);
+      // Clear any existing errors when events load successfully
+      setError(null);
     } catch (err) {
       console.error('Error loading events:', err);
+      // Don't set error for loading events - just log it
     }
   };
 
@@ -89,6 +94,7 @@ const EventManager = () => {
     try {
       console.log('Submitting event data:', formData);
       console.log('User token:', localStorage.getItem('token'));
+      console.log('Clearing error state at start of submission');
       
       // Check if user is authenticated and has manager role
       const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -103,12 +109,15 @@ const EventManager = () => {
 
       // If we reach here, the API call was successful (no exception thrown)
       console.log('Event created successfully:', response);
+      console.log('Setting success message and clearing error state');
       setShowSuccessMessage(true);
+      setError(null); // Explicitly clear error state on success
       resetForm();
       await loadEvents(); // Reload events
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (err) {
       console.error('Event creation error:', err);
+      console.log('Setting error state to:', err.message || 'Network error occurred');
       setError(err.message || 'Network error occurred');
     } finally {
       setIsLoading(false);

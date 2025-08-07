@@ -196,11 +196,11 @@ function HomePage() {
                   <span className="user-welcome" style={{ color: 'white', marginRight: '1rem' }}>
                     Welcome, {userName || 'User'}!
                   </span>
-                  {userRole === 'manager' && (
-                    <Link to="/manager-dashboard" className="btn btn-outline">
-                      Manager Dashboard
-                    </Link>
-                  )}
+                                     {userRole === 'manager' && (
+                     <Link to="/managerdash" className="btn btn-outline">
+                       Manager Dashboard
+                     </Link>
+                   )}
                   <button onClick={handleSignOut} className="btn btn-outline">
                     Sign Out
                   </button>
@@ -241,11 +241,11 @@ function HomePage() {
                     <span className="user-welcome" style={{ color: 'white', marginBottom: '1rem', textAlign: 'center', display: 'block' }}>
                       Welcome, {userName || 'User'}!
                     </span>
-                    {userRole === 'manager' && (
-                      <Link to="/manager-dashboard" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
-                        Manager Dashboard
-                      </Link>
-                    )}
+                                         {userRole === 'manager' && (
+                       <Link to="/managerdash" className="btn btn-outline" onClick={() => setShowMobileMenu(false)}>
+                         Manager Dashboard
+                       </Link>
+                     )}
                     <button onClick={() => { handleSignOut(); setShowMobileMenu(false); }} className="btn btn-outline">
                       Sign Out
                     </button>
