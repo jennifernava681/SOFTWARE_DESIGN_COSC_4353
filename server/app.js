@@ -4,6 +4,21 @@ const pool = require('./db');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
+const app = express();
+
+app.use(cors({
+  origin: 'https://hopepaws.vercel.app',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+app.options('*', (req, res, next) => {
+  console.log('Preflight OPTIONS request for:', req.url); // Log preflight requests
+  cors()(req, res, next);  // Handle the preflight OPTIONS request
+});
+
+
 const userRoutes = require('./routes/users');
 const animalRoutes = require('./routes/animals');
 const adoptionRoutes = require('./routes/adoption');
@@ -17,14 +32,6 @@ const reportRoutes = require('./routes/reports');
 
 console.log(">>> Starting backend app...");
 
-const app = express();
-
-app.use(cors({
-  origin: 'https://hopepaws.vercel.app',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
