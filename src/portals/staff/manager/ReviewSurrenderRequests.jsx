@@ -24,6 +24,20 @@ function ReviewSurrenderRequests() {
     fetchSurrenderRequests();
   }, []);
 
+  const handleStatusChange = async (id, newStatus) => {
+    try{
+      await apiFetch(`/api/surrender/${id}/status`, "PUT", { status: newStatus });
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.id_request === id ? { ...req, status: newStatus } : req
+        ) 
+      );
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      setError("Failed to update status.");
+    }
+  };
+
   if (loading) return <p>Loading surrender requests...</p>;
   if (error) return <NotificationBanner show message={error} />;
 
@@ -48,6 +62,7 @@ function ReviewSurrenderRequests() {
             <th>Urgency</th>
             <th>Submitted</th>
             <th>Submitted By</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -69,6 +84,34 @@ function ReviewSurrenderRequests() {
               </td>
               <td>
                 {req.user_name} ({req.user_email})
+              </td>
+              <td>
+                <span className={`status-label ${req.status}`}>
+                  {req.status}
+                </span>
+                <div className="status-buttons">
+                  <button
+                    onClick={() =>
+                      handleStatusChange(req.id_request, "approved")
+                    }
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleStatusChange(req.id_request, "rejected")
+                    }
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleStatusChange(req.id_request, "pending")
+                    }
+                  >
+                    Reset
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

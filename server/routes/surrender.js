@@ -157,36 +157,62 @@ router.put('/:id/status', auth, async (req, res) => {
   if (req.user.role !== 'manager') {
     return res.status(403).json({ message: 'Only managers can update surrender requests' });
   }
-  
+
   const { status } = req.body;
-  
+  const requestId = req.params.id;
+
   if (!status || !['pending', 'approved', 'rejected'].includes(status)) {
     return res.status(400).json({ message: 'Status must be pending, approved, or rejected' });
   }
-  
+
   try {
-    await pool.query(
-      'UPDATE surrender_requests SET status = ? WHERE USERS_id_user = ?',
-      [status, req.params.id]
+    // First, get the user_id of the surrender request
+    const [rows] = await pool.query(
+      'SELECT USERS_id_user FROM surrender_requests WHERE id_request = ?',
+      [requestId]
     );
-    
-    // Create notification for user based on status
-    const message = status === 'approved' 
-      ? 'Your animal surrender request has been approved. Please contact us to arrange the surrender.'
-      : 'Your animal surrender request has been reviewed. Unfortunately, it was not approved at this time.';
-    
-    const type = status === 'approved' ? 'surrender_approved' : 'surrender_rejected';
-    
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Surrender request not found' });
+    }
+
+    const userId = rows[0].USERS_id_user;
+
+    // Update the surrender request status
     await pool.query(
-      'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
-      [req.params.id, message, type]
+      'UPDATE surrender_requests SET status = ? WHERE id_request = ?',
+      [status, requestId]
     );
-    
+
+    // Send notification if a user is associated with the request
+    if (userId) {
+      const message =
+        status === 'approved'
+          ? 'Your animal surrender request has been approved. Please contact us to arrange the surrender.'
+          : status === 'rejected'
+          ? 'Your animal surrender request was not approved at this time.'
+          : 'Your animal surrender request is under review.';
+
+      const type =
+        status === 'approved'
+          ? 'surrender_approved'
+          : status === 'rejected'
+          ? 'surrender_rejected'
+          : 'surrender_pending';
+
+      await pool.query(
+        'INSERT INTO notifications (USERS_id, message, type, created_at, is_read) VALUES (?, ?, ?, NOW(), 0)',
+        [userId, message, type]
+      );
+    }
+
     res.json({ message: 'Surrender request status updated successfully' });
   } catch (err) {
+    console.error('Error updating surrender request status:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 // Delete surrender request (managers only)
 router.delete('/:id', auth, async (req, res) => {
