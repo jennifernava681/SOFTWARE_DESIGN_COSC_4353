@@ -1,0 +1,33 @@
+.status-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.status-buttons button {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: #f4f4f4;
+  border-radius: 4px;
+}
+
+.status-label {
+  display: inline-block;
+  font-weight: bold;
+  text-transform: capitalize;
+  margin-bottom: 4px;
+}
+
+.status-label.approved {
+  color: green;
+}
+
+.status-label.rejected {
+  color: red;
+}
+
+.status-label.pending {
+  color: orange;
+}
