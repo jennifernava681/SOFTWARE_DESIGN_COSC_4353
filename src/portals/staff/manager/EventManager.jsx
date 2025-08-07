@@ -33,15 +33,25 @@ const EventManager = () => {
   // Load existing events
   useEffect(() => {
     loadEvents();
+    
+    // Test API connection
+    const testAPI = async () => {
+      try {
+        console.log('Testing API connection...');
+        const testResponse = await apiFetch('/api/test');
+        console.log('API test response:', testResponse);
+      } catch (err) {
+        console.error('API test failed:', err);
+      }
+    };
+    
+    testAPI();
   }, []);
 
   const loadEvents = async () => {
     try {
-      const response = await apiFetch('/api/events');
-      if (response.ok) {
-        const eventsData = await response.json();
-        setEvents(eventsData);
-      }
+      const eventsData = await apiFetch('/api/events');
+      setEvents(eventsData);
     } catch (err) {
       console.error('Error loading events:', err);
     }
@@ -77,25 +87,29 @@ const EventManager = () => {
     setError(null);
 
     try {
-      const response = await apiFetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+      console.log('Submitting event data:', formData);
+      console.log('User token:', localStorage.getItem('token'));
+      
+      // Check if user is authenticated and has manager role
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('User data:', user);
+      
+      if (!user.role || user.role !== 'manager') {
+        setError('Only managers can create events. Please log in with a manager account.');
+        return;
+      }
+      
+      const response = await apiFetch('/api/events', 'POST', formData);
 
-      if (response.ok) {
+      if (response) {
         setShowSuccessMessage(true);
         resetForm();
         await loadEvents(); // Reload events
         setTimeout(() => setShowSuccessMessage(false), 3000);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to create event');
       }
     } catch (err) {
-      setError('Network error occurred');
+      console.error('Event creation error:', err);
+      setError(err.message || 'Network error occurred');
     } finally {
       setIsLoading(false);
     }
