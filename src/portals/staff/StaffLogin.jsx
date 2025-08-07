@@ -67,7 +67,7 @@ function LoginSTAFF() {
     setIsLoading(true);
     try {
       // ✅ Use centralized working fetch method
-      const data = await apiFetch("/api/users/login", "POST", formData);
+      const data = await apiFetch("api/users/login", "POST", formData);
       // Save user data
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
