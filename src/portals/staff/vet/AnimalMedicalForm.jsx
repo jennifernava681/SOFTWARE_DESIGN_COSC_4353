@@ -21,7 +21,6 @@ function NewMedicalRecordForm() {
   const allDiagnoses = ["Allergies", "Parasites", "Dental Issues", "Respiratory Infection", "Arthritis", "Obesity", "Skin Condition"]
   const allTreatments = ["Antibiotics", "Pain Medication", "Dietary Change", "Surgery", "Vaccine", "Physical Therapy", "Topical Cream"]
 
-  // Format animal like in VetDashboard
   function formatAnimalForDisplay(animal) {
     return {
       id: animal.id_animal || animal.id,
@@ -31,8 +30,9 @@ function NewMedicalRecordForm() {
     }
   }
 
+  // ✅ FIXED: use the correct endpoint for animals
   function getAnimals() {
-    return apiFetch("/api/vets/animals", "GET")
+    return apiFetch("/api/animals", "GET")
       .then(data => Array.isArray(data) ? data.map(formatAnimalForDisplay) : [])
       .catch(error => {
         console.error("Error fetching animals:", error)
@@ -73,7 +73,6 @@ function NewMedicalRecordForm() {
       .then(([animals, records]) => {
         setAvailableAnimals(animals)
         setMedicalRecords(records)
-
         if (animals.length > 0) {
           setFormData(prev => ({ ...prev, animalId: animals[0].id.toString() }))
         }
@@ -167,6 +166,7 @@ function NewMedicalRecordForm() {
           </div>
 
           <div className="task-grid">
+            {/* Form Card */}
             <div className="task-card">
               <div className="card-header">
                 <h2 className="card-title"><Stethoscope className="icon" /> New Record Details</h2>
@@ -175,6 +175,7 @@ function NewMedicalRecordForm() {
 
               <div className="card-content">
                 <form onSubmit={handleSubmit}>
+                  {/* Animal Selector */}
                   <div className="form-group">
                     <label htmlFor="animalId" className="form-label">Select Animal</label>
                     <select
@@ -194,6 +195,7 @@ function NewMedicalRecordForm() {
                     </select>
                   </div>
 
+                  {/* Record Type */}
                   <div className="form-group">
                     <label htmlFor="recordType" className="form-label">Record Type</label>
                     <select
@@ -211,6 +213,7 @@ function NewMedicalRecordForm() {
                     </select>
                   </div>
 
+                  {/* Date */}
                   <div className="form-grid form-grid-2">
                     <div className="form-group">
                       <label htmlFor="date" className="form-label">Date</label>
@@ -226,6 +229,7 @@ function NewMedicalRecordForm() {
                     </div>
                   </div>
 
+                  {/* Notes */}
                   <div className="form-group">
                     <label htmlFor="note" className="form-label">Notes</label>
                     <textarea
@@ -240,6 +244,7 @@ function NewMedicalRecordForm() {
                     />
                   </div>
 
+                  {/* Diagnoses */}
                   <div className="form-group">
                     <label className="form-label">Diagnoses</label>
                     <div className="skills-container">
@@ -255,6 +260,7 @@ function NewMedicalRecordForm() {
                     </select>
                   </div>
 
+                  {/* Treatments */}
                   <div className="form-group">
                     <label className="form-label">Treatments</label>
                     <div className="skills-container">
@@ -270,6 +276,7 @@ function NewMedicalRecordForm() {
                     </select>
                   </div>
 
+                  {/* Submit */}
                   <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
                     {loading ? "Adding Record..." : "Add Medical Record"}
                   </button>
@@ -277,6 +284,7 @@ function NewMedicalRecordForm() {
               </div>
             </div>
 
+            {/* Records Display Card */}
             <div className="task-card">
               <div className="card-header">
                 <h2 className="card-title">Recent Medical Records</h2>
