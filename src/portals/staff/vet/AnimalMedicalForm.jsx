@@ -10,7 +10,7 @@ function NewMedicalRecordForm() {
   const [formData, setFormData] = useState({
     animalId: "",
     recordType: "",
-    date: "",
+    date: new Date().toISOString().split("T")[0],
     note: "",
     diagnoses: [],
     treatments: [],
@@ -21,54 +21,47 @@ function NewMedicalRecordForm() {
   const allDiagnoses = ["Allergies", "Parasites", "Dental Issues", "Respiratory Infection", "Arthritis", "Obesity", "Skin Condition"]
   const allTreatments = ["Antibiotics", "Pain Medication", "Dietary Change", "Surgery", "Vaccine", "Physical Therapy", "Topical Cream"]
 
-  function formatAnimalForDisplay(animal) {
-    return {
-      id: animal.id_animal || animal.id,
-      name: animal.name || "Unknown",
-      type: animal.species || "Unknown",
-      breed: animal.species || "Mixed Breed",
-    }
-  }
+  const formatAnimal = (animal) => ({
+    id: animal.id_animal || animal.id,
+    name: animal.name || "Unknown",
+    type: animal.species || "Unknown",
+    breed: animal.species || "Mixed Breed",
+  })
 
-  // ✅ FIXED: use the correct endpoint for animals
-  function getAnimals() {
+  const getAnimals = () => {
     return apiFetch("/api/animals", "GET")
-      .then(data => Array.isArray(data) ? data.map(formatAnimalForDisplay) : [])
-      .catch(error => {
-        console.error("Error fetching animals:", error)
-        throw error
+      .then(data => Array.isArray(data) ? data.map(formatAnimal) : [])
+      .catch(err => {
+        console.error("Error fetching animals:", err)
+        throw err
       })
   }
 
-  function getMedicalRecords() {
+  const getMedicalRecords = () => {
     return apiFetch("/api/vets/medical-records", "GET")
       .then(data => Array.isArray(data) ? data : [])
-      .catch(error => {
-        console.error("Error fetching medical records:", error)
-        throw error
+      .catch(err => {
+        console.error("Error fetching medical records:", err)
+        throw err
       })
   }
 
-  function createMedicalRecord(recordData) {
+  const createMedicalRecord = (record) => {
     const payload = {
-      record_type: recordData.recordType,
-      record_date: recordData.date,
+      record_type: record.recordType,
+      record_date: record.date,
       created_at: new Date().toISOString(),
-      note: recordData.note,
-      ANIMALS_id_animal: recordData.animalId,
-      USERS_id_user: 1,
-      diagnoses: recordData.diagnoses,
-      treatments: recordData.treatments,
+      note: record.note,
+      ANIMALS_id_animal: record.animalId,
+      USERS_id_user: 1, // TODO: Replace with logged-in vet ID
+      diagnoses: record.diagnoses,
+      treatments: record.treatments,
     }
 
     return apiFetch("/api/vets/medical-records", "POST", payload)
-      .catch(error => {
-        console.error("Error creating medical record:", error)
-        throw error
-      })
   }
 
-  function loadInitialData() {
+  const loadData = () => {
     Promise.all([getAnimals(), getMedicalRecords()])
       .then(([animals, records]) => {
         setAvailableAnimals(animals)
@@ -78,41 +71,40 @@ function NewMedicalRecordForm() {
         }
       })
       .catch(error => {
-        console.error('❌ Failed to load data:', error)
-        alert("Error loading animals or records. Please try again later.")
+        console.error("❌ Failed to load data:", error)
+        alert("Error loading animals or records.")
       })
   }
 
   useEffect(() => {
-    loadInitialData()
+    loadData()
   }, [])
 
-  function handleChange(e) {
+  const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  function handleMultiSelectChange(e, fieldName) {
-    const selectedValue = e.target.value
-    if (selectedValue && !formData[fieldName].includes(selectedValue)) {
+  const handleMultiSelectChange = (e, fieldName) => {
+    const value = e.target.value
+    if (value && !formData[fieldName].includes(value)) {
       setFormData(prev => ({
         ...prev,
-        [fieldName]: [...prev[fieldName], selectedValue],
+        [fieldName]: [...prev[fieldName], value]
       }))
-      e.target.value = ""
     }
+    e.target.value = ""
   }
 
-  function removeMultiSelectItem(itemToRemove, fieldName) {
+  const removeMultiSelectItem = (item, fieldName) => {
     setFormData(prev => ({
       ...prev,
-      [fieldName]: prev[fieldName].filter(item => item !== itemToRemove),
+      [fieldName]: prev[fieldName].filter(i => i !== item)
     }))
   }
 
-  function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault()
-
     if (!formData.animalId || !formData.recordType || !formData.date || !formData.note) {
       alert("Please fill in all required fields.")
       return
@@ -131,21 +123,21 @@ function NewMedicalRecordForm() {
 
     createMedicalRecord(recordData)
       .then(() => getMedicalRecords())
-      .then(updatedRecords => {
-        setMedicalRecords(updatedRecords)
+      .then(updated => {
+        setMedicalRecords(updated)
         setFormData(prev => ({
           ...prev,
           recordType: "",
-          date: "",
+          date: new Date().toISOString().split("T")[0],
           note: "",
           diagnoses: [],
           treatments: [],
         }))
-        alert("✅ Medical record added successfully!")
+        alert("✅ Medical record added!")
       })
-      .catch(error => {
-        console.error('Error creating medical record:', error)
-        alert("❌ Error creating medical record. Please try again.")
+      .catch(err => {
+        console.error("Error creating record:", err)
+        alert("❌ Error adding record.")
       })
       .finally(() => setLoading(false))
   }
@@ -155,173 +147,140 @@ function NewMedicalRecordForm() {
       <main className="flex-1 p-6 md:p-10">
         <div className="mb-6 flex justify-end">
           <Link to="/vetdashboard" className="btn-primary flex items-center gap-2 px-4 py-2 rounded-md text-base font-semibold">
-            <ArrowLeft className="h-5 w-5" /> Volver al Dashboard
+            <ArrowLeft className="h-5 w-5" /> Back to Dashboard
           </Link>
         </div>
 
         <div className="task-container">
           <div className="task-header">
-            <h1 className="task-title">Add New Medical Record</h1>
-            <p className="task-subtitle">Create and manage medical records for animals</p>
+            <h1 className="task-title">Add Medical Record</h1>
+            <p className="task-subtitle">Track medical care for animals</p>
           </div>
 
           <div className="task-grid">
             {/* Form Card */}
             <div className="task-card">
               <div className="card-header">
-                <h2 className="card-title"><Stethoscope className="icon" /> New Record Details</h2>
-                <p className="card-description">Fill out the details to add a new medical record.</p>
+                <h2 className="card-title"><Stethoscope className="icon" /> Record Details</h2>
               </div>
 
               <div className="card-content">
                 <form onSubmit={handleSubmit}>
-                  {/* Animal Selector */}
                   <div className="form-group">
-                    <label htmlFor="animalId" className="form-label">Select Animal</label>
+                    <label className="form-label">Animal</label>
                     <select
-                      id="animalId"
                       name="animalId"
                       className="form-select"
                       value={formData.animalId}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">Select an animal</option>
-                      {availableAnimals.map((animal) => (
+                      <option value="">Select</option>
+                      {availableAnimals.map(animal => (
                         <option key={animal.id} value={animal.id}>
-                          {animal.name} ({animal.type} - {animal.breed})
+                          {animal.name} ({animal.type})
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  {/* Record Type */}
                   <div className="form-group">
-                    <label htmlFor="recordType" className="form-label">Record Type</label>
+                    <label className="form-label">Record Type</label>
                     <select
-                      id="recordType"
                       name="recordType"
                       className="form-select"
                       value={formData.recordType}
                       onChange={handleChange}
                       required
                     >
-                      <option value="">Select record type</option>
-                      {recordTypes.map((type) => (
+                      <option value="">Select</option>
+                      {recordTypes.map(type => (
                         <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </div>
 
-                  {/* Date */}
-                  <div className="form-grid form-grid-2">
-                    <div className="form-group">
-                      <label htmlFor="date" className="form-label">Date</label>
-                      <input
-                        id="date"
-                        type="date"
-                        name="date"
-                        className="form-input"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Notes */}
                   <div className="form-group">
-                    <label htmlFor="note" className="form-label">Notes</label>
-                    <textarea
-                      id="note"
-                      name="note"
-                      className="form-textarea"
-                      placeholder="Detailed notes about the medical record..."
-                      value={formData.note}
+                    <label className="form-label">Date</label>
+                    <input
+                      type="date"
+                      name="date"
+                      className="form-input"
+                      value={formData.date}
                       onChange={handleChange}
-                      rows={4}
                       required
                     />
                   </div>
 
-                  {/* Diagnoses */}
+                  <div className="form-group">
+                    <label className="form-label">Notes</label>
+                    <textarea
+                      name="note"
+                      className="form-textarea"
+                      rows={3}
+                      value={formData.note}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
                   <div className="form-group">
                     <label className="form-label">Diagnoses</label>
                     <div className="skills-container">
-                      {formData.diagnoses.map((d) => (
+                      {formData.diagnoses.map(d => (
                         <span key={d} className="badge badge-secondary badge-removable" onClick={() => removeMultiSelectItem(d, "diagnoses")}>{d} ×</span>
                       ))}
                     </div>
-                    <select className="form-select" onChange={(e) => handleMultiSelectChange(e, "diagnoses")} value="">
-                      <option value="">Add diagnoses</option>
+                    <select onChange={(e) => handleMultiSelectChange(e, "diagnoses")} className="form-select" value="">
+                      <option value="">Add Diagnosis</option>
                       {allDiagnoses.filter(d => !formData.diagnoses.includes(d)).map(d => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                   </div>
 
-                  {/* Treatments */}
                   <div className="form-group">
                     <label className="form-label">Treatments</label>
                     <div className="skills-container">
-                      {formData.treatments.map((t) => (
+                      {formData.treatments.map(t => (
                         <span key={t} className="badge badge-secondary badge-removable" onClick={() => removeMultiSelectItem(t, "treatments")}>{t} ×</span>
                       ))}
                     </div>
-                    <select className="form-select" onChange={(e) => handleMultiSelectChange(e, "treatments")} value="">
-                      <option value="">Add treatments</option>
+                    <select onChange={(e) => handleMultiSelectChange(e, "treatments")} className="form-select" value="">
+                      <option value="">Add Treatment</option>
                       {allTreatments.filter(t => !formData.treatments.includes(t)).map(t => (
                         <option key={t} value={t}>{t}</option>
                       ))}
                     </select>
                   </div>
 
-                  {/* Submit */}
                   <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-                    {loading ? "Adding Record..." : "Add Medical Record"}
+                    {loading ? "Saving..." : "Add Medical Record"}
                   </button>
                 </form>
               </div>
             </div>
 
-            {/* Records Display Card */}
+            {/* Records Card */}
             <div className="task-card">
               <div className="card-header">
-                <h2 className="card-title">Recent Medical Records</h2>
-                <p className="card-description">
-                  {medicalRecords.length} record{medicalRecords.length !== 1 ? "s" : ""} added
-                </p>
+                <h2 className="card-title">Recent Records</h2>
               </div>
               <div className="card-content">
                 <div className="task-list">
                   {medicalRecords.length === 0 ? (
-                    <div className="empty-state">
-                      <p>No medical records added yet. Add your first record using the form.</p>
-                    </div>
+                    <div className="empty-state">No records yet.</div>
                   ) : (
-                    medicalRecords.map((record) => (
-                      <div key={record.id_record || record.id} className="task-item">
+                    medicalRecords.map((rec) => (
+                      <div key={rec.id_record || rec.id} className="task-item">
                         <div className="task-item-header">
-                          <h3 className="task-item-title">
-                            {record.record_type || record.recordType} for {record.animal_name || record.animalName}
-                          </h3>
+                          <h3 className="task-item-title">{rec.record_type} for {rec.animal_name}</h3>
                         </div>
-                        <p className="task-item-description">{record.note}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                          {record.diagnoses?.map((diag) => (
-                            <span key={diag} className="badge badge-secondary"><Tag className="h-3 w-3 mr-1" />{diag}</span>
-                          ))}
-                          {record.treatments?.map((treat) => (
-                            <span key={treat} className="badge badge-secondary"><Plus className="h-3 w-3 mr-1" />{treat}</span>
-                          ))}
+                        <p className="task-item-description">{rec.note}</p>
+                        <div className="task-item-meta">
+                          <Calendar className="icon-sm" /> {rec.record_date}
                         </div>
                         <div className="task-separator"></div>
-                        <div className="task-item-meta">
-                          <div className="task-item-meta-item">
-                            <Calendar className="icon-sm" />
-                            {record.record_date || record.date}
-                          </div>
-                        </div>
                       </div>
                     ))
                   )}
