@@ -109,10 +109,15 @@ router.post('/', async (req, res) => {
     // Insert surrender request
     const [result] = await pool.query(
       `INSERT INTO surrender_requests (
-        animal_description, reason, urgency, status, 
+        animal_description, reason, urgency, status,
+        animalName, animalType, breed, age, gender, weight,
         USERS_id_user, USERS_adrees_idadrees_id, USERS_adrees_state_state_id
-      ) VALUES (?, ?, ?, 'pending', ?, ?, ?)`,
-      [animal_description, reason, urgency, user_id, user.adrees_idadrees_id, user.adrees_state_state_id]
+      ) VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        animal_description, reason, urgency,
+        animal_name, animal_type, breed, age, gender, weight,
+        user_id, user.adrees_idadrees_id, user.adrees_state_state_id
+      ]
     );
     
     // Create notification for user

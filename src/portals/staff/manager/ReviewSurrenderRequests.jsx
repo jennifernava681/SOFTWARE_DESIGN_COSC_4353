@@ -37,28 +37,39 @@ function ReviewSurrenderRequests() {
       <table className="surrender-table">
         <thead>
           <tr>
-            <th>Animal</th>
-            <th>Type</th>
+            <th>Animal Type</th>
+            <th>Name</th>
             <th>Breed</th>
-            <th>Urgency</th>
-            <th>Reason</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Weight</th>
             <th>Description</th>
-            <th>Surrendered By</th>
-            <th>Date</th>
+            <th>Reason</th>
+            <th>Urgency</th>
+            <th>Submitted</th>
+            <th>Submitted By</th>
           </tr>
         </thead>
         <tbody>
           {requests.map((req) => (
-            <tr key={req.id_surrender}>
-              <td>{req.animalName}</td>
+            <tr key={req.id_request}>
               <td>{req.animalType}</td>
-              <td>{req.breed}</td>
-              <td>{req.urgency}</td>
-              <td>{req.reason}</td>
+              <td>{req.animalName}</td>
+              <td>{req.breed || "—"}</td>
+              <td>{req.age || "—"}</td>
+              <td>{req.gender || "—"}</td>
+              <td>{req.weight || "—"}</td>
               <td>{req.animal_description}</td>
-              <td>{req.user_id}</td>{" "}
-              {/* You can join with users table to show name */}
-              <td>{new Date(req.surrender_date).toLocaleDateString()}</td>
+              <td>{req.reason}</td>
+              <td>{req.urgency}</td>
+              <td>
+                {req.surrender_date
+                  ? new Date(req.surrender_date).toLocaleDateString()
+                  : "—"}
+              </td>
+              <td>
+                {req.user_name} ({req.user_email})
+              </td>
             </tr>
           ))}
         </tbody>
