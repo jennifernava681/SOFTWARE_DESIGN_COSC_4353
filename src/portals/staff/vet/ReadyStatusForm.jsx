@@ -14,10 +14,10 @@ const formatAnimalForDisplay = (animal) => ({
   readyForAdoption: animal.status?.toLowerCase() === "available",
 })
 
-// Get animals using apiFetch and format
+// ✅ FIXED: Use correct endpoint to fetch animals
 const getAnimals = async () => {
   try {
-    const data = await apiFetch("/api/vets/animals", "GET")
+    const data = await apiFetch("/api/animals", "GET")
     return Array.isArray(data) ? data.map(formatAnimalForDisplay) : []
   } catch (err) {
     console.error("Error fetching animals:", err)
@@ -25,11 +25,11 @@ const getAnimals = async () => {
   }
 }
 
-// Update adoption status via API
+// ✅ FIXED: Use correct endpoint to update animal status
 const updateAdoptionStatus = async (animalId, status) => {
   try {
-    const payload = { readyForAdoption: status }
-    const response = await apiFetch(`/api/vets/animals/${animalId}`, "PUT", payload)
+    const payload = { status: status ? "available" : "not ready" } // send correct format
+    const response = await apiFetch(`/api/animals/${animalId}`, "PUT", payload)
     return response
   } catch (err) {
     console.error("Error updating adoption status:", err)
