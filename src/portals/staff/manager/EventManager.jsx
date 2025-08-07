@@ -105,7 +105,31 @@ const EventManager = () => {
         return;
       }
       
-      const response = await apiFetch('/api/events', 'POST', formData);
+      // Validate required fields
+      if (!formData.title || !formData.description || !formData.date || !formData.location) {
+        setError('Please fill in all required fields (title, description, date, location)');
+        return;
+      }
+      
+      // Validate max_volunteers if provided
+      if (formData.max_volunteers && formData.max_volunteers.trim() !== '') {
+        const maxVol = parseInt(formData.max_volunteers);
+        if (isNaN(maxVol) || maxVol < 1) {
+          setError('Max volunteers must be a valid number greater than 0');
+          return;
+        }
+      }
+      
+      // Ensure max_volunteers is a number if provided, or null if empty
+      const eventData = {
+        ...formData,
+        max_volunteers: formData.max_volunteers && formData.max_volunteers.trim() !== '' 
+          ? parseInt(formData.max_volunteers) 
+          : null
+      };
+      
+      console.log('Sending event data:', eventData);
+      const response = await apiFetch('/api/events', 'POST', eventData);
 
       // If we reach here, the API call was successful (no exception thrown)
       console.log('Event created successfully:', response);
@@ -117,8 +141,30 @@ const EventManager = () => {
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (err) {
       console.error('Event creation error:', err);
-      console.log('Setting error state to:', err.message || 'Network error occurred');
-      setError(err.message || 'Network error occurred');
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Network error occurred';
+      if (err.message) {
+        if (err.message.includes('401')) {
+          errorMessage = 'Authentication failed. Please log in again.';
+        } else if (err.message.includes('403')) {
+          errorMessage = 'Access denied. Only managers can create events.';
+        } else if (err.message.includes('400')) {
+          errorMessage = 'Invalid data provided. Please check your input.';
+        } else if (err.message.includes('500')) {
+          errorMessage = 'Server error. Please try again later.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      console.log('Setting error state to:', errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -154,6 +200,26 @@ const EventManager = () => {
     
     if (remaining <= 0) return "Full";
     return `${registered}/${event.max_volunteers} registered`;
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await apiFetch(`/api/events/${eventId}`, 'DELETE');
+      console.log('Event deleted successfully');
+      await loadEvents(); // Reload events
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (err) {
+      console.error('Event deletion error:', err);
+      setError('Failed to delete event. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -389,13 +455,32 @@ const EventManager = () => {
                     .slice()
                     .reverse()
                     .map((event) => (
-                      <div key={event.id} className="event-item">
-                        <div className="event-item-header">
-                          <h3 className="event-item-title">{event.title}</h3>
-                          <span className={`badge ${getUrgencyClass(event.urgency)}`}>
-                            {event.urgency}
-                          </span>
-                        </div>
+                                             <div key={event.id} className="event-item">
+                         <div className="event-item-header">
+                           <h3 className="event-item-title">{event.title}</h3>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                             <span className={`badge ${getUrgencyClass(event.urgency)}`}>
+                               {event.urgency}
+                             </span>
+                             <button
+                               onClick={() => handleDeleteEvent(event.id)}
+                               disabled={isLoading}
+                               style={{
+                                 background: '#dc3545',
+                                 color: 'white',
+                                 border: 'none',
+                                 borderRadius: '4px',
+                                 padding: '4px 8px',
+                                 fontSize: '12px',
+                                 cursor: isLoading ? 'not-allowed' : 'pointer',
+                                 opacity: isLoading ? 0.6 : 1
+                               }}
+                               title="Delete event"
+                             >
+                               Delete
+                             </button>
+                           </div>
+                         </div>
 
                         <p className="event-item-description">{event.description}</p>
 
