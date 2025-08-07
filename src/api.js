@@ -24,10 +24,12 @@ export const apiFetch = async (endpoint, method = 'GET', body = null) => {
   
   if (body) options.body = JSON.stringify(body);
 
-  console.log(`Making ${method} request to: ${API_BASE}${endpoint}`);
+  const url = `${API_BASE.replace(/\/$/, '')}/${endpoint.replace(/^\/$/, '')}`;
+
+  console.log(`Making ${method} request to: ${url}`);
   if (body) console.log('Request body:', body);
 
-  const res = await fetch(`${API_BASE}${endpoint}`, options);
+  const res = await fetch(url, options);
   
   console.log(`Response status: ${res.status}`);
   
