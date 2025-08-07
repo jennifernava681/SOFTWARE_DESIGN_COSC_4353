@@ -40,11 +40,11 @@ function SurrenderAnimal() {
     age: "",
     gender: "",
     weight: "",
-    color: "",
-    microchipped: "",
-    microchipNumber: "",
-    spayedNeutered: "",
-    vaccinated: "",
+    // color: "",
+    // microchipped: "",
+    // microchipNumber: "",
+    // spayedNeutered: "",
+    // vaccinated: "",
 
     // Surrender details
     animal_description: "",

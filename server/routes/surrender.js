@@ -74,17 +74,12 @@ router.post('/', async (req, res) => {
     reason, 
     urgency, 
     user_id,
-    animal_name,
-    animal_type,
+    animalName,
+    animalType,
     breed,
     age,
     gender,
-    weight,
-    color,
-    microchipped,
-    microchip_number,
-    spayed_neutered,
-    vaccinated
+    weight
   } = req.body;
   
   // Validate the data
@@ -115,7 +110,7 @@ router.post('/', async (req, res) => {
       ) VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         animal_description, reason, urgency,
-        animal_name, animal_type, breed, age, gender, weight,
+        animalName, animalType, breed, age, gender, weight,
         user_id, user.adrees_idadrees_id, user.adrees_state_state_id
       ]
     );
@@ -127,22 +122,19 @@ router.post('/', async (req, res) => {
     );
     
     // If animal details are provided, create an animal record
-    if (animal_name && animal_type) {
-      await pool.query(
-        `INSERT INTO animals (
-          name, species, age, status, intake_date, sex, weight, color, 
-          microchipped, microchip_number, spayed_neutered, vaccinated,
-          surrender_requests_USERS_id_user, surrender_requests_USERS_adrees_idadrees_id, 
-          surrender_requests_USERS_adrees_state_state_id
-        ) VALUES (?, ?, ?, 'surrendered', CURDATE(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          animal_name, animal_type, age || null, gender || null, weight || null, 
-          color || null, microchipped || false, microchip_number || null,
-          spayed_neutered || false, vaccinated || false,
-          user_id, user.adrees_idadrees_id, user.adrees_state_state_id
-        ]
-      );
-    }
+    // if (animalName && animalType) {
+    //   await pool.query(
+    //     `INSERT INTO animals (
+    //       name, species, age, status, intake_date, sex, weight,
+    //       surrender_requests_USERS_id_user, surrender_requests_USERS_adrees_idadrees_id, 
+    //       surrender_requests_USERS_adrees_state_state_id
+    //     ) VALUES (?, ?, ?, 'surrendered', CURDATE(), ?, ?, ?, ?, ?, ?)`,
+    //     [
+    //       animal_name, animal_type, age || null, gender || null, weight || null, 
+    //       user_id, user.adrees_idadrees_id, user.adrees_state_state_id
+    //     ]
+    //   );
+    // }
     
     res.status(201).json({ 
       message: 'Surrender request created successfully', 
