@@ -350,6 +350,32 @@ router.delete('/tasks/:id', auth, async (req, res) => {
   }
 });
 
+// Update task status (volunteers can update their own tasks)
+router.patch('/tasks/:id/status', auth, async (req, res) => {
+  const { status } = req.body;
+  try {
+    // Check if task belongs to the current user
+    const [task] = await pool.query(
+      'SELECT * FROM volunteer_tasks WHERE task_id = ? AND USERS_id_user = ?',
+      [req.params.id, req.user.id_user]
+    );
+    
+    if (task.length === 0) {
+      return res.status(404).json({ message: 'Task not found or not assigned to you' });
+    }
+    
+    // Update task status
+    await pool.query(
+      'UPDATE volunteer_tasks SET status = ? WHERE task_id = ? AND USERS_id_user = ?',
+      [status, req.params.id, req.user.id_user]
+    );
+    
+    res.json({ message: 'Task status updated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // All volunteer applications
 router.get('/applications', auth, async (req, res) => {
   if (req.user.role !== 'manager') return res.status(403).json({ message: 'Forbidden' });
