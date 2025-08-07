@@ -134,7 +134,7 @@ const EventManager = () => {
   };
 
   return (
-    <div className="task-manager">
+    <div className="event-manager">
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="notification-overlay">
@@ -167,15 +167,15 @@ const EventManager = () => {
         </div>
       )}
 
-      <div className="task-container">
-        <div className="task-header">
-          <h1 className="task-title">Event Management</h1>
-          <p className="task-subtitle">Create and manage shelter events</p>
+      <div className="event-container">
+        <div className="event-header">
+          <h1 className="event-title">Event Management</h1>
+          <p className="event-subtitle">Create and manage shelter events</p>
         </div>
 
-        <div className="task-grid">
+        <div className="event-grid">
           {/* Event Creation Form */}
-          <div className="task-card">
+          <div className="event-card">
             <div className="card-header">
               <h2 className="card-title">
                 <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,7 +348,7 @@ const EventManager = () => {
           </div>
 
           {/* Events List */}
-          <div className="task-card">
+          <div className="event-card">
             <div className="card-header">
               <h2 className="card-title">Created Events</h2>
               <p className="card-description">
@@ -356,7 +356,7 @@ const EventManager = () => {
               </p>
             </div>
             <div className="card-content">
-              <div className="task-list">
+              <div className="event-list">
                 {events.length === 0 ? (
                   <div className="empty-state">
                     <p>No events created yet. Create your first event using the form.</p>
@@ -366,20 +366,20 @@ const EventManager = () => {
                     .slice()
                     .reverse()
                     .map((event) => (
-                      <div key={event.id} className="task-item">
-                        <div className="task-item-header">
-                          <h3 className="task-item-title">{event.title}</h3>
+                      <div key={event.id} className="event-item">
+                        <div className="event-item-header">
+                          <h3 className="event-item-title">{event.title}</h3>
                           <span className={`badge ${getUrgencyClass(event.urgency)}`}>
                             {event.urgency}
                           </span>
                         </div>
 
-                        <p className="task-item-description">{event.description}</p>
+                        <p className="event-item-description">{event.description}</p>
 
-                        <div className="task-separator"></div>
+                        <div className="event-separator"></div>
 
-                        <div className="task-item-meta">
-                          <div className="task-item-meta-item">
+                        <div className="event-item-meta">
+                          <div className="event-item-meta-item">
                             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 strokeLinecap="round"
@@ -391,7 +391,7 @@ const EventManager = () => {
                             {new Date(event.date).toLocaleDateString()}
                           </div>
                           {event.time && (
-                            <div className="task-item-meta-item">
+                            <div className="event-item-meta-item">
                               <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                   strokeLinecap="round"
@@ -403,7 +403,7 @@ const EventManager = () => {
                               {event.time}
                             </div>
                           )}
-                          <div className="task-item-meta-item">
+                          <div className="event-item-meta-item">
                             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 strokeLinecap="round"
@@ -420,7 +420,7 @@ const EventManager = () => {
                             </svg>
                             {event.location}
                           </div>
-                          <div className="task-item-meta-item">
+                          <div className="event-item-meta-item">
                             <svg className="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 strokeLinecap="round"
