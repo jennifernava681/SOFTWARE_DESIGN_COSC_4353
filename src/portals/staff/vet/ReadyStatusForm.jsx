@@ -5,7 +5,6 @@ import { Link } from "react-router-dom"
 import "../../../css/vet.css"
 import { apiFetch } from "../../../api"
 
-// Format animal data like in the dashboard
 const formatAnimalForDisplay = (animal) => ({
   id: animal.id_animal || animal.id,
   name: animal.name || "Unknown",
@@ -14,7 +13,6 @@ const formatAnimalForDisplay = (animal) => ({
   readyForAdoption: animal.status?.toLowerCase() === "available",
 })
 
-// ✅ FIXED: Use correct endpoint to fetch animals
 const getAnimals = async () => {
   try {
     const data = await apiFetch("/api/animals", "GET")
@@ -25,11 +23,10 @@ const getAnimals = async () => {
   }
 }
 
-// ✅ FIXED: Use correct endpoint to update animal status
-const updateAdoptionStatus = async (animalId, status) => {
+const updateAdoptionStatus = async (animalId, isReady) => {
   try {
-    const payload = { status: status ? "available" : "not ready" } // send correct format
-    const response = await apiFetch(`/api/animals/${animalId}`, "PUT", payload)
+    const payload = { status: isReady ? "available" : "not available" }
+    const response = await apiFetch(`/api/vets/ready-status/${animalId}`, "PUT", payload)
     return response
   } catch (err) {
     console.error("Error updating adoption status:", err)
@@ -69,16 +66,16 @@ export default function NewReadyStatusForm() {
       return
     }
 
-    const newStatus = formData.readyForAdoption === "true"
-    const statusText = newStatus ? "Ready for Adoption" : "Not Ready Yet"
+    const isReady = formData.readyForAdoption === "true"
+    const statusText = isReady ? "Ready for Adoption" : "Not Ready"
 
     try {
-      await updateAdoptionStatus(formData.animalId, newStatus)
+      await updateAdoptionStatus(formData.animalId, isReady)
 
       const newUpdate = {
         id: Date.now() + Math.random(),
         animalName: selectedAnimal.name,
-        oldStatus: selectedAnimal.readyForAdoption ? "Ready for Adoption" : "Not Ready Yet",
+        oldStatus: selectedAnimal.readyForAdoption ? "Ready for Adoption" : "Not Ready",
         newStatus: statusText,
         date: new Date().toISOString().split("T")[0],
       }
@@ -88,7 +85,7 @@ export default function NewReadyStatusForm() {
       setAvailableAnimals((prev) =>
         prev.map((animal) =>
           animal.id.toString() === formData.animalId
-            ? { ...animal, readyForAdoption: newStatus }
+            ? { ...animal, readyForAdoption: isReady }
             : animal
         )
       )
@@ -105,14 +102,14 @@ export default function NewReadyStatusForm() {
       <main className="flex-1 p-6 md:p-10">
         <div className="mb-6 flex justify-end">
           <Link to="/vetdashboard" className="btn-primary flex items-center gap-2 px-4 py-2 rounded-md text-base font-semibold">
-            <ArrowLeft className="h-5 w-5" /> Volver al Dashboard
+            <ArrowLeft className="h-5 w-5" /> Back to Dashboard
           </Link>
         </div>
 
         <div className="task-container">
           <div className="task-header">
             <h1 className="task-title">Update Adoption Status</h1>
-            <p className="task-subtitle">Manage the adoption readiness of animals</p>
+            <p className="task-subtitle">Mark animals as ready or not ready for adoption</p>
           </div>
 
           <div className="task-grid">
@@ -122,7 +119,7 @@ export default function NewReadyStatusForm() {
                   <CheckCircle className="icon" />
                   Update Status
                 </h2>
-                <p className="card-description">Select an animal and update its adoption status.</p>
+                <p className="card-description">Select an animal and set their adoption status.</p>
               </div>
 
               <div className="card-content">
@@ -142,7 +139,7 @@ export default function NewReadyStatusForm() {
                       <option value="">Select an animal</option>
                       {availableAnimals.map((animal) => (
                         <option key={animal.id} value={animal.id}>
-                          {animal.name} ({animal.type} - {animal.breed}) - Current:{" "}
+                          {animal.name} ({animal.type} - {animal.breed}) —{" "}
                           {animal.readyForAdoption ? "Ready" : "Not Ready"}
                         </option>
                       ))}
@@ -161,8 +158,8 @@ export default function NewReadyStatusForm() {
                       onChange={handleChange}
                       required
                     >
-                      <option value="true">Yes, Ready for Adoption</option>
-                      <option value="false">No, Not Ready Yet</option>
+                      <option value="true">Yes - Ready</option>
+                      <option value="false">No - Not Ready</option>
                     </select>
                   </div>
 
@@ -185,7 +182,7 @@ export default function NewReadyStatusForm() {
                 <div className="task-list">
                   {updatedStatuses.length === 0 ? (
                     <div className="empty-state">
-                      <p>No status updates yet. Update an animal's status using the form.</p>
+                      <p>No updates yet. Submit a change to see it listed here.</p>
                     </div>
                   ) : (
                     updatedStatuses.map((update) => (
@@ -203,12 +200,12 @@ export default function NewReadyStatusForm() {
                           </span>
                         </div>
                         <p className="task-item-description">
-                          Changed from: {update.oldStatus} to: {update.newStatus}
+                          Changed from: {update.oldStatus} → {update.newStatus}
                         </p>
-                        <div className="task-separator"></div>
                         <div className="task-item-meta">
                           <div className="task-item-meta-item">{update.date}</div>
                         </div>
+                        <div className="task-separator"></div>
                       </div>
                     ))
                   )}
