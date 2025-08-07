@@ -101,12 +101,12 @@ const EventManager = () => {
       
       const response = await apiFetch('/api/events', 'POST', formData);
 
-      if (response) {
-        setShowSuccessMessage(true);
-        resetForm();
-        await loadEvents(); // Reload events
-        setTimeout(() => setShowSuccessMessage(false), 3000);
-      }
+      // If we reach here, the API call was successful (no exception thrown)
+      console.log('Event created successfully:', response);
+      setShowSuccessMessage(true);
+      resetForm();
+      await loadEvents(); // Reload events
+      setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (err) {
       console.error('Event creation error:', err);
       setError(err.message || 'Network error occurred');
