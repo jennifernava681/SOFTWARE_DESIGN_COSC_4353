@@ -234,7 +234,7 @@ function ProfilePage() {
       {/* Profile Form */}
       <main className="profile-card">
         <h2>Volunteer Profile</h2>
-        <form className="profile-form" onSubmit={handleSave}>
+        <form className={`profile-form ${isEditing ? 'editing' : ''}`} onSubmit={handleSave}>
           {/* Personal Information */}
           <div className="form-group">
             <label className="form-label">Full Name</label>

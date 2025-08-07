@@ -32,18 +32,33 @@ const EventManager = () => {
 
   // Load existing events
   useEffect(() => {
+    // Clear any existing errors on component mount
+    setError(null);
     loadEvents();
+    
+    // Test API connection
+    const testAPI = async () => {
+      try {
+        console.log('Testing API connection...');
+        const testResponse = await apiFetch('/api/test');
+        console.log('API test response:', testResponse);
+      } catch (err) {
+        console.error('API test failed:', err);
+      }
+    };
+    
+    testAPI();
   }, []);
 
   const loadEvents = async () => {
     try {
-      const response = await apiFetch('/api/events');
-      if (response.ok) {
-        const eventsData = await response.json();
-        setEvents(eventsData);
-      }
+      const eventsData = await apiFetch('/api/events');
+      setEvents(eventsData);
+      // Clear any existing errors when events load successfully
+      setError(null);
     } catch (err) {
       console.error('Error loading events:', err);
+      // Don't set error for loading events - just log it
     }
   };
 
@@ -77,25 +92,79 @@ const EventManager = () => {
     setError(null);
 
     try {
-      const response = await apiFetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setShowSuccessMessage(true);
-        resetForm();
-        await loadEvents(); // Reload events
-        setTimeout(() => setShowSuccessMessage(false), 3000);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to create event');
+      console.log('Submitting event data:', formData);
+      console.log('User token:', localStorage.getItem('token'));
+      console.log('Clearing error state at start of submission');
+      
+      // Check if user is authenticated and has manager role
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('User data:', user);
+      
+      if (!user.role || user.role !== 'manager') {
+        setError('Only managers can create events. Please log in with a manager account.');
+        return;
       }
+      
+      // Validate required fields
+      if (!formData.title || !formData.description || !formData.date || !formData.location) {
+        setError('Please fill in all required fields (title, description, date, location)');
+        return;
+      }
+      
+      // Validate max_volunteers if provided
+      if (formData.max_volunteers && formData.max_volunteers.trim() !== '') {
+        const maxVol = parseInt(formData.max_volunteers);
+        if (isNaN(maxVol) || maxVol < 1) {
+          setError('Max volunteers must be a valid number greater than 0');
+          return;
+        }
+      }
+      
+      // Ensure max_volunteers is a number if provided, or null if empty
+      const eventData = {
+        ...formData,
+        max_volunteers: formData.max_volunteers && formData.max_volunteers.trim() !== '' 
+          ? parseInt(formData.max_volunteers) 
+          : null
+      };
+      
+      console.log('Sending event data:', eventData);
+      const response = await apiFetch('/api/events', 'POST', eventData);
+
+      // If we reach here, the API call was successful (no exception thrown)
+      console.log('Event created successfully:', response);
+      console.log('Setting success message and clearing error state');
+      setShowSuccessMessage(true);
+      setError(null); // Explicitly clear error state on success
+      resetForm();
+      await loadEvents(); // Reload events
+      setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (err) {
-      setError('Network error occurred');
+      console.error('Event creation error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Network error occurred';
+      if (err.message) {
+        if (err.message.includes('401')) {
+          errorMessage = 'Authentication failed. Please log in again.';
+        } else if (err.message.includes('403')) {
+          errorMessage = 'Access denied. Only managers can create events.';
+        } else if (err.message.includes('400')) {
+          errorMessage = 'Invalid data provided. Please check your input.';
+        } else if (err.message.includes('500')) {
+          errorMessage = 'Server error. Please try again later.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      console.log('Setting error state to:', errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -131,6 +200,26 @@ const EventManager = () => {
     
     if (remaining <= 0) return "Full";
     return `${registered}/${event.max_volunteers} registered`;
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await apiFetch(`/api/events/${eventId}`, 'DELETE');
+      console.log('Event deleted successfully');
+      await loadEvents(); // Reload events
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (err) {
+      console.error('Event deletion error:', err);
+      setError('Failed to delete event. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -366,13 +455,32 @@ const EventManager = () => {
                     .slice()
                     .reverse()
                     .map((event) => (
-                      <div key={event.id} className="event-item">
-                        <div className="event-item-header">
-                          <h3 className="event-item-title">{event.title}</h3>
-                          <span className={`badge ${getUrgencyClass(event.urgency)}`}>
-                            {event.urgency}
-                          </span>
-                        </div>
+                                             <div key={event.id} className="event-item">
+                         <div className="event-item-header">
+                           <h3 className="event-item-title">{event.title}</h3>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                             <span className={`badge ${getUrgencyClass(event.urgency)}`}>
+                               {event.urgency}
+                             </span>
+                             <button
+                               onClick={() => handleDeleteEvent(event.id)}
+                               disabled={isLoading}
+                               style={{
+                                 background: '#dc3545',
+                                 color: 'white',
+                                 border: 'none',
+                                 borderRadius: '4px',
+                                 padding: '4px 8px',
+                                 fontSize: '12px',
+                                 cursor: isLoading ? 'not-allowed' : 'pointer',
+                                 opacity: isLoading ? 0.6 : 1
+                               }}
+                               title="Delete event"
+                             >
+                               Delete
+                             </button>
+                           </div>
+                         </div>
 
                         <p className="event-item-description">{event.description}</p>
 
