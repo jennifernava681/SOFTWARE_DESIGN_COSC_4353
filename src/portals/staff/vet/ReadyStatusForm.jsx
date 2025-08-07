@@ -3,40 +3,39 @@ import { useNavigate } from "react-router-dom"
 import { CheckCircle, ArrowLeft } from "lucide-react"
 import { Link } from "react-router-dom"
 import "../../../css/vet.css"
+import { apiFetch } from "../../../api"
 
-// Use apiFetch if available, fallback to native fetch
+// Format animal data like in the dashboard
+const formatAnimalForDisplay = (animal) => ({
+  id: animal.id_animal || animal.id,
+  name: animal.name || "Unknown",
+  type: animal.species || "Unknown",
+  breed: animal.species || "Mixed Breed",
+  readyForAdoption: animal.status?.toLowerCase() === "available",
+})
+
+// Get animals using apiFetch and format
 const getAnimals = async () => {
   try {
-    const response = await fetch("/api/vets/animals", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    })
-
-    const data = await response.json()
-    return Array.isArray(data) ? data : []
+    const data = await apiFetch("/api/vets/animals", "GET")
+    return Array.isArray(data) ? data.map(formatAnimalForDisplay) : []
   } catch (err) {
     console.error("Error fetching animals:", err)
     return []
   }
 }
 
+// Update adoption status via API
 const updateAdoptionStatus = async (animalId, status) => {
   try {
     const payload = { readyForAdoption: status }
-
-    const response = await fetch(`/api/vets/animals/${animalId}`, {
-      method: "PUT", // or PATCH depending on your backend
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-
-    if (!response.ok) throw new Error("Failed to update status")
+    const response = await apiFetch(`/api/vets/animals/${animalId}`, "PUT", payload)
+    return response
   } catch (err) {
     console.error("Error updating adoption status:", err)
     throw err
   }
 }
-
 
 export default function NewReadyStatusForm() {
   const navigate = useNavigate()
@@ -85,6 +84,7 @@ export default function NewReadyStatusForm() {
       }
 
       setUpdatedStatuses((prev) => [newUpdate, ...prev])
+
       setAvailableAnimals((prev) =>
         prev.map((animal) =>
           animal.id.toString() === formData.animalId
@@ -104,18 +104,17 @@ export default function NewReadyStatusForm() {
     <div className="flex flex-col min-h-screen bg-blue-light">
       <main className="flex-1 p-6 md:p-10">
         <div className="mb-6 flex justify-end">
-          <Link
-            to="/vetdashboard"
-            className="btn-primary flex items-center gap-2 px-4 py-2 rounded-md text-base font-semibold"
-          >
+          <Link to="/vetdashboard" className="btn-primary flex items-center gap-2 px-4 py-2 rounded-md text-base font-semibold">
             <ArrowLeft className="h-5 w-5" /> Volver al Dashboard
           </Link>
         </div>
+
         <div className="task-container">
           <div className="task-header">
             <h1 className="task-title">Update Adoption Status</h1>
             <p className="task-subtitle">Manage the adoption readiness of animals</p>
           </div>
+
           <div className="task-grid">
             <div className="task-card">
               <div className="card-header">
@@ -125,6 +124,7 @@ export default function NewReadyStatusForm() {
                 </h2>
                 <p className="card-description">Select an animal and update its adoption status.</p>
               </div>
+
               <div className="card-content">
                 <form onSubmit={handleSubmit}>
                   <div className="form-group">
@@ -180,6 +180,7 @@ export default function NewReadyStatusForm() {
                   {updatedStatuses.length} update{updatedStatuses.length !== 1 ? "s" : ""} recorded
                 </p>
               </div>
+
               <div className="card-content">
                 <div className="task-list">
                   {updatedStatuses.length === 0 ? (
