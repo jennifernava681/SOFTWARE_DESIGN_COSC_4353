@@ -112,24 +112,28 @@ router.get('/medical-history/:animal_id', auth, restrictTo('veterinarian'), asyn
 // Mark animal as ready for adoption
 router.put('/ready-status/:animal_id', auth, restrictTo('veterinarian'), async (req, res) => {
   const animal_id = req.params.animal_id;
+  const { status } = req.body; // expects 'available' or 'surrendered'
+
+  if (!['available', 'surrendered'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid status value' });
+  }
 
   try {
     const [update] = await pool.query(
-      `UPDATE animals 
-       SET status = 'available' 
-       WHERE id_animal = ?`,
-      [animal_id]
+      `UPDATE animals SET status = ? WHERE id_animal = ?`,
+      [status, animal_id]
     );
 
     if (update.affectedRows === 0) {
       return res.status(404).json({ message: 'Animal not found' });
     }
 
-    res.status(200).json({ message: 'Animal marked as available for adoption' });
+    res.status(200).json({ message: `Animal status updated to ${status}` });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 // POST /api/medical-records
 router.post('/medical-records', auth, async (req, res) => {
