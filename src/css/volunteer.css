@@ -428,6 +428,11 @@
   font-size: 1.125rem;
 }
 
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
 .success-message {
   text-align: center;
   background: #E2F0F9;
@@ -496,6 +501,22 @@
 .form-group input[type="tel"]:not(.error):not(:placeholder-shown) {
   border-color: #286FB4;
   background: rgba(40, 111, 180, 0.02);
+}
+
+/* Task status badges */
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-in-progress {
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
 /* Select dropdown styling */

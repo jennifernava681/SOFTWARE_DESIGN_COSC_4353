@@ -18,6 +18,7 @@ function VolunteerMatchPage() {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserRole(payload.role);
+        console.log('User role:', payload.role);
       } catch (err) {
         console.error('Error parsing token:', err);
       }
@@ -33,10 +34,12 @@ function VolunteerMatchPage() {
       
       // Get volunteer matches from the API
       const matchData = await apiFetch('/api/volunteers/matches');
+      console.log('Received match data:', matchData);
       setMatches(matchData);
     } catch (err) {
       console.error('Error loading matches:', err);
-      setError('Failed to load volunteer matches');
+      console.error('Error details:', err.message, err.response);
+      setError(`Failed to load volunteer matches: ${err.message}`);
       setBannerMessage('Error loading volunteer matches');
       setShowBanner(true);
     } finally {

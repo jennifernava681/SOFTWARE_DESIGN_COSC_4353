@@ -101,10 +101,11 @@ router.get('/matches', auth, async (req, res) => {
         e.location,
         e.urgency,
         e.max_volunteers,
-        es.skill_name as required_skills
+        GROUP_CONCAT(es.skill_name) as required_skills
       FROM events e
       LEFT JOIN event_skills es ON e.id = es.event_id
       WHERE e.date >= CURDATE()
+      GROUP BY e.id
       ORDER BY e.urgency DESC, e.date ASC
     `);
     
@@ -119,7 +120,7 @@ router.get('/matches', auth, async (req, res) => {
         vr.availability_time
       FROM users u
       LEFT JOIN volunteer_requests vr ON u.id_user = vr.USERS_id_user
-      WHERE u.role = 'volunteer' AND vr.status = 'approved'
+      WHERE u.role = 'volunteer'
     `);
     
     // Create matches based on skills and availability
@@ -176,6 +177,10 @@ router.get('/matches', auth, async (req, res) => {
       if (aUrgency !== bUrgency) return bUrgency - aUrgency;
       return b.matchScore - a.matchScore;
     });
+    
+    console.log('Events found:', events.length);
+    console.log('Volunteers found:', volunteers.length);
+    console.log('Matches created:', matches.length);
     
     res.json(matches);
   } catch (err) {
@@ -345,6 +350,32 @@ router.delete('/tasks/:id', auth, async (req, res) => {
   try {
     await pool.query('DELETE FROM volunteer_tasks WHERE task_id = ?', [req.params.id]);
     res.json({ message: 'Task deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Update task status (volunteers can update their own tasks)
+router.patch('/tasks/:id/status', auth, async (req, res) => {
+  const { status } = req.body;
+  try {
+    // Check if task belongs to the current user
+    const [task] = await pool.query(
+      'SELECT * FROM volunteer_tasks WHERE task_id = ? AND USERS_id_user = ?',
+      [req.params.id, req.user.id_user]
+    );
+    
+    if (task.length === 0) {
+      return res.status(404).json({ message: 'Task not found or not assigned to you' });
+    }
+    
+    // Update task status
+    await pool.query(
+      'UPDATE volunteer_tasks SET status = ? WHERE task_id = ? AND USERS_id_user = ?',
+      [status, req.params.id, req.user.id_user]
+    );
+    
+    res.json({ message: 'Task status updated' });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
