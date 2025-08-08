@@ -13,6 +13,124 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get volunteer matches (admin/manager only) - MUST BE BEFORE /:id ROUTE
+router.get('/matches', auth, async (req, res) => {
+  console.log('=== VOLUNTEER MATCHES ROUTE CALLED ===');
+  console.log('User role:', req.user.role);
+  console.log('User ID:', req.user.id_user);
+  
+  if (req.user.role !== 'manager' && req.user.role !== 'admin') {
+    console.log('Access denied - user role:', req.user.role);
+    return res.status(403).json({ message: 'Access denied. Only managers and admins can view volunteer matches.' });
+  }
+  
+  try {
+    console.log('Fetching events...');
+    // Get all events that need volunteers
+    const [events] = await pool.query(`
+      SELECT 
+        e.id,
+        e.title,
+        e.description,
+        e.date,
+        e.time,
+        e.location,
+        e.urgency,
+        e.max_volunteers,
+        GROUP_CONCAT(es.skill_name) as required_skills
+      FROM events e
+      LEFT JOIN event_skills es ON e.id = es.event_id
+      WHERE e.date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+      GROUP BY e.id
+      ORDER BY e.urgency DESC, e.date ASC
+    `);
+    
+    console.log('Events found:', events.length);
+    console.log('Sample events:', events.slice(0, 2));
+    
+    console.log('Fetching volunteers...');
+    // Get all volunteers with their skills
+    const [volunteers] = await pool.query(`
+      SELECT 
+        u.id_user,
+        u.name,
+        u.email,
+        vr.skills as volunteer_skills,
+        vr.availability_date,
+        vr.availability_time
+      FROM users u
+      LEFT JOIN volunteer_requests vr ON u.id_user = vr.USERS_id_user
+      WHERE u.role = 'volunteer'
+    `);
+    
+    console.log('Volunteers found:', volunteers.length);
+    console.log('Sample volunteers:', volunteers.slice(0, 2));
+    
+    // Create matches based on skills and availability
+    const matches = [];
+    
+    events.forEach(event => {
+      const eventSkills = event.required_skills ? event.required_skills.split(',').map(s => s.trim()) : [];
+      
+      volunteers.forEach(volunteer => {
+        const volunteerSkills = volunteer.volunteer_skills ? volunteer.volunteer_skills.split(',').map(s => s.trim()) : [];
+        
+        // Calculate match score based on skills overlap
+        const skillMatches = eventSkills.filter(skill => 
+          volunteerSkills.some(vSkill => vSkill.toLowerCase().includes(skill.toLowerCase()))
+        );
+        
+        const matchScore = eventSkills.length > 0 ? 
+          Math.round((skillMatches.length / eventSkills.length) * 100) : 50;
+        
+        // Check availability
+        const eventDate = new Date(event.date);
+        const volunteerDate = volunteer.availability_date ? new Date(volunteer.availability_date) : null;
+        const availabilityMatch = !volunteerDate || volunteerDate.toDateString() === eventDate.toDateString();
+        
+        // Only create matches with reasonable scores
+        if (matchScore >= 30 || availabilityMatch) {
+          matches.push({
+            id: `${event.id}-${volunteer.id_user}`,
+            volunteerId: volunteer.id_user,
+            volunteerName: volunteer.name,
+            volunteerEmail: volunteer.email,
+            eventId: event.id,
+            event: event.title,
+            eventDate: event.date,
+            eventTime: event.time,
+            eventLocation: event.location,
+            urgency: event.urgency,
+            requiredSkills: eventSkills,
+            volunteerSkills: volunteerSkills,
+            matchScore: availabilityMatch ? Math.max(matchScore, 60) : matchScore,
+            availabilityMatch: availabilityMatch,
+            status: 'pending'
+          });
+        }
+      });
+    });
+    
+    // Sort by match score and urgency
+    matches.sort((a, b) => {
+      const urgencyOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+      const aUrgency = urgencyOrder[a.urgency] || 1;
+      const bUrgency = urgencyOrder[b.urgency] || 1;
+      
+      if (aUrgency !== bUrgency) return bUrgency - aUrgency;
+      return b.matchScore - a.matchScore;
+    });
+    
+    console.log('Matches created:', matches.length);
+    console.log('Sample matches:', matches.slice(0, 2));
+    
+    res.json(matches);
+  } catch (err) {
+    console.error('Error fetching volunteer matches:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 router.get('/:id', auth, async (req, res) => {
   try {
     const [volunteers] = await pool.query('SELECT * FROM users WHERE id_user = ? AND role = ?', [req.params.id, 'volunteer']);
@@ -83,113 +201,7 @@ router.post('/apply', auth, async (req, res) => {
   }
 });
 
-// Get volunteer matches (admin/manager only)
-router.get('/matches', auth, async (req, res) => {
-  if (req.user.role !== 'manager' && req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Access denied. Only managers and admins can view volunteer matches.' });
-  }
-  
-  try {
-    // Get all events that need volunteers
-    const [events] = await pool.query(`
-      SELECT 
-        e.id,
-        e.title,
-        e.description,
-        e.date,
-        e.time,
-        e.location,
-        e.urgency,
-        e.max_volunteers,
-        GROUP_CONCAT(es.skill_name) as required_skills
-      FROM events e
-      LEFT JOIN event_skills es ON e.id = es.event_id
-      WHERE e.date >= CURDATE()
-      GROUP BY e.id
-      ORDER BY e.urgency DESC, e.date ASC
-    `);
-    
-    // Get all volunteers with their skills
-    const [volunteers] = await pool.query(`
-      SELECT 
-        u.id_user,
-        u.name,
-        u.email,
-        vr.skills as volunteer_skills,
-        vr.availability_date,
-        vr.availability_time
-      FROM users u
-      LEFT JOIN volunteer_requests vr ON u.id_user = vr.USERS_id_user
-      WHERE u.role = 'volunteer'
-    `);
-    
-    // Create matches based on skills and availability
-    const matches = [];
-    
-    events.forEach(event => {
-      const eventSkills = event.required_skills ? event.required_skills.split(',').map(s => s.trim()) : [];
-      
-      volunteers.forEach(volunteer => {
-        const volunteerSkills = volunteer.volunteer_skills ? volunteer.volunteer_skills.split(',').map(s => s.trim()) : [];
-        
-        // Calculate match score based on skills overlap
-        const skillMatches = eventSkills.filter(skill => 
-          volunteerSkills.some(vSkill => vSkill.toLowerCase().includes(skill.toLowerCase()))
-        );
-        
-        const matchScore = eventSkills.length > 0 ? 
-          Math.round((skillMatches.length / eventSkills.length) * 100) : 50;
-        
-        // Check availability
-        const eventDate = new Date(event.date);
-        const volunteerDate = volunteer.availability_date ? new Date(volunteer.availability_date) : null;
-        const availabilityMatch = !volunteerDate || volunteerDate.toDateString() === eventDate.toDateString();
-        
-        // Only create matches with reasonable scores
-        if (matchScore >= 30 || availabilityMatch) {
-          matches.push({
-            id: `${event.id}-${volunteer.id_user}`,
-            volunteerId: volunteer.id_user,
-            volunteerName: volunteer.name,
-            volunteerEmail: volunteer.email,
-            eventId: event.id,
-            event: event.title,
-            eventDate: event.date,
-            eventTime: event.time,
-            eventLocation: event.location,
-            urgency: event.urgency,
-            requiredSkills: eventSkills,
-            volunteerSkills: volunteerSkills,
-            matchScore: availabilityMatch ? Math.max(matchScore, 60) : matchScore,
-            availabilityMatch: availabilityMatch,
-            status: 'pending'
-          });
-        }
-      });
-    });
-    
-    // Sort by match score and urgency
-    matches.sort((a, b) => {
-      const urgencyOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
-      const aUrgency = urgencyOrder[a.urgency] || 1;
-      const bUrgency = urgencyOrder[b.urgency] || 1;
-      
-      if (aUrgency !== bUrgency) return bUrgency - aUrgency;
-      return b.matchScore - a.matchScore;
-    });
-    
-    console.log('Events found:', events.length);
-    console.log('Volunteers found:', volunteers.length);
-    console.log('Matches created:', matches.length);
-    console.log('Sample events:', events.slice(0, 2));
-    console.log('Sample volunteers:', volunteers.slice(0, 2));
-    
-    res.json(matches);
-  } catch (err) {
-    console.error('Error fetching volunteer matches:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
+
 
 // Assign volunteer to event
 router.post('/assign', auth, async (req, res) => {
@@ -816,6 +828,42 @@ router.get('/export-history/:userId', auth, async (req, res) => {
     res.send(csvContent);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Test endpoint to check database connection and data
+router.get('/test-data', async (req, res) => {
+  try {
+    console.log('=== TESTING DATABASE CONNECTION AND DATA ===');
+    
+    // Test events table
+    const [events] = await pool.query('SELECT COUNT(*) as count FROM events');
+    console.log('Events count:', events[0].count);
+    
+    // Test users table with volunteer role
+    const [volunteers] = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = "volunteer"');
+    console.log('Volunteers count:', volunteers[0].count);
+    
+    // Test volunteer_requests table
+    const [requests] = await pool.query('SELECT COUNT(*) as count FROM volunteer_requests');
+    console.log('Volunteer requests count:', requests[0].count);
+    
+    // Get sample data
+    const [sampleEvents] = await pool.query('SELECT * FROM events LIMIT 2');
+    const [sampleVolunteers] = await pool.query('SELECT * FROM users WHERE role = "volunteer" LIMIT 2');
+    const [sampleRequests] = await pool.query('SELECT * FROM volunteer_requests LIMIT 2');
+    
+    res.json({
+      events_count: events[0].count,
+      volunteers_count: volunteers[0].count,
+      requests_count: requests[0].count,
+      sample_events: sampleEvents,
+      sample_volunteers: sampleVolunteers,
+      sample_requests: sampleRequests
+    });
+  } catch (err) {
+    console.error('Database test error:', err);
+    res.status(500).json({ message: 'Database test failed', error: err.message });
   }
 });
 

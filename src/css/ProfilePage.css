@@ -153,7 +153,7 @@
   cursor: not-allowed;
 }
 
-/* When editing, make inputs look normal */
+
 .profile-form input:not([readonly]),
 .profile-form select:not(:disabled),
 .profile-form textarea:not([readonly]) {
@@ -163,7 +163,7 @@
   border-color: #15803d;
 }
 
-/* Add visual feedback for edit mode */
+
 .profile-form.editing input:not([readonly]),
 .profile-form.editing select:not(:disabled),
 .profile-form.editing textarea:not([readonly]) {
