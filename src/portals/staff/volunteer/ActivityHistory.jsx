@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { apiFetch } from "../../../api";
 import NotificationBanner from "../../../NotificationBanner";
 import "../../../css/VolunteerHistoryPage.css";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 function ActivityHistory() {
   const [history, setHistory] = useState([]);
@@ -118,7 +120,7 @@ function ActivityHistory() {
         urgency: "Medium",
         skills_used: "General Assistance",
         participation_date: new Date().toISOString().split('T')[0],
-        status: "Completed",
+        status: "registered",
         hours_worked: 3
       };
 
@@ -129,6 +131,101 @@ function ActivityHistory() {
     } catch (err) {
       console.error('Error adding sample entry:', err);
       setBannerMessage('Error adding sample entry');
+      setShowBanner(true);
+    }
+  };
+
+  const generateCSV = () => {
+    try {
+      const headers = ['Volunteer', 'Event', 'Location', 'Urgency', 'Skills Used', 'Date', 'Status', 'Hours'];
+      const csvData = filteredHistory.map(entry => [
+        entry.volunteer_name,
+        entry.event_title,
+        entry.location,
+        entry.urgency,
+        entry.skills_used,
+        new Date(entry.participation_date).toLocaleDateString(),
+        entry.status,
+        entry.hours_worked
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `volunteer_history_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setBannerMessage('CSV report generated successfully!');
+      setShowBanner(true);
+    } catch (err) {
+      console.error('Error generating CSV:', err);
+      setBannerMessage('Error generating CSV report');
+      setShowBanner(true);
+    }
+  };
+
+  const generatePDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text('Volunteer Activity History Report', 20, 20);
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
+      
+      // Add summary
+      doc.text(`Total Entries: ${filteredHistory.length}`, 20, 40);
+      doc.text(`Registered: ${filteredHistory.filter(e => e.status === 'registered').length}`, 20, 50);
+      doc.text(`Attended: ${filteredHistory.filter(e => e.status === 'attended').length}`, 20, 60);
+      doc.text(`Cancelled: ${filteredHistory.filter(e => e.status === 'cancelled').length}`, 20, 70);
+
+      // Prepare table data
+      const tableData = filteredHistory.map(entry => [
+        entry.volunteer_name,
+        entry.event_title,
+        entry.location,
+        entry.urgency,
+        entry.skills_used,
+        new Date(entry.participation_date).toLocaleDateString(),
+        entry.status,
+        entry.hours_worked.toString()
+      ]);
+
+      // Add table
+      doc.autoTable({
+        head: [['Volunteer', 'Event', 'Location', 'Urgency', 'Skills Used', 'Date', 'Status', 'Hours']],
+        body: tableData,
+        startY: 80,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255
+        }
+      });
+
+      // Save PDF
+      doc.save(`volunteer_history_${new Date().toISOString().split('T')[0]}.pdf`);
+
+      setBannerMessage('PDF report generated successfully!');
+      setShowBanner(true);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      setBannerMessage('Error generating PDF report');
       setShowBanner(true);
     }
   };
@@ -174,6 +271,14 @@ function ActivityHistory() {
             <button onClick={addSampleEntry} className="add-btn">
               Add Sample Entry
             </button>
+            <div className="report-actions">
+              <button onClick={generateCSV} className="report-btn csv-btn">
+                Export CSV
+              </button>
+              <button onClick={generatePDF} className="report-btn pdf-btn">
+                Export PDF
+              </button>
+            </div>
           </div>
         </div>
 
@@ -272,8 +377,9 @@ function ActivityHistory() {
 
         <div className="history-summary">
           <p>Total Entries: {filteredHistory.length}</p>
-          <p>Completed: {filteredHistory.filter(e => e.status === 'Completed').length}</p>
-          <p>Upcoming: {filteredHistory.filter(e => e.status === 'Upcoming').length}</p>
+          <p>Registered: {filteredHistory.filter(e => e.status === 'registered').length}</p>
+          <p>Attended: {filteredHistory.filter(e => e.status === 'attended').length}</p>
+          <p>Cancelled: {filteredHistory.filter(e => e.status === 'cancelled').length}</p>
         </div>
       </div>
     </div>
