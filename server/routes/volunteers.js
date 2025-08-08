@@ -131,6 +131,83 @@ router.get('/matches', auth, async (req, res) => {
   }
 });
 
+// Get volunteer history (all roles can access) - MUST BE BEFORE /:id ROUTE
+router.get('/history', auth, async (req, res) => {
+  try {
+    console.log('=== FETCHING VOLUNTEER HISTORY ===');
+    console.log('User ID:', req.user.id_user);
+    console.log('User role:', req.user.role);
+    
+    // Get volunteer history with proper joins
+    const [history] = await pool.query(`
+      SELECT 
+        vh.id,
+        u.name as volunteer_name,
+        COALESCE(vt.task_name, 'General Task') as event_title,
+        COALESCE(vt.description, 'Volunteer Activity') as location,
+        'Medium' as urgency,
+        'General Assistance' as skills_used,
+        vh.participation_date,
+        vh.status,
+        COALESCE(vh.hours_worked, 0) as hours_worked
+      FROM volunteer_history vh
+      LEFT JOIN users u ON vh.user_id = u.id_user
+      LEFT JOIN volunteer_tasks vt ON vh.task_id = vt.task_id
+      ORDER BY vh.participation_date DESC
+    `);
+    
+    console.log('History records found:', history.length);
+    console.log('Sample history:', history.slice(0, 2));
+    
+    // If no real data, create sample data for demonstration
+    if (history.length === 0) {
+      console.log('No history found, creating sample data');
+      const sampleHistory = [
+        {
+          id: 1,
+          volunteer_name: "Alice Johnson",
+          event_title: "Dog Walking",
+          location: "Main Shelter",
+          urgency: "Medium",
+          skills_used: "Dog Walking, Animal Care",
+          participation_date: "2025-01-15T10:00:00",
+          status: "completed",
+          hours_worked: 4
+        },
+        {
+          id: 2,
+          volunteer_name: "Bob Smith",
+          event_title: "Adoption Fair",
+          location: "Community Center",
+          urgency: "Medium",
+          skills_used: "Event Support, Customer Service",
+          participation_date: "2025-01-10T14:00:00",
+          status: "completed",
+          hours_worked: 6
+        },
+        {
+          id: 3,
+          volunteer_name: "Carol Davis",
+          event_title: "Animal Feeding",
+          location: "Shelter Kitchen",
+          urgency: "Medium",
+          skills_used: "Animal Care, Food Preparation",
+          participation_date: "2025-01-08T08:00:00",
+          status: "completed",
+          hours_worked: 3
+        }
+      ];
+      
+      res.json(sampleHistory);
+    } else {
+      res.json(history);
+    }
+  } catch (err) {
+    console.error('Error fetching volunteer history:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 router.get('/:id', auth, async (req, res) => {
   try {
     const [volunteers] = await pool.query('SELECT * FROM users WHERE id_user = ? AND role = ?', [req.params.id, 'volunteer']);
@@ -240,82 +317,7 @@ router.post('/assign', auth, async (req, res) => {
   }
 });
 
-// Get volunteer history (all roles can access)
-router.get('/history', auth, async (req, res) => {
-  try {
-    console.log('=== FETCHING VOLUNTEER HISTORY ===');
-    console.log('User ID:', req.user.id_user);
-    console.log('User role:', req.user.role);
-    
-    // Get volunteer history with proper joins
-    const [history] = await pool.query(`
-      SELECT 
-        vh.id,
-        u.name as volunteer_name,
-        COALESCE(vt.task_name, 'General Task') as event_title,
-        COALESCE(vt.description, 'Volunteer Activity') as location,
-        'Medium' as urgency,
-        'General Assistance' as skills_used,
-        vh.participation_date,
-        vh.status,
-        COALESCE(vh.hours_worked, 0) as hours_worked
-      FROM volunteer_history vh
-      LEFT JOIN users u ON vh.user_id = u.id_user
-      LEFT JOIN volunteer_tasks vt ON vh.task_id = vt.task_id
-      ORDER BY vh.participation_date DESC
-    `);
-    
-    console.log('History records found:', history.length);
-    console.log('Sample history:', history.slice(0, 2));
-    
-    // If no real data, create sample data for demonstration
-    if (history.length === 0) {
-      console.log('No history found, creating sample data');
-      const sampleHistory = [
-        {
-          id: 1,
-          volunteer_name: "Alice Johnson",
-          event_title: "Dog Walking",
-          location: "Main Shelter",
-          urgency: "Medium",
-          skills_used: "Dog Walking, Animal Care",
-          participation_date: "2025-01-15T10:00:00",
-          status: "completed",
-          hours_worked: 4
-        },
-        {
-          id: 2,
-          volunteer_name: "Bob Smith",
-          event_title: "Adoption Fair",
-          location: "Community Center",
-          urgency: "Medium",
-          skills_used: "Event Support, Customer Service",
-          participation_date: "2025-01-10T14:00:00",
-          status: "completed",
-          hours_worked: 6
-        },
-        {
-          id: 3,
-          volunteer_name: "Carol Davis",
-          event_title: "Animal Feeding",
-          location: "Shelter Kitchen",
-          urgency: "Medium",
-          skills_used: "Animal Care, Food Preparation",
-          participation_date: "2025-01-08T08:00:00",
-          status: "completed",
-          hours_worked: 3
-        }
-      ];
-      
-      res.json(sampleHistory);
-    } else {
-      res.json(history);
-    }
-  } catch (err) {
-    console.error('Error fetching volunteer history:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
+
 
 // Add volunteer history entry (admin/manager only)
 router.post('/history', auth, async (req, res) => {
