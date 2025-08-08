@@ -7,12 +7,27 @@ const restrictTo = require('../middleware/role');
 // Get volunteer participation history
 router.get('/volunteers/participation', auth, restrictTo(['manager', 'admin']), async (req, res) => {
   try {
+    console.log('=== VOLUNTEER PARTICIPATION REPORT CALLED ===');
+    console.log('User role:', req.user.role);
+    console.log('User ID:', req.user.id_user);
+    
+    // First, let's get all volunteers
     const [volunteers] = await pool.query(`
       SELECT 
         u.id_user,
         u.name,
         u.email,
-        u.role,
+        u.role
+      FROM users u
+      WHERE u.role = 'volunteer'
+    `);
+    
+    console.log('Found volunteers:', volunteers.length);
+    
+    // Then get their participation data
+    const [participationData] = await pool.query(`
+      SELECT 
+        vh.user_id,
         COUNT(DISTINCT vh.task_id) as total_tasks,
         COUNT(CASE WHEN vh.status = 'completed' THEN 1 END) as completed_tasks,
         COUNT(CASE WHEN vh.status = 'attended' THEN 1 END) as attended_events,
@@ -21,14 +36,33 @@ router.get('/volunteers/participation', auth, restrictTo(['manager', 'admin']), 
         SUM(CASE WHEN vh.hours_worked IS NOT NULL THEN vh.hours_worked END) as total_hours,
         MIN(vh.participation_date) as first_participation,
         MAX(vh.participation_date) as last_participation
-      FROM users u
-      LEFT JOIN volunteer_history vh ON u.id_user = vh.user_id
-      WHERE u.role = 'volunteer'
-      GROUP BY u.id_user, u.name, u.email, u.role
-      ORDER BY total_hours DESC, total_tasks DESC
+      FROM volunteer_history vh
+      GROUP BY vh.user_id
     `);
     
-    res.json(volunteers);
+    console.log('Found participation data:', participationData.length);
+    
+    // Combine the data
+    const result = volunteers.map(volunteer => {
+      const participation = participationData.find(p => p.user_id === volunteer.id_user);
+      return {
+        id_user: volunteer.id_user,
+        name: volunteer.name,
+        email: volunteer.email,
+        role: volunteer.role,
+        total_tasks: participation ? participation.total_tasks : 0,
+        completed_tasks: participation ? participation.completed_tasks : 0,
+        attended_events: participation ? participation.attended_events : 0,
+        registered_events: participation ? participation.registered_events : 0,
+        avg_hours_per_task: participation ? participation.avg_hours_per_task : 0,
+        total_hours: participation ? participation.total_hours : 0,
+        first_participation: participation ? participation.first_participation : null,
+        last_participation: participation ? participation.last_participation : null
+      };
+    });
+    
+    console.log('Returning result with', result.length, 'volunteers');
+    res.json(result);
   } catch (err) {
     console.error('Volunteer participation report error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -98,23 +132,67 @@ router.get('/volunteers/:id/activity', auth, restrictTo(['manager', 'admin']), a
 // Get event management report
 router.get('/events/management', auth, restrictTo(['manager', 'admin']), async (req, res) => {
   try {
+    console.log('=== EVENT MANAGEMENT REPORT CALLED ===');
+    console.log('User role:', req.user.role);
+    console.log('User ID:', req.user.id_user);
+    
+    // First, let's get all events
     const [events] = await pool.query(`
       SELECT 
-        e.*,
+        e.id,
+        e.title,
+        e.description,
+        e.date,
+        e.time,
+        e.location,
+        e.urgency,
+        e.max_volunteers
+      FROM events e
+      ORDER BY e.date DESC
+    `);
+    
+    console.log('Found events:', events.length);
+    
+    // Then get their volunteer data
+    const [volunteerData] = await pool.query(`
+      SELECT 
+        vt.task_name,
         COUNT(DISTINCT vh.user_id) as total_volunteers,
         COUNT(CASE WHEN vh.status = 'attended' THEN 1 END) as attended_volunteers,
         COUNT(CASE WHEN vh.status = 'registered' THEN 1 END) as registered_volunteers,
         COUNT(CASE WHEN vh.status = 'completed' THEN 1 END) as completed_tasks,
         AVG(CASE WHEN vh.hours_worked IS NOT NULL THEN vh.hours_worked END) as avg_hours_per_volunteer,
         SUM(CASE WHEN vh.hours_worked IS NOT NULL THEN vh.hours_worked END) as total_hours_worked
-      FROM events e
-      LEFT JOIN volunteer_tasks vt ON e.title = vt.task_name
+      FROM volunteer_tasks vt
       LEFT JOIN volunteer_history vh ON vt.task_id = vh.task_id
-      GROUP BY e.id, e.title, e.date, e.location, e.urgency
-      ORDER BY e.date DESC
+      GROUP BY vt.task_name
     `);
     
-    res.json(events);
+    console.log('Found volunteer data:', volunteerData.length);
+    
+    // Combine the data
+    const result = events.map(event => {
+      const volunteer = volunteerData.find(v => v.task_name === event.title);
+      return {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        urgency: event.urgency,
+        max_volunteers: event.max_volunteers,
+        total_volunteers: volunteer ? volunteer.total_volunteers : 0,
+        attended_volunteers: volunteer ? volunteer.attended_volunteers : 0,
+        registered_volunteers: volunteer ? volunteer.registered_volunteers : 0,
+        completed_tasks: volunteer ? volunteer.completed_tasks : 0,
+        avg_hours_per_volunteer: volunteer ? volunteer.avg_hours_per_volunteer : 0,
+        total_hours_worked: volunteer ? volunteer.total_hours_worked : 0
+      };
+    });
+    
+    console.log('Returning result with', result.length, 'events');
+    res.json(result);
   } catch (err) {
     console.error('Event management report error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -186,11 +264,26 @@ router.get('/events/:id/detailed', auth, restrictTo(['manager', 'admin']), async
 // Get volunteer performance metrics
 router.get('/volunteers/performance', auth, restrictTo(['manager', 'admin']), async (req, res) => {
   try {
-    const [performance] = await pool.query(`
+    console.log('=== VOLUNTEER PERFORMANCE REPORT CALLED ===');
+    console.log('User role:', req.user.role);
+    console.log('User ID:', req.user.id_user);
+    
+    // First, let's get all volunteers
+    const [volunteers] = await pool.query(`
       SELECT 
         u.id_user,
         u.name,
-        u.email,
+        u.email
+      FROM users u
+      WHERE u.role = 'volunteer'
+    `);
+    
+    console.log('Found volunteers:', volunteers.length);
+    
+    // Then get their performance data
+    const [performanceData] = await pool.query(`
+      SELECT 
+        vh.user_id,
         COUNT(DISTINCT vh.task_id) as total_activities,
         COUNT(CASE WHEN vh.status = 'completed' THEN 1 END) as completed_tasks,
         COUNT(CASE WHEN vh.status = 'attended' THEN 1 END) as attended_events,
@@ -199,17 +292,34 @@ router.get('/volunteers/performance', auth, restrictTo(['manager', 'admin']), as
         COUNT(CASE WHEN vh.status = 'no_show' THEN 1 END) as no_shows,
         ROUND(
           (COUNT(CASE WHEN vh.status IN ('completed', 'attended') THEN 1 END) * 100.0 / 
-           COUNT(*)
+           NULLIF(COUNT(*), 0)
         ), 2
         ) as reliability_percentage
-      FROM users u
-      LEFT JOIN volunteer_history vh ON u.id_user = vh.user_id
-      WHERE u.role = 'volunteer'
-      GROUP BY u.id_user, u.name, u.email
-      ORDER BY reliability_percentage DESC, total_hours DESC
+      FROM volunteer_history vh
+      GROUP BY vh.user_id
     `);
     
-    res.json(performance);
+    console.log('Found performance data:', performanceData.length);
+    
+    // Combine the data
+    const result = volunteers.map(volunteer => {
+      const performance = performanceData.find(p => p.user_id === volunteer.id_user);
+      return {
+        id_user: volunteer.id_user,
+        name: volunteer.name,
+        email: volunteer.email,
+        total_activities: performance ? performance.total_activities : 0,
+        completed_tasks: performance ? performance.completed_tasks : 0,
+        attended_events: performance ? performance.attended_events : 0,
+        total_hours: performance ? performance.total_hours : 0,
+        avg_hours_per_activity: performance ? performance.avg_hours_per_activity : 0,
+        no_shows: performance ? performance.no_shows : 0,
+        reliability_percentage: performance ? performance.reliability_percentage : 0
+      };
+    });
+    
+    console.log('Returning result with', result.length, 'volunteers');
+    res.json(result);
   } catch (err) {
     console.error('Volunteer performance report error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -219,10 +329,17 @@ router.get('/volunteers/performance', auth, restrictTo(['manager', 'admin']), as
 // Get monthly activity summary
 router.get('/monthly/summary', auth, restrictTo(['manager', 'admin']), async (req, res) => {
   try {
+    console.log('=== MONTHLY SUMMARY REPORT CALLED ===');
+    console.log('User role:', req.user.role);
+    console.log('User ID:', req.user.id_user);
+    
     const { year, month } = req.query;
     const targetYear = year || new Date().getFullYear();
     const targetMonth = month || new Date().getMonth() + 1;
     
+    console.log('Target year:', targetYear, 'Target month:', targetMonth);
+    
+    // Get summary data
     const [summary] = await pool.query(`
       SELECT 
         COUNT(DISTINCT e.id) as total_events,
@@ -238,6 +355,9 @@ router.get('/monthly/summary', auth, restrictTo(['manager', 'admin']), async (re
       WHERE YEAR(vh.participation_date) = ? AND MONTH(vh.participation_date) = ?
     `, [targetYear, targetMonth]);
     
+    console.log('Summary data:', summary[0]);
+    
+    // Get daily breakdown
     const [monthlyBreakdown] = await pool.query(`
       SELECT 
         DATE(vh.participation_date) as date,
@@ -250,11 +370,16 @@ router.get('/monthly/summary', auth, restrictTo(['manager', 'admin']), async (re
       ORDER BY date
     `, [targetYear, targetMonth]);
     
-    res.json({
+    console.log('Monthly breakdown data:', monthlyBreakdown.length, 'days');
+    
+    const result = {
       summary: summary[0],
       monthlyBreakdown,
       period: { year: targetYear, month: targetMonth }
-    });
+    };
+    
+    console.log('Returning monthly summary result');
+    res.json(result);
   } catch (err) {
     console.error('Monthly summary report error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
