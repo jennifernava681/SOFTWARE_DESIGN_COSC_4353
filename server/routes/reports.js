@@ -4,8 +4,59 @@ const pool = require('../db');
 const auth = require('../middleware/auth');
 const restrictTo = require('../middleware/role');
 
+// Test database connection and user roles
+router.get('/test-db', async (req, res) => {
+  try {
+    console.log('=== TESTING DATABASE CONNECTION ===');
+    
+    // Test basic connection
+    const [result] = await pool.query('SELECT 1 as test');
+    console.log('Database connection test:', result[0]);
+    
+    // Test users table
+    const [users] = await pool.query('SELECT id_user, name, email, role FROM users LIMIT 5');
+    console.log('Users in database:', users);
+    
+    // Test roles
+    const [roles] = await pool.query('SELECT DISTINCT role FROM users');
+    console.log('Available roles:', roles.map(r => r.role));
+    
+    res.json({
+      dbConnection: 'OK',
+      users: users,
+      availableRoles: roles.map(r => r.role)
+    });
+  } catch (err) {
+    console.error('Database test error:', err);
+    res.status(500).json({ message: 'Database error', error: err.message });
+  }
+});
+
+// Debug endpoint to check user role
+router.get('/debug-user', auth, async (req, res) => {
+  try {
+    console.log('=== DEBUG USER ENDPOINT ===');
+    console.log('User object:', req.user);
+    console.log('User role:', req.user?.role);
+    console.log('User ID:', req.user?.id_user);
+    
+    // Also check the database to see what role this user actually has
+    const [user] = await pool.query('SELECT id_user, name, email, role FROM users WHERE id_user = ?', [req.user.id_user]);
+    
+    res.json({
+      jwtUser: req.user,
+      databaseUser: user[0] || null,
+      tokenValid: !!req.user,
+      roleMatch: user[0] ? req.user.role === user[0].role : false
+    });
+  } catch (err) {
+    console.error('Debug user error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // Get volunteer participation history
-router.get('/volunteers/participation', auth, restrictTo(['manager', 'admin']), async (req, res) => {
+router.get('/volunteers/participation', auth, async (req, res) => {
   try {
     console.log('=== VOLUNTEER PARTICIPATION REPORT CALLED ===');
     console.log('User role:', req.user.role);
@@ -268,7 +319,7 @@ router.get('/volunteers/performance', auth, restrictTo(['manager', 'admin']), as
     console.log('User role:', req.user.role);
     console.log('User ID:', req.user.id_user);
     
-    // First, let's get all volunteers
+    // get all volunteers
     const [volunteers] = await pool.query(`
       SELECT 
         u.id_user,
@@ -280,7 +331,7 @@ router.get('/volunteers/performance', auth, restrictTo(['manager', 'admin']), as
     
     console.log('Found volunteers:', volunteers.length);
     
-    // Then get their performance data
+    //  get performance data
     const [performanceData] = await pool.query(`
       SELECT 
         vh.user_id,

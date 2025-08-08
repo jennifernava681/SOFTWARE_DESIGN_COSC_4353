@@ -169,7 +169,13 @@ router.post('/login', async (req, res) => {
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    console.log('=== LOGIN DEBUG ===');
+    console.log('User from database:', { id_user: user.id_user, name: user.name, email: user.email, role: user.role });
+    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    
     const token = jwt.sign({ id_user: user.id_user, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    console.log('Token created successfully');
+    
     res.json({ token, user: { id_user: user.id_user, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
