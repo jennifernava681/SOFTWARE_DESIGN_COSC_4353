@@ -21,21 +21,22 @@ function NewMedicalRecordForm() {
   const allDiagnoses = ["Allergies", "Parasites", "Dental Issues", "Respiratory Infection", "Arthritis", "Obesity", "Skin Condition"]
   const allTreatments = ["Antibiotics", "Pain Medication", "Dietary Change", "Surgery", "Vaccine", "Physical Therapy", "Topical Cream"]
 
-  const formatAnimal = (animal) => ({
-    id: animal.id_animal || animal.id,
-    name: animal.name || "Unknown",
-    type: animal.species || "Unknown",
-    breed: animal.species || "Mixed Breed",
-  })
+  const formatAnimalForDisplay = (animal) => ({
+  id: animal.id_animal || animal.id,
+  name: animal.name || "Unknown",
+  type: animal.species || "Unknown",
+  status: animal.status?.toLowerCase() || "surrendered",
+})
 
-  const getAnimals = () => {
-    return apiFetch("/api/animals", "GET")
-      .then(data => Array.isArray(data) ? data.map(formatAnimal) : [])
-      .catch(err => {
-        console.error("Error fetching animals:", err)
-        throw err
-      })
+const getAnimals = async () => {
+  try {
+    const data = await apiFetch("/api/animals", "GET")
+    return Array.isArray(data) ? data.map(formatAnimalForDisplay) : []
+  } catch (err) {
+    console.error("Error fetching animals:", err)
+    return []
   }
+}
 
   const getMedicalRecords = () => {
     return apiFetch("/api/vets/medical-records", "GET")

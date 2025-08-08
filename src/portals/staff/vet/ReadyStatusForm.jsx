@@ -9,8 +9,7 @@ const formatAnimalForDisplay = (animal) => ({
   id: animal.id_animal || animal.id,
   name: animal.name || "Unknown",
   type: animal.species || "Unknown",
-  breed: animal.species || "Mixed Breed",
-  readyForAdoption: animal.status?.toLowerCase() === "available",
+  status: animal.status?.toLowerCase() || "surrendered",
 })
 
 const getAnimals = async () => {
@@ -23,9 +22,9 @@ const getAnimals = async () => {
   }
 }
 
-const updateAdoptionStatus = async (animalId, isReady) => {
+const updateAdoptionStatus = async (animalId, newStatus) => {
   try {
-    const payload = { status: isReady ? "available" : "not available" }
+    const payload = { status: newStatus }
     const response = await apiFetch(`/api/vets/ready-status/${animalId}`, "PUT", payload)
     return response
   } catch (err) {
@@ -40,14 +39,18 @@ export default function NewReadyStatusForm() {
   const [availableAnimals, setAvailableAnimals] = useState([])
   const [formData, setFormData] = useState({
     animalId: "",
-    readyForAdoption: "false",
+    status: "surrendered",
   })
 
   useEffect(() => {
     getAnimals().then((animals) => {
       setAvailableAnimals(animals)
       if (animals.length > 0) {
-        setFormData((prev) => ({ ...prev, animalId: animals[0].id.toString() }))
+        setFormData((prev) => ({
+          ...prev,
+          animalId: animals[0].id.toString(),
+          status: animals[0].status || "surrendered",
+        }))
       }
     })
   }, [])
@@ -66,17 +69,14 @@ export default function NewReadyStatusForm() {
       return
     }
 
-    const isReady = formData.readyForAdoption === "true"
-    const statusText = isReady ? "Ready for Adoption" : "Not Ready"
-
     try {
-      await updateAdoptionStatus(formData.animalId, isReady)
+      await updateAdoptionStatus(formData.animalId, formData.status)
 
       const newUpdate = {
         id: Date.now() + Math.random(),
         animalName: selectedAnimal.name,
-        oldStatus: selectedAnimal.readyForAdoption ? "Ready for Adoption" : "Not Ready",
-        newStatus: statusText,
+        oldStatus: selectedAnimal.status,
+        newStatus: formData.status,
         date: new Date().toISOString().split("T")[0],
       }
 
@@ -85,13 +85,12 @@ export default function NewReadyStatusForm() {
       setAvailableAnimals((prev) =>
         prev.map((animal) =>
           animal.id.toString() === formData.animalId
-            ? { ...animal, readyForAdoption: isReady }
+            ? { ...animal, status: formData.status }
             : animal
         )
       )
 
-      alert(`Status for ${selectedAnimal.name} updated to ${statusText}!`)
-      setFormData((prev) => ({ ...prev, readyForAdoption: "false" }))
+      alert(`Status for ${selectedAnimal.name} updated to ${formData.status}!`)
     } catch (error) {
       alert("Error updating status. Please try again.")
     }
@@ -109,7 +108,7 @@ export default function NewReadyStatusForm() {
         <div className="task-container">
           <div className="task-header">
             <h1 className="task-title">Update Adoption Status</h1>
-            <p className="task-subtitle">Mark animals as ready or not ready for adoption</p>
+            <p className="task-subtitle">Set animal status: available, adopted, or surrendered</p>
           </div>
 
           <div className="task-grid">
@@ -139,27 +138,27 @@ export default function NewReadyStatusForm() {
                       <option value="">Select an animal</option>
                       {availableAnimals.map((animal) => (
                         <option key={animal.id} value={animal.id}>
-                          {animal.name} ({animal.type} - {animal.breed}) —{" "}
-                          {animal.readyForAdoption ? "Ready" : "Not Ready"}
+                          {animal.name} ({animal.type} - {animal.breed}) — {animal.status}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="readyForAdoption" className="form-label">
-                      Ready for Adoption
+                    <label htmlFor="status" className="form-label">
+                      Status
                     </label>
                     <select
-                      id="readyForAdoption"
-                      name="readyForAdoption"
+                      id="status"
+                      name="status"
                       className="form-select"
-                      value={formData.readyForAdoption}
+                      value={formData.status}
                       onChange={handleChange}
                       required
                     >
-                      <option value="true">Yes - Ready</option>
-                      <option value="false">No - Not Ready</option>
+                      <option value="available">Available</option>
+                      <option value="adopted">Adopted</option>
+                      <option value="surrendered">Surrendered</option>
                     </select>
                   </div>
 
@@ -189,13 +188,7 @@ export default function NewReadyStatusForm() {
                       <div key={update.id} className="task-item">
                         <div className="task-item-header">
                           <h3 className="task-item-title">Status for {update.animalName}</h3>
-                          <span
-                            className={`badge ${
-                              update.newStatus === "Ready for Adoption"
-                                ? "badge-priority-low"
-                                : "badge-priority-high"
-                            }`}
-                          >
+                          <span className={`badge badge-priority-${update.newStatus === "available" ? "low" : "high"}`}>
                             {update.newStatus}
                           </span>
                         </div>
