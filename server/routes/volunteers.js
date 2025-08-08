@@ -181,11 +181,8 @@ router.get('/matches', auth, async (req, res) => {
     console.log('Events found:', events.length);
     console.log('Volunteers found:', volunteers.length);
     console.log('Matches created:', matches.length);
-<<<<<<< HEAD
-=======
     console.log('Sample events:', events.slice(0, 2));
     console.log('Sample volunteers:', volunteers.slice(0, 2));
->>>>>>> 4f0a233a3bb1ff9a22240d59aa7fef9dd3f3461b
     
     res.json(matches);
   } catch (err) {
