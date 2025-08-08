@@ -54,7 +54,7 @@ function ActivityHistory() {
             urgency: "High",
             skills_used: "Dog Walking, Animal Care",
             participation_date: "2025-01-15",
-            status: "Completed",
+            status: "attended",
             hours_worked: 4
           },
           {
@@ -65,7 +65,7 @@ function ActivityHistory() {
             urgency: "High",
             skills_used: "Animal Care, Customer Service",
             participation_date: "2025-01-20",
-            status: "Completed",
+            status: "registered",
             hours_worked: 6
           },
           {
@@ -76,7 +76,7 @@ function ActivityHistory() {
             urgency: "Medium",
             skills_used: "Medical Assistance",
             participation_date: "2025-01-25",
-            status: "Upcoming",
+            status: "cancelled",
             hours_worked: 0
           }
         ];
@@ -200,8 +200,8 @@ function ActivityHistory() {
               className="filter-select"
             >
               <option value="">All Statuses</option>
-              <option value="completed">Completed</option>
-              <option value="upcoming">Upcoming</option>
+              <option value="registered">Registered</option>
+              <option value="attended">Attended</option>
               <option value="cancelled">Cancelled</option>
             </select>
             <input
